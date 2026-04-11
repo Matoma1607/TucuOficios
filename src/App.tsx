@@ -195,7 +195,7 @@ function HomePage() {
                       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
                     >
                       {filteredJobs.map((job) => (
-                        <JobCard key={job.id} job={job} />
+                        <JobCard key={job.id} job={job} currentUser={user} />
                       ))}
                     </motion.div>
                   ) : (
