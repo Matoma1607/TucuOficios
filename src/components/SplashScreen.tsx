@@ -18,8 +18,31 @@ export default function SplashScreen({ onComplete }: { onComplete: () => void })
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center"
+          className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center overflow-hidden"
         >
+          {/* Background Pattern / Scribbles */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+            <svg width="100%" height="100%">
+              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
+              </pattern>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+            </svg>
+          </div>
+          
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-primary/10 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+          {/* Abstract Scribbles */}
+          <div className="absolute inset-0 opacity-[0.05] pointer-events-none">
+            <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+              <path d="M100,200 Q400,100 500,400 T900,200" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path d="M200,800 Q500,700 600,900 T800,700" fill="none" stroke="currentColor" strokeWidth="2" />
+              <circle cx="850" cy="150" r="40" fill="none" stroke="currentColor" strokeWidth="2" />
+              <path d="M50,500 L150,500 M100,450 L100,550" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </div>
+
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
