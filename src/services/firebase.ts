@@ -10,6 +10,7 @@ import {
   getDoc,
   doc,
   setDoc,
+  deleteDoc,
   getDocFromServer
 } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
@@ -68,6 +69,15 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
+
+// Job Helpers
+export const deleteJob = async (jobId: string) => {
+  try {
+    await deleteDoc(doc(db, 'jobs', jobId));
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `jobs/${jobId}`);
+  }
+};
 
 // Auth Helpers
 export const loginWithGoogle = async () => {
