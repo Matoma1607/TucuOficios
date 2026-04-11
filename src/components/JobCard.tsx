@@ -1,26 +1,82 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { MessageCircle, MapPin, User } from 'lucide-react';
-import { Job } from '../types';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MessageCircle, MapPin, User, Trash2, AlertCircle } from 'lucide-react';
+import { Job, User as UserType } from '../types';
+import { deleteJob } from '../services/firebase';
 
 interface JobCardProps {
   job: Job;
+  currentUser: UserType | null;
   key?: React.Key;
 }
 
-export default function JobCard({ job }: JobCardProps) {
+export default function JobCard({ job, currentUser }: JobCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const isOwner = currentUser?.uid === job.professionalId;
+
   const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
     `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`
   )}`;
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteJob(job.id);
+    } catch (error) {
+      console.error("Error deleting job:", error);
+    } finally {
+      setIsDeleting(false);
+      setShowConfirm(false);
+    }
+  };
+
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
       transition={{ duration: 0.3 }}
-      className="group flex flex-col bg-white/70 backdrop-blur-md border border-white/40 rounded-[2rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] hover:shadow-[0_8px_32px_0_rgba(79,70,229,0.15)] transition-all duration-500"
+      className="group relative flex flex-col bg-white/70 backdrop-blur-md border border-white/40 rounded-[2rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] hover:shadow-[0_8px_32px_0_rgba(79,70,229,0.15)] transition-all duration-500"
     >
+      {/* Delete Confirmation Overlay */}
+      <AnimatePresence>
+        {showConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-20 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center"
+          >
+            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
+              <AlertCircle className="w-6 h-6 text-red-500" />
+            </div>
+            <h4 className="text-lg font-bold text-gray-900 mb-2">¿Borrar trabajo?</h4>
+            <p className="text-sm text-gray-500 mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+              >
+                {isDeleting ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  'Borrar'
+                )}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
         <img
@@ -29,11 +85,20 @@ export default function JobCard({ job }: JobCardProps) {
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex gap-2">
           <span className="px-3 py-1 text-xs font-semibold bg-white/90 backdrop-blur-sm text-gray-800 rounded-full shadow-sm">
             {job.category}
           </span>
         </div>
+        
+        {isOwner && (
+          <button
+            onClick={() => setShowConfirm(true)}
+            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm text-red-500 rounded-full shadow-sm hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Content */}
