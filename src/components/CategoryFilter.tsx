@@ -5,7 +5,8 @@ import {
   Truck, 
   Zap, 
   Paintbrush,
-  LayoutGrid
+  LayoutGrid,
+  Briefcase
 } from 'lucide-react';
 import { Category, CATEGORIES } from '../types';
 
@@ -21,6 +22,7 @@ const CATEGORY_ICONS: Record<string, any> = {
   'Mudanzas': Truck,
   'Electricidad': Zap,
   'Pintura': Paintbrush,
+  'Otros': Briefcase,
   'All': LayoutGrid
 };
 

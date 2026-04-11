@@ -17,6 +17,6 @@ export interface User {
   photoURL: string | null;
 }
 
-export type Category = 'Plomería' | 'Cerrajería' | 'Aires' | 'Mudanzas' | 'Electricidad' | 'Pintura';
+export type Category = 'Plomería' | 'Cerrajería' | 'Aires' | 'Mudanzas' | 'Electricidad' | 'Pintura' | 'Otros';
 
-export const CATEGORIES: Category[] = ['Plomería', 'Cerrajería', 'Aires', 'Mudanzas', 'Electricidad', 'Pintura'];
+export const CATEGORIES: Category[] = ['Plomería', 'Cerrajería', 'Aires', 'Mudanzas', 'Electricidad', 'Pintura', 'Otros'];
