@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 
@@ -82,49 +82,26 @@ export const deleteJob = async (jobId: string) => {
 // Auth Helpers
 export const loginWithGoogle = async () => {
   try {
-    // Detect mobile to use redirect instead of popup
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
-    if (isMobile) {
-      await signInWithRedirect(auth, googleProvider);
-      return;
-    }
-
     const result = await signInWithPopup(auth, googleProvider);
-    return await handleUserDoc(result.user);
+    const user = result.user;
+    
+    // Create/Update user doc
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        photoURL: user.photoURL,
+        role: 'user'
+      });
+    }
+    
+    return user;
   } catch (error) {
     console.error("Login error:", error);
-    throw error;
-  }
-};
-
-const handleUserDoc = async (user: any) => {
-  // Create/Update user doc
-  const userRef = doc(db, 'users', user.uid);
-  const userSnap = await getDoc(userRef);
-  
-  if (!userSnap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      displayName: user.displayName,
-      email: user.email,
-      photoURL: user.photoURL,
-      role: 'user'
-    });
-  }
-  
-  return user;
-};
-
-export const handleRedirectResult = async () => {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      await handleUserDoc(result.user);
-    }
-    return result?.user;
-  } catch (error) {
-    console.error("Redirect login error:", error);
     throw error;
   }
 };

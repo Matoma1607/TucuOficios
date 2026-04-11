@@ -13,7 +13,7 @@ import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
-import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType, handleRedirectResult } from './services/firebase';
+import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
 import { Job, Category, User } from './types';
 
 function HomePage() {
@@ -24,7 +24,6 @@ function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const location = useLocation();
 
@@ -37,9 +36,6 @@ function HomePage() {
 
   // Auth Listener
   useEffect(() => {
-    // Handle redirect result first
-    handleRedirectResult().catch(err => console.error("Redirect error", err));
-
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
@@ -89,14 +85,16 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
-    setIsLoggingIn(true);
+    // We don't set loading state BEFORE the popup to avoid browser blockers
     try {
       await loginWithGoogle();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed", error);
-    } finally {
-      // For popups, we stop loading here. For redirects, the page will reload anyway.
-      setIsLoggingIn(false);
+      if (error.code === 'auth/popup-blocked') {
+        alert("⚠️ El navegador bloqueó la ventana de inicio de sesión.\n\nPor favor, permití las 'ventanas emergentes' (popups) en la configuración de tu navegador e intentá de nuevo.");
+      } else {
+        alert("Hubo un problema al intentar iniciar sesión. Por favor, intentá de nuevo.");
+      }
     }
   };
 
@@ -131,7 +129,6 @@ function HomePage() {
             onLogin={handleLogin} 
             onLogout={handleLogout} 
             onPostClick={() => setIsModalOpen(true)} 
-            isLoggingIn={isLoggingIn}
           />
 
           <main className="max-w-7xl mx-auto px-4 pb-20">
