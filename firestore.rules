@@ -64,7 +64,7 @@ service cloud.firestore {
              data.zone is string && data.zone.size() > 0 && data.zone.size() < 50 &&
              data.professionalName is string &&
              data.professionalId == request.auth.uid &&
-             data.whatsapp is string && data.whatsapp.size() >= 10 && data.whatsapp.size() <= 15 &&
+             data.whatsapp is string && data.whatsapp.size() >= 8 && data.whatsapp.size() <= 20 &&
              isValidUrl(data.imageUrl) &&
              data.createdAt is number;
     }
