@@ -2,13 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Upload, Camera } from "lucide-react";
 import { collection, addDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import {
-  db,
-  storage,
-  handleFirestoreError,
-  OperationType,
-} from "../services/firebase";
+import { db, handleFirestoreError, OperationType } from "../services/firebase";
 import { CATEGORIES, Category } from "../types";
 
 interface PostJobModalProps {
@@ -49,11 +43,16 @@ export default function PostJobModal({
     setIsSubmitting(true);
 
     try {
-      // 1. Upload Image to Cloudinary (Free & No Credit Card required)
-      // Reemplaza 'TU_CLOUD_NAME' y 'TU_UPLOAD_PRESET' con tus datos de Cloudinary
+      // 1. Obtener configuración de Cloudinary desde el archivo .env
       const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
       const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+      if (!CLOUD_NAME || !UPLOAD_PRESET) {
+        console.error("ERROR: No se encontraron las variables VITE_CLOUDINARY en el archivo .env");
+        throw new Error("Configuración de imagen incompleta. Revisá tu archivo .env");
+      }
+
+      // 2. Preparar el envío a Cloudinary
       const formData = new FormData();
       formData.append("file", image);
       formData.append("upload_preset", UPLOAD_PRESET);
@@ -63,17 +62,18 @@ export default function PostJobModal({
         {
           method: "POST",
           body: formData,
-        },
+        }
       );
 
       const data = await response.json();
 
-      if (!response.ok)
-        throw new Error(data.error?.message || "Error al subir imagen");
+      if (!response.ok) {
+        throw new Error(data.error?.message || "Error al subir imagen a Cloudinary");
+      }
 
       const downloadURL = data.secure_url;
 
-      // 2. Save to Firestore (Firebase)
+      // 3. Guardar en la base de datos de Firebase
       const jobData = {
         title,
         category,
@@ -90,6 +90,7 @@ export default function PostJobModal({
       resetForm();
       onClose();
     } catch (error) {
+      console.error("Error en el proceso de publicación:", error);
       handleFirestoreError(error, OperationType.CREATE, "jobs");
     } finally {
       setIsSubmitting(false);
