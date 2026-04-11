@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 
@@ -82,26 +82,52 @@ export const deleteJob = async (jobId: string) => {
 // Auth Helpers
 export const loginWithGoogle = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const user = result.user;
+    // Detectamos si es celular para usar Redirección (más seguro en móviles)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    // Create/Update user doc
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    
-    if (!userSnap.exists()) {
-      await setDoc(userRef, {
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        photoURL: user.photoURL,
-        role: 'user'
-      });
+    if (isMobile) {
+      // En celulares, redirigimos la página completa a Google
+      await signInWithRedirect(auth, googleProvider);
+      return;
     }
-    
-    return user;
+
+    // En computadoras, seguimos usando la ventanita emergente
+    const result = await signInWithPopup(auth, googleProvider);
+    return await handleUserDoc(result.user);
   } catch (error) {
     console.error("Login error:", error);
+    throw error;
+  }
+};
+
+const handleUserDoc = async (user: any) => {
+  // Creamos o actualizamos el documento del usuario en la base de datos
+  const userRef = doc(db, 'users', user.uid);
+  const userSnap = await getDoc(userRef);
+  
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      displayName: user.displayName,
+      email: user.email,
+      photoURL: user.photoURL,
+      role: 'user'
+    });
+  }
+  
+  return user;
+};
+
+// Esta función se encarga de recibir los datos cuando el usuario vuelve de Google
+export const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result?.user) {
+      await handleUserDoc(result.user);
+    }
+    return result?.user;
+  } catch (error) {
+    console.error("Redirect login error:", error);
     throw error;
   }
 };

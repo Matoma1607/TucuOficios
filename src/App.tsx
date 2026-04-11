@@ -13,7 +13,7 @@ import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
-import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
+import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType, handleRedirectResult } from './services/firebase';
 import { Job, Category, User } from './types';
 
 function HomePage() {
@@ -24,6 +24,7 @@ function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const location = useLocation();
 
@@ -36,6 +37,9 @@ function HomePage() {
 
   // Auth Listener
   useEffect(() => {
+    // Verificamos si el usuario viene de una redirección de Google
+    handleRedirectResult().catch(err => console.error("Error en redirección:", err));
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
@@ -85,7 +89,7 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
-    // We don't set loading state BEFORE the popup to avoid browser blockers
+    setIsLoggingIn(true);
     try {
       await loginWithGoogle();
     } catch (error: any) {
@@ -95,6 +99,10 @@ function HomePage() {
       } else {
         alert("Hubo un problema al intentar iniciar sesión. Por favor, intentá de nuevo.");
       }
+    } finally {
+      // Solo quitamos el cargando si no hubo redirección (en PC)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) setIsLoggingIn(false);
     }
   };
 
@@ -129,6 +137,7 @@ function HomePage() {
             onLogin={handleLogin} 
             onLogout={handleLogout} 
             onPostClick={() => setIsModalOpen(true)} 
+            isLoggingIn={isLoggingIn}
           />
 
           <main className="max-w-7xl mx-auto px-4 pb-20">

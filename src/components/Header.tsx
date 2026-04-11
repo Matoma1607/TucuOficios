@@ -7,9 +7,10 @@ interface HeaderProps {
   onLogin: () => void;
   onLogout: () => void;
   onPostClick: () => void;
+  isLoggingIn?: boolean;
 }
 
-export default function Header({ user, onLogin, onLogout, onPostClick }: HeaderProps) {
+export default function Header({ user, onLogin, onLogout, onPostClick, isLoggingIn }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/60 backdrop-blur-xl border-b border-white/20">
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
@@ -52,9 +53,17 @@ export default function Header({ user, onLogin, onLogout, onPostClick }: HeaderP
           ) : (
             <button
               onClick={onLogin}
-              className="px-6 py-2.5 bg-brand-primary text-white rounded-full font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 text-sm"
+              disabled={isLoggingIn}
+              className="px-6 py-2.5 bg-brand-primary text-white rounded-full font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95 text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Soy Profesional
+              {isLoggingIn ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Cargando...</span>
+                </>
+              ) : (
+                'Soy Profesional'
+              )}
             </button>
           )}
         </div>
