@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, ExternalLink } from 'lucide-react';
 import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
@@ -14,6 +14,7 @@ import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
 import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
+import { getRedirectResult } from 'firebase/auth';
 import { Job, Category, User } from './types';
 
 function HomePage() {
@@ -25,6 +26,8 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [isWhatsApp, setIsWhatsApp] = useState(false);
+  const [showWAGuide, setShowWAGuide] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -34,8 +37,18 @@ function HomePage() {
     }
   }, [location]);
 
+  useEffect(() => {
+    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    if (ua.indexOf('WhatsApp') > -1 || ua.indexOf('FBAN') > -1 || ua.indexOf('FBAV') > -1) {
+      setIsWhatsApp(true);
+    }
+  }, []);
+
   // Auth Listener
   useEffect(() => {
+    // Manejar resultado de redirección (para móviles)
+    getRedirectResult(auth).catch(err => console.error("Error en redirección:", err));
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
@@ -85,8 +98,11 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
-    // IMPORTANTE: No cambiamos estados antes de llamar al login
-    // para que el navegador no bloquee el popup por falta de "gesto de usuario"
+    if (isWhatsApp) {
+      setShowWAGuide(true);
+      return;
+    }
+
     try {
       await loginWithGoogle();
     } catch (error: any) {
@@ -131,6 +147,22 @@ function HomePage() {
             onLogout={handleLogout} 
             onPostClick={() => setIsModalOpen(true)} 
           />
+
+          {isWhatsApp && !user && (
+            <div className="max-w-7xl mx-auto px-4 mt-4">
+              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                <div className="p-2 bg-indigo-500 rounded-lg text-white shrink-0">
+                  <ExternalLink className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-indigo-900 text-sm">¿Querés publicar un trabajo?</h3>
+                  <p className="text-indigo-700 text-xs mt-1 leading-relaxed">
+                    Google no permite iniciar sesión dentro de WhatsApp. Tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <main className="max-w-7xl mx-auto px-4 pb-20">
             {/* Hero / Search Section */}
@@ -231,6 +263,44 @@ function HomePage() {
               professionalId={user.uid}
             />
           )}
+
+          {/* WhatsApp Guide Modal */}
+          <AnimatePresence>
+            {showWAGuide && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowWAGuide(false)}
+                  className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="relative w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl text-center"
+                >
+                  <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <ExternalLink className="w-10 h-10 text-indigo-600" />
+                  </div>
+                  <h2 className="text-2xl font-black text-gray-900 mb-4 leading-tight">
+                    ¡Casi listo!<br/><span className="text-indigo-600">Salí de WhatsApp</span>
+                  </h2>
+                  <p className="text-gray-600 mb-8 leading-relaxed">
+                    Por seguridad, Google no permite iniciar sesión dentro de WhatsApp.<br/><br/>
+                    Para continuar, tocá los <strong>3 puntitos</strong> de arriba a la derecha y elegí <strong>"Abrir en el navegador"</strong>.
+                  </p>
+                  <button
+                    onClick={() => setShowWAGuide(false)}
+                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95"
+                  >
+                    Entendido
+                  </button>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
 
           <CookieBanner />
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType } from '../services/firebase';
 import { CATEGORIES, Category } from '../types';
 
@@ -89,14 +89,17 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
     
     try {
       console.log('Iniciando subida de imagen...');
-      // 1. Upload Image to Firebase Storage
+      // 1. Convertir Data URL a Blob para una subida más robusta en móviles
+      const response = await fetch(image);
+      const blob = await response.blob();
+      
       const storageRef = ref(storage, `jobs/${Date.now()}-${professionalId}`);
       
       try {
-        await uploadString(storageRef, image, 'data_url');
-        console.log('Imagen subida a Storage');
+        await uploadBytes(storageRef, blob);
+        console.log('Imagen subida a Storage como Blob');
       } catch (storageErr: any) {
-        console.error('Error en Storage uploadString:', storageErr);
+        console.error('Error en Storage uploadBytes:', storageErr);
         if (storageErr.code === 'storage/unauthorized') {
           throw new Error('No tenés permisos para subir fotos (Storage Unauthorized).');
         }
