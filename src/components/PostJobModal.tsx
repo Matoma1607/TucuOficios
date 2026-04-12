@@ -39,10 +39,26 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
     setIsSubmitting(true);
     
     try {
+      console.log('Iniciando subida de imagen...');
       // 1. Upload Image to Firebase Storage
       const storageRef = ref(storage, `jobs/${Date.now()}-${professionalId}`);
-      await uploadString(storageRef, image, 'data_url');
-      const downloadURL = await getDownloadURL(storageRef);
+      
+      try {
+        await uploadString(storageRef, image, 'data_url');
+        console.log('Imagen subida a Storage');
+      } catch (storageErr: any) {
+        console.error('Error en Storage uploadString:', storageErr);
+        throw new Error(`Error al subir imagen: ${storageErr.message}`);
+      }
+
+      let downloadURL;
+      try {
+        downloadURL = await getDownloadURL(storageRef);
+        console.log('URL de descarga obtenida:', downloadURL);
+      } catch (urlErr: any) {
+        console.error('Error en getDownloadURL:', urlErr);
+        throw new Error(`Error al obtener URL de imagen: ${urlErr.message}`);
+      }
 
       // 2. Save to Firestore (Firebase)
       const jobData = {
@@ -56,7 +72,9 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
         createdAt: Date.now()
       };
 
+      console.log('Guardando documento en Firestore...');
       await addDoc(collection(db, 'jobs'), jobData);
+      console.log('Documento guardado con éxito');
       
       resetForm();
       onClose();
