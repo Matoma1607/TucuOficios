@@ -3,6 +3,7 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithRedirect,
   signOut, 
   onAuthStateChanged,
   browserLocalPersistence,
@@ -94,8 +95,16 @@ export const deleteJob = async (jobId: string) => {
 // Auth Helpers
 export const loginWithGoogle = async () => {
   try {
-    // Usamos Popup por defecto ya que Redirect es bloqueado por las políticas de Google en WebViews
-    // y por el entorno de iFrame de AI Studio.
+    // Detectar si es móvil para usar Redirect en lugar de Popup
+    // Esto es más robusto en navegadores móviles que bloquean popups
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      await signInWithRedirect(auth, googleProvider);
+      // En móvil, la ejecución se detiene aquí y redirige.
+      return;
+    }
+
     const result = await signInWithPopup(auth, googleProvider);
     const user = result.user;
     

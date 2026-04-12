@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, ExternalLink, Copy, Check } from 'lucide-react';
-import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { Search, SlidersHorizontal, ExternalLink, Copy, Check, X } from 'lucide-react';
+import { onSnapshot, collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Header from './components/Header';
@@ -29,6 +29,7 @@ function HomePage() {
   const [isWhatsApp, setIsWhatsApp] = useState(false);
   const [showWAGuide, setShowWAGuide] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const location = useLocation();
 
   const handleCopyLink = () => {
@@ -54,7 +55,31 @@ function HomePage() {
   // Auth Listener
   useEffect(() => {
     // Manejar resultado de redirección (para móviles)
-    getRedirectResult(auth).catch(err => console.error("Error en redirección:", err));
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          const user = result.user;
+          // Asegurarnos que el documento del usuario exista (mismo logic que en loginWithGoogle)
+          const userRef = doc(db, 'users', user.uid);
+          const userSnap = await getDoc(userRef);
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              uid: user.uid,
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              role: 'user'
+            });
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Error en redirección:", err);
+        // Si el error es el de "missing initial state", podemos intentar avisar al usuario
+        if (err.code === 'auth/internal-error' || err.message?.includes('missing initial state')) {
+          setAuthError("Hubo un problema de seguridad al volver de Google. Por favor, asegurate de no estar en modo incógnito y de permitir cookies.");
+        }
+      });
 
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
@@ -105,6 +130,7 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
+    setAuthError(null);
     if (isWhatsApp) {
       setShowWAGuide(true);
       return;
@@ -154,6 +180,28 @@ function HomePage() {
             onLogout={handleLogout} 
             onPostClick={() => setIsModalOpen(true)} 
           />
+
+          {authError && (
+            <div className="max-w-7xl mx-auto px-4 mt-4">
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
+                <div className="p-2 bg-red-500 rounded-lg text-white shrink-0">
+                  <SlidersHorizontal className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-red-900 text-sm">Error de Inicio de Sesión</h3>
+                  <p className="text-red-700 text-xs mt-1 leading-relaxed">
+                    {authError}
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setAuthError(null)}
+                  className="text-red-400 hover:text-red-600 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {isWhatsApp && !user && (
             <div className="max-w-7xl mx-auto px-4 mt-4">

@@ -147,6 +147,8 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
         msg = 'Error: El servidor de fotos rechazó la subida (Permisos).';
       } else if (error.message?.includes('Missing or insufficient permissions')) {
         msg = 'Error de permisos: Tu sesión puede haber expirado. Reingresá a la app.';
+      } else if (error.message?.includes('network-request-failed') || error.message?.includes('Network Error')) {
+        msg = 'Error de conexión: El navegador bloqueó la subida. Probá abriendo la app en Chrome.';
       } else if (error.message) {
         msg = error.message;
       }
