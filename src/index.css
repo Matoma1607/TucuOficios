@@ -4,6 +4,8 @@
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   
+  --breakpoint-xs: 350px;
+  
   --color-brand-primary: #4F46E5;
   --color-brand-secondary: #06B6D4;
   --color-brand-dark: #0F172A;
