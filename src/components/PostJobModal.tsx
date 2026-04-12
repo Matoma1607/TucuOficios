@@ -39,34 +39,10 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
     setIsSubmitting(true);
     
     try {
-      // 1. Upload Image to Cloudinary
-      const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME; 
-      const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
-      if (!CLOUD_NAME || !UPLOAD_PRESET) {
-        throw new Error('Configuración de imagen incompleta. Por favor configure Cloudinary.');
-      }
-
-      const formData = new FormData();
-      formData.append('file', image);
-      formData.append('upload_preset', UPLOAD_PRESET);
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Cloudinary Error Details:', errorData);
-        throw new Error(errorData.error?.message || `Error de Cloudinary (${response.status})`);
-      }
-
-      const data = await response.json();
-      const downloadURL = data.secure_url;
+      // 1. Upload Image to Firebase Storage
+      const storageRef = ref(storage, `jobs/${Date.now()}-${professionalId}`);
+      await uploadString(storageRef, image, 'data_url');
+      const downloadURL = await getDownloadURL(storageRef);
 
       // 2. Save to Firestore (Firebase)
       const jobData = {
@@ -90,10 +66,10 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
       
       let errorMessage = 'Hubo un error al publicar el trabajo.';
       
-      if (error.message?.includes('Configuración de imagen incompleta')) {
-        errorMessage = 'Error: No se han configurado las claves de Cloudinary. Por favor, contactá al administrador.';
+      if (error.code === 'storage/unauthorized') {
+        errorMessage = 'Error de permisos en el almacenamiento. Por favor, contactá al administrador.';
       } else if (error.message?.includes('Missing or insufficient permissions')) {
-        errorMessage = 'Error de permisos: Asegurate de estar logueado correctamente.';
+        errorMessage = 'Error de permisos en la base de datos: Asegurate de estar logueado correctamente.';
       } else if (error.message) {
         errorMessage = `Error: ${error.message}`;
       }
