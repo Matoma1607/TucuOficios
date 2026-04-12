@@ -13,7 +13,7 @@ import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
-import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType, handleRedirectResult } from './services/firebase';
+import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
 import { Job, Category, User } from './types';
 
 function HomePage() {
@@ -24,7 +24,6 @@ function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const location = useLocation();
 
@@ -37,9 +36,6 @@ function HomePage() {
 
   // Auth Listener
   useEffect(() => {
-    // Verificamos si el usuario viene de una redirección de Google
-    handleRedirectResult().catch(err => console.error("Error en redirección:", err));
-
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({
@@ -89,20 +85,17 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
-    setIsLoggingIn(true);
+    // IMPORTANTE: No cambiamos estados antes de llamar al login
+    // para que el navegador no bloquee el popup por falta de "gesto de usuario"
     try {
       await loginWithGoogle();
     } catch (error: any) {
       console.error("Login failed", error);
       if (error.code === 'auth/popup-blocked') {
-        alert("⚠️ El navegador bloqueó la ventana de inicio de sesión.\n\nPor favor, permití las 'ventanas emergentes' (popups) en la configuración de tu navegador e intentá de nuevo.");
+        alert("⚠️ El navegador bloqueó la ventana de inicio de sesión.\n\nPara solucionar esto:\n1. Hacé clic en los 3 puntitos de arriba a la derecha.\n2. Elegí 'Abrir en el navegador' o 'Abrir en Chrome/Safari'.\n3. Intentá de nuevo.");
       } else {
-        alert("Hubo un problema al intentar iniciar sesión. Por favor, intentá de nuevo.");
+        alert("Hubo un problema al iniciar sesión. Por favor, intentá de nuevo o abrí el sitio en Chrome/Safari.");
       }
-    } finally {
-      // Solo quitamos el cargando si no hubo redirección (en PC)
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (!isMobile) setIsLoggingIn(false);
     }
   };
 
@@ -137,7 +130,6 @@ function HomePage() {
             onLogin={handleLogin} 
             onLogout={handleLogout} 
             onPostClick={() => setIsModalOpen(true)} 
-            isLoggingIn={isLoggingIn}
           />
 
           <main className="max-w-7xl mx-auto px-4 pb-20">
