@@ -20,15 +20,18 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
   const [whatsapp, setWhatsapp] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setErrorMessage(null);
     const file = e.target.files?.[0];
     if (file) {
       // Validar tamaño máximo (10MB antes de comprimir)
       if (file.size > 10 * 1024 * 1024) {
-        alert('La imagen es demasiado grande. Por favor, elegí una de menos de 10MB.');
+        setErrorMessage('La imagen es demasiado grande (máx 10MB)');
         return;
       }
+// ... (rest of image compression logic stays same)
 
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -73,12 +76,14 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
     if (!title || !zone || !whatsapp || !image) return;
 
     setIsSubmitting(true);
+    setErrorMessage(null);
     
+    let isFinished = false;
     // Timeout de seguridad (30 segundos)
     const timeoutId = setTimeout(() => {
-      if (isSubmitting) {
+      if (!isFinished) {
         setIsSubmitting(false);
-        alert('La subida está tardando demasiado. Por favor, verificá tu conexión e intentá de nuevo.');
+        setErrorMessage('La subida está tardando demasiado. Verificá tu conexión e intentá de nuevo.');
       }
     }, 30000);
     
@@ -92,7 +97,10 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
         console.log('Imagen subida a Storage');
       } catch (storageErr: any) {
         console.error('Error en Storage uploadString:', storageErr);
-        throw new Error(`Error al subir imagen: ${storageErr.message}`);
+        if (storageErr.code === 'storage/unauthorized') {
+          throw new Error('No tenés permisos para subir fotos (Storage Unauthorized).');
+        }
+        throw new Error(`Error al subir la foto: ${storageErr.message}`);
       }
 
       let downloadURL;
@@ -101,7 +109,7 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
         console.log('URL de descarga obtenida:', downloadURL);
       } catch (urlErr: any) {
         console.error('Error en getDownloadURL:', urlErr);
-        throw new Error(`Error al obtener URL de imagen: ${urlErr.message}`);
+        throw new Error(`Error al obtener el link de la foto: ${urlErr.message}`);
       }
 
       // 2. Save to Firestore (Firebase)
@@ -120,25 +128,26 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
       await addDoc(collection(db, 'jobs'), jobData);
       console.log('Documento guardado con éxito');
       
+      isFinished = true;
       clearTimeout(timeoutId);
       resetForm();
       onClose();
-      alert('¡Trabajo publicado con éxito!');
+      // Usamos un pequeño delay para que el usuario vea el éxito si fuera necesario, 
+      // pero aquí cerramos el modal directamente.
     } catch (error: any) {
+      isFinished = true;
       clearTimeout(timeoutId);
       console.error('Error al publicar:', error);
       
-      let errorMessage = 'Hubo un error al publicar el trabajo.';
-      
-      if (error.code === 'storage/unauthorized') {
-        errorMessage = 'Error de permisos en el almacenamiento. Por favor, contactá al administrador.';
+      let msg = 'Hubo un error al publicar el trabajo.';
+      if (error.code === 'storage/unauthorized' || error.message?.includes('storage/unauthorized')) {
+        msg = 'Error: El servidor de fotos rechazó la subida (Permisos).';
       } else if (error.message?.includes('Missing or insufficient permissions')) {
-        errorMessage = 'Error de permisos en la base de datos: Asegurate de estar logueado correctamente.';
+        msg = 'Error de permisos: Tu sesión puede haber expirado. Reingresá a la app.';
       } else if (error.message) {
-        errorMessage = `Error: ${error.message}`;
+        msg = error.message;
       }
-      
-      alert(errorMessage);
+      setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -178,6 +187,11 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar">
+              {errorMessage && (
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+                  {errorMessage}
+                </div>
+              )}
               {/* Image Upload */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-700">Foto del trabajo</label>
