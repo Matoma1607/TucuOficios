@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, ExternalLink } from 'lucide-react';
+import { Search, SlidersHorizontal, ExternalLink, Copy, Check } from 'lucide-react';
 import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
@@ -28,7 +28,14 @@ function HomePage() {
   const [showSplash, setShowSplash] = useState(true);
   const [isWhatsApp, setIsWhatsApp] = useState(false);
   const [showWAGuide, setShowWAGuide] = useState(false);
+  const [copied, setCopied] = useState(false);
   const location = useLocation();
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie-consent');
@@ -289,14 +296,25 @@ function HomePage() {
                   </h2>
                   <p className="text-gray-600 mb-8 leading-relaxed">
                     Por seguridad, Google no permite iniciar sesión dentro de WhatsApp.<br/><br/>
-                    Para continuar, tocá los <strong>3 puntitos</strong> de arriba a la derecha y elegí <strong>"Abrir en el navegador"</strong>.
+                    Para continuar, tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
                   </p>
-                  <button
-                    onClick={() => setShowWAGuide(false)}
-                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95"
-                  >
-                    Entendido
-                  </button>
+                  
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleCopyLink}
+                      className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-100 active:scale-95 transition-all"
+                    >
+                      {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                      {copied ? '¡Copiado!' : 'Copiar link para Chrome'}
+                    </button>
+                    
+                    <button
+                      onClick={() => setShowWAGuide(false)}
+                      className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95"
+                    >
+                      Entendido
+                    </button>
+                  </div>
                 </motion.div>
               </div>
             )}

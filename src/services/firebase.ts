@@ -1,5 +1,13 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut, 
+  onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence
+} from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 
@@ -20,6 +28,10 @@ import firebaseConfig from '../../firebase-applet-config.json';
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+
+// Configurar persistencia local para mejores resultados en móviles
+setPersistence(auth, browserLocalPersistence).catch(err => console.error("Error setting persistence:", err));
+
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();
 
