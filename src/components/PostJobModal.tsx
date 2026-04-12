@@ -24,9 +24,45 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validar tamaño máximo (10MB antes de comprimir)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('La imagen es demasiado grande. Por favor, elegí una de menos de 10MB.');
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Crear un canvas para redimensionar la imagen
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Redimensionar si es muy grande (max 1200px)
+          const MAX_SIZE = 1200;
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Exportar como JPEG comprimido (calidad 0.7)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          setImage(compressedDataUrl);
+        };
+        img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -37,6 +73,14 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
     if (!title || !zone || !whatsapp || !image) return;
 
     setIsSubmitting(true);
+    
+    // Timeout de seguridad (30 segundos)
+    const timeoutId = setTimeout(() => {
+      if (isSubmitting) {
+        setIsSubmitting(false);
+        alert('La subida está tardando demasiado. Por favor, verificá tu conexión e intentá de nuevo.');
+      }
+    }, 30000);
     
     try {
       console.log('Iniciando subida de imagen...');
@@ -76,10 +120,12 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
       await addDoc(collection(db, 'jobs'), jobData);
       console.log('Documento guardado con éxito');
       
+      clearTimeout(timeoutId);
       resetForm();
       onClose();
       alert('¡Trabajo publicado con éxito!');
     } catch (error: any) {
+      clearTimeout(timeoutId);
       console.error('Error al publicar:', error);
       
       let errorMessage = 'Hubo un error al publicar el trabajo.';
