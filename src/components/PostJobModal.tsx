@@ -119,8 +119,15 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
       let finalUserName = currentUser?.displayName || profName;
 
       if (!finalUserId) {
-        const anonUser = await loginAnonymously();
-        finalUserId = anonUser.uid;
+        try {
+          const anonUser = await loginAnonymously();
+          finalUserId = anonUser.uid;
+        } catch (authErr: any) {
+          if (authErr.code === 'auth/admin-restricted-operation') {
+            throw new Error('El inicio de sesión anónimo está desactivado en Firebase. Por favor, activalo en la consola de Firebase (Authentication > Sign-in method > Anonymous).');
+          }
+          throw authErr;
+        }
       }
 
       // 2. Subida de imagen
