@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType, loginAnonymously } from '../services/firebase';
 import { CATEGORIES, Category } from '../types';
 import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -131,10 +131,18 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
       }
 
       // 2. Subida de imagen
-      const response = await fetch(image!);
-      const blob = await response.blob();
       const storageRef = ref(storage, `jobs/${Date.now()}-${finalUserId}`);
-      await uploadBytes(storageRef, blob);
+      
+      try {
+        await uploadString(storageRef, image!, 'data_url');
+      } catch (storageErr: any) {
+        console.error('Error en Storage:', storageErr);
+        if (storageErr.message?.includes('CORS') || storageErr.code === 'storage/retry-limit-exceeded') {
+          throw new Error('Error de CORS: Firebase Storage bloqueó la subida. Por favor, configurá el acceso CORS en Google Cloud Console como te indiqué.');
+        }
+        throw storageErr;
+      }
+
       const downloadURL = await getDownloadURL(storageRef);
 
       // 3. Guardar en Firestore
