@@ -26,7 +26,7 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [isWhatsApp, setIsWhatsApp] = useState(false);
+  const [isRestrictedEnv, setIsRestrictedEnv] = useState(false);
   const [showWAGuide, setShowWAGuide] = useState(false);
   const [copied, setCopied] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -47,8 +47,13 @@ function HomePage() {
 
   useEffect(() => {
     const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
-    if (ua.indexOf('WhatsApp') > -1 || ua.indexOf('FBAN') > -1 || ua.indexOf('FBAV') > -1) {
-      setIsWhatsApp(true);
+    const isRestricted = 
+      /WhatsApp|FBAN|FBAV|Instagram|Messenger|LinkedIn|Pinterest|Snapchat|Line|Viber|Twitter|GSA|DuckDuckGo|Focus/i.test(ua) ||
+      (/Android/i.test(ua) && /Version\/[0-9.]+/i.test(ua) && !/Chrome\/[0-9.]+/i.test(ua)) || // Generic Android WebView
+      (/iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua)); // iOS WebView (not Safari)
+    
+    if (isRestricted) {
+      setIsRestrictedEnv(true);
     }
   }, []);
 
@@ -59,7 +64,7 @@ function HomePage() {
       .then(async (result) => {
         if (result?.user) {
           const user = result.user;
-          // Asegurarnos que el documento del usuario exista (mismo logic que en loginWithGoogle)
+          // Asegurarnos que el documento del usuario exista
           const userRef = doc(db, 'users', user.uid);
           const userSnap = await getDoc(userRef);
           if (!userSnap.exists()) {
@@ -75,7 +80,6 @@ function HomePage() {
       })
       .catch(err => {
         console.error("Error en redirección:", err);
-        // Si el error es el de "missing initial state", podemos intentar avisar al usuario
         if (err.code === 'auth/internal-error' || err.message?.includes('missing initial state')) {
           setAuthError("Hubo un problema de seguridad al volver de Google. Por favor, asegurate de no estar en modo incógnito y de permitir cookies.");
         }
@@ -131,7 +135,7 @@ function HomePage() {
 
   const handleLogin = async () => {
     setAuthError(null);
-    if (isWhatsApp) {
+    if (isRestrictedEnv) {
       setShowWAGuide(true);
       return;
     }
@@ -178,7 +182,7 @@ function HomePage() {
             user={user} 
             onLogin={handleLogin} 
             onLogout={handleLogout} 
-            onPostClick={() => setIsModalOpen(true)} 
+            onPostClick={() => user ? setIsModalOpen(true) : setShowWAGuide(true)} 
           />
 
           {authError && (
@@ -203,7 +207,7 @@ function HomePage() {
             </div>
           )}
 
-          {isWhatsApp && !user && (
+          {isRestrictedEnv && !user && (
             <div className="max-w-7xl mx-auto px-4 mt-4">
               <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
                 <div className="p-2 bg-indigo-500 rounded-lg text-white shrink-0">
@@ -212,7 +216,7 @@ function HomePage() {
                 <div>
                   <h3 className="font-bold text-indigo-900 text-sm">¿Querés publicar un trabajo?</h3>
                   <p className="text-indigo-700 text-xs mt-1 leading-relaxed">
-                    Google no permite iniciar sesión dentro de WhatsApp. Tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
+                    Google no permite iniciar sesión dentro de WhatsApp o redes sociales. Tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
                   </p>
                 </div>
               </div>
