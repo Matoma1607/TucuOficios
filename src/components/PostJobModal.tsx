@@ -3,24 +3,28 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, handleFirestoreError, OperationType } from '../services/firebase';
+import { db, storage, handleFirestoreError, OperationType, loginAnonymously } from '../services/firebase';
 import { CATEGORIES, Category } from '../types';
+import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface PostJobModalProps {
   isOpen: boolean;
   onClose: () => void;
-  professionalName: string;
-  professionalId: string;
+  currentUser: any;
 }
 
-export default function PostJobModal({ isOpen, onClose, professionalName, professionalId }: PostJobModalProps) {
+export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobModalProps) {
+  const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [profName, setProfName] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [generatedCode] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
@@ -73,86 +77,81 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !zone || !whatsapp || !image) return;
+    if (step === 1) {
+      if (!title || !zone || !image) {
+        setErrorMessage('Por favor completa todos los campos y sube una foto.');
+        return;
+      }
+      setStep(2);
+      return;
+    }
+    
+    if (step === 2) {
+      if (!profName || whatsapp.length < 8) {
+        setErrorMessage('Por favor ingresa tu nombre y un WhatsApp válido.');
+        return;
+      }
+      setStep(3);
+      return;
+    }
+
+    if (step === 3) {
+      if (verificationCode !== generatedCode) {
+        setErrorMessage('El código de validación es incorrecto.');
+        return;
+      }
+    }
 
     setIsSubmitting(true);
     setErrorMessage(null);
     
     let isFinished = false;
-    // Timeout de seguridad (30 segundos)
     const timeoutId = setTimeout(() => {
       if (!isFinished) {
         setIsSubmitting(false);
         setErrorMessage('La subida está tardando demasiado. Verificá tu conexión e intentá de nuevo.');
       }
-    }, 30000);
+    }, 45000);
     
     try {
-      console.log('Iniciando subida de imagen...');
-      // 1. Convertir Data URL a Blob para una subida más robusta en móviles
-      const response = await fetch(image);
+      // 1. Auth anónima si no hay usuario
+      let finalUserId = currentUser?.uid;
+      let finalUserName = currentUser?.displayName || profName;
+
+      if (!finalUserId) {
+        const anonUser = await loginAnonymously();
+        finalUserId = anonUser.uid;
+      }
+
+      // 2. Subida de imagen
+      const response = await fetch(image!);
       const blob = await response.blob();
-      
-      const storageRef = ref(storage, `jobs/${Date.now()}-${professionalId}`);
-      
-      try {
-        await uploadBytes(storageRef, blob);
-        console.log('Imagen subida a Storage como Blob');
-      } catch (storageErr: any) {
-        console.error('Error en Storage uploadBytes:', storageErr);
-        if (storageErr.code === 'storage/unauthorized') {
-          throw new Error('No tenés permisos para subir fotos (Storage Unauthorized).');
-        }
-        throw new Error(`Error al subir la foto: ${storageErr.message}`);
-      }
+      const storageRef = ref(storage, `jobs/${Date.now()}-${finalUserId}`);
+      await uploadBytes(storageRef, blob);
+      const downloadURL = await getDownloadURL(storageRef);
 
-      let downloadURL;
-      try {
-        downloadURL = await getDownloadURL(storageRef);
-        console.log('URL de descarga obtenida:', downloadURL);
-      } catch (urlErr: any) {
-        console.error('Error en getDownloadURL:', urlErr);
-        throw new Error(`Error al obtener el link de la foto: ${urlErr.message}`);
-      }
-
-      // 2. Save to Firestore (Firebase)
+      // 3. Guardar en Firestore
       const jobData = {
         title,
         category,
         zone,
         whatsapp,
         imageUrl: downloadURL,
-        professionalName,
-        professionalId,
+        professionalName: finalUserName,
+        professionalId: finalUserId,
         createdAt: Date.now()
       };
 
-      console.log('Guardando documento en Firestore...');
       await addDoc(collection(db, 'jobs'), jobData);
-      console.log('Documento guardado con éxito');
       
       isFinished = true;
       clearTimeout(timeoutId);
       resetForm();
       onClose();
-      // Usamos un pequeño delay para que el usuario vea el éxito si fuera necesario, 
-      // pero aquí cerramos el modal directamente.
     } catch (error: any) {
       isFinished = true;
       clearTimeout(timeoutId);
-      console.error('Error al publicar:', error);
-      
-      let msg = 'Hubo un error al publicar el trabajo.';
-      if (error.code === 'storage/unauthorized' || error.message?.includes('storage/unauthorized')) {
-        msg = 'Error: El servidor de fotos rechazó la subida (Permisos).';
-      } else if (error.message?.includes('Missing or insufficient permissions')) {
-        msg = 'Error de permisos: Tu sesión puede haber expirado. Reingresá a la app.';
-      } else if (error.message?.includes('network-request-failed') || error.message?.includes('Network Error')) {
-        msg = 'Error de conexión: El navegador bloqueó la subida. Probá abriendo la app en Chrome.';
-      } else if (error.message) {
-        msg = error.message;
-      }
-      setErrorMessage(msg);
+      setErrorMessage(error.message || 'Error al publicar');
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +162,10 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
     setCategory(CATEGORIES[0]);
     setZone('');
     setWhatsapp('');
+    setProfName('');
     setImage(null);
+    setStep(1);
+    setVerificationCode('');
   };
 
   return (
@@ -185,7 +187,17 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
             className="relative w-full max-w-lg bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-white/40"
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900">Subir nuevo trabajo</h2>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Subir nuevo trabajo</h2>
+                <div className="flex gap-1 mt-1">
+                  {[1, 2, 3].map((s) => (
+                    <div 
+                      key={s} 
+                      className={`h-1 w-8 rounded-full transition-all ${s <= step ? 'bg-blue-600' : 'bg-gray-100'}`}
+                    />
+                  ))}
+                </div>
+              </div>
               <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -197,115 +209,191 @@ export default function PostJobModal({ isOpen, onClose, professionalName, profes
                   {errorMessage}
                 </div>
               )}
-              {/* Image Upload */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Foto del trabajo</label>
-                <div 
-                  className={`relative aspect-[4/3] rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden ${
-                    image ? 'border-transparent' : 'border-gray-200 hover:border-blue-400 bg-gray-50'
+
+              {step === 1 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
+                  {/* Image Upload */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Foto del trabajo</label>
+                    <div 
+                      className={`relative aspect-[4/3] rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden ${
+                        image ? 'border-transparent' : 'border-gray-200 hover:border-blue-400 bg-gray-50'
+                      }`}
+                    >
+                      {image ? (
+                        <>
+                          <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                          <button 
+                            type="button"
+                            onClick={() => setImage(null)}
+                            className="absolute top-3 right-3 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+                          <div className="p-4 bg-white rounded-full shadow-sm mb-3">
+                            <Camera className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-600">Click para subir foto</span>
+                          <span className="text-xs text-gray-400 mt-1">JPG, PNG (Max 5MB)</span>
+                          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Título del servicio</label>
+                    <input
+                      required
+                      type="text"
+                      placeholder="Ej: Instalación de Split - Barrio Norte"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Categoría</label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value as Category)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+                      >
+                        {CATEGORIES.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Zona</label>
+                      <input
+                        required
+                        type="text"
+                        placeholder="Ej: Yerba Buena"
+                        value={zone}
+                        onChange={(e) => setZone(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 2 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
+                  <div className="p-4 bg-blue-50 rounded-2xl flex items-start gap-3">
+                    <UserIcon className="w-5 h-5 text-blue-600 mt-0.5" />
+                    <p className="text-xs text-blue-700 leading-relaxed">
+                      Ingresá tus datos de contacto para que los clientes puedan encontrarte.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Tu Nombre Profesional</label>
+                    <input
+                      required
+                      type="text"
+                      placeholder="Ej: Juan Pérez"
+                      value={profName}
+                      onChange={(e) => setProfName(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold text-gray-700">Número de WhatsApp</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">+54</span>
+                      <input
+                        required
+                        type="tel"
+                        placeholder="3815551234"
+                        value={whatsapp}
+                        onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
+                        className="w-full pl-14 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 text-center">
+                  <div className="flex justify-center">
+                    <div className="p-4 bg-green-50 rounded-full">
+                      <ShieldCheck className="w-12 h-12 text-green-500" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">Validación de Seguridad</h3>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Para evitar spam, ingresá el código que ves a continuación:
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-900 text-white text-4xl font-mono tracking-[1em] py-6 rounded-2xl pl-[0.5em]">
+                    {generatedCode}
+                  </div>
+
+                  <div className="space-y-2">
+                    <input
+                      required
+                      type="tel"
+                      maxLength={4}
+                      placeholder="Ingresá los 4 dígitos"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                      className="w-full text-center text-2xl font-bold tracking-widest px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3 pt-4">
+                {step > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setStep(step - 1)}
+                    className="flex-1 py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    Atrás
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`flex-[2] py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                    isSubmitting ? 'bg-gray-400' : 'bg-brand-primary hover:bg-indigo-700'
                   }`}
                 >
-                  {image ? (
-                    <>
-                      <img src={image} alt="Preview" className="w-full h-full object-cover" />
-                      <button 
-                        type="button"
-                        onClick={() => setImage(null)}
-                        className="absolute top-3 right-3 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-                      <div className="p-4 bg-white rounded-full shadow-sm mb-3">
-                        <Camera className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-600">Click para subir foto</span>
-                      <span className="text-xs text-gray-400 mt-1">JPG, PNG (Max 5MB)</span>
-                      <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Title */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Título del servicio</label>
-                <input
-                  required
-                  type="text"
-                  placeholder="Ej: Instalación de Split - Barrio Norte"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Category */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Categoría</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as Category)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
-                  >
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Zone */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Zona</label>
-                  <input
-                    required
-                    type="text"
-                    placeholder="Ej: Yerba Buena"
-                    value={zone}
-                    onChange={(e) => setZone(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* WhatsApp */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Teléfono WhatsApp</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">+54</span>
-                  <input
-                    required
-                    type="tel"
-                    placeholder="3815551234"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
-                    className="w-full pl-14 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Submit */}
-              <button
-                disabled={isSubmitting || !title || !zone || !whatsapp || !image}
-                className={`w-full py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                  isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-brand-primary hover:bg-indigo-700 shadow-indigo-100'
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
+                  {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Subiendo...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-5 h-5" />
-                    <span>Publicar Trabajo</span>
-                  </>
-                )}
-              </button>
+                  ) : (
+                    <>
+                      {step < 3 ? (
+                        <>
+                          Siguiente
+                          <ArrowRight className="w-5 h-5" />
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-5 h-5" />
+                          Confirmar y Publicar
+                        </>
+                      )}
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           </motion.div>
         </div>

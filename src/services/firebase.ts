@@ -4,6 +4,7 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signInWithRedirect,
+  signInAnonymously,
   signOut, 
   onAuthStateChanged,
   browserLocalPersistence,
@@ -125,6 +126,16 @@ export const loginWithGoogle = async () => {
     return user;
   } catch (error) {
     console.error("Login error:", error);
+    throw error;
+  }
+};
+
+export const loginAnonymously = async () => {
+  try {
+    const result = await signInAnonymously(auth);
+    return result.user;
+  } catch (error) {
+    console.error("Anonymous login error:", error);
     throw error;
   }
 };

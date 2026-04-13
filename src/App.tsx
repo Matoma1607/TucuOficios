@@ -134,22 +134,8 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
-    setAuthError(null);
-    if (isRestrictedEnv) {
-      setShowWAGuide(true);
-      return;
-    }
-
-    try {
-      await loginWithGoogle();
-    } catch (error: any) {
-      console.error("Login failed", error);
-      if (error.code === 'auth/popup-blocked') {
-        alert("⚠️ El navegador bloqueó la ventana de inicio de sesión.\n\nPara solucionar esto:\n1. Hacé clic en los 3 puntitos de arriba a la derecha.\n2. Elegí 'Abrir en el navegador' o 'Abrir en Chrome/Safari'.\n3. Intentá de nuevo.");
-      } else {
-        alert("Hubo un problema al iniciar sesión. Por favor, intentá de nuevo o abrí el sitio en Chrome/Safari.");
-      }
-    }
+    // Ya no usamos login obligatorio de Google para publicar
+    setIsModalOpen(true);
   };
 
   const handleLogout = async () => {
@@ -182,7 +168,7 @@ function HomePage() {
             user={user} 
             onLogin={handleLogin} 
             onLogout={handleLogout} 
-            onPostClick={() => user ? setIsModalOpen(true) : setShowWAGuide(true)} 
+            onPostClick={() => setIsModalOpen(true)} 
           />
 
           {authError && (
@@ -314,14 +300,11 @@ function HomePage() {
             </div>
           </main>
 
-          {user && (
-            <PostJobModal 
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              professionalName={user.displayName || 'Profesional'}
-              professionalId={user.uid}
-            />
-          )}
+          <PostJobModal 
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            currentUser={user}
+          />
 
           {/* WhatsApp Guide Modal */}
           <AnimatePresence>
