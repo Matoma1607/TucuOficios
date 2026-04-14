@@ -5,6 +5,9 @@ import {
   signInWithPopup, 
   signInWithRedirect,
   signInAnonymously,
+  sendSignInLinkToEmail,
+  isSignInWithEmailLink,
+  signInWithEmailLink,
   signOut, 
   onAuthStateChanged,
   browserLocalPersistence,
@@ -138,6 +141,45 @@ export const loginAnonymously = async () => {
     console.error("Anonymous login error:", error);
     throw error;
   }
+};
+
+export const sendMagicLink = async (email: string) => {
+  const actionCodeSettings = {
+    // Redirigir de vuelta a la misma página
+    url: window.location.origin,
+    handleCodeInApp: true,
+  };
+  
+  try {
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    window.localStorage.setItem('emailForSignIn', email);
+  } catch (error) {
+    console.error("Error sending magic link:", error);
+    throw error;
+  }
+};
+
+export const completeEmailSignIn = async () => {
+  if (isSignInWithEmailLink(auth, window.location.href)) {
+    let email = window.localStorage.getItem('emailForSignIn');
+    
+    // Si no está en localStorage (ej: el usuario abrió el link en otro dispositivo)
+    if (!email) {
+      email = window.prompt('Por favor, ingresá tu email para confirmar el inicio de sesión:');
+    }
+    
+    if (email) {
+      try {
+        const result = await signInWithEmailLink(auth, email, window.location.href);
+        window.localStorage.removeItem('emailForSignIn');
+        return result.user;
+      } catch (error) {
+        console.error("Error completing email sign in:", error);
+        throw error;
+      }
+    }
+  }
+  return null;
 };
 
 export const logoutUser = async () => {

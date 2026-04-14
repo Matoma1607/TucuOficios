@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
-import { db, storage, handleFirestoreError, OperationType, loginAnonymously } from '../services/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage, handleFirestoreError, OperationType, loginAnonymously, sendMagicLink, completeEmailSignIn } from '../services/firebase';
 import { CATEGORIES, Category } from '../types';
-import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Mail, Send } from 'lucide-react';
 
 interface PostJobModalProps {
   isOpen: boolean;
@@ -20,11 +20,11 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
+  const [email, setEmail] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [generatedCode] = useState(() => Math.floor(1000 + Math.random() * 9000).toString());
+  const [linkSent, setLinkSent] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
@@ -96,10 +96,52 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
     }
 
     if (step === 3) {
-      if (verificationCode !== generatedCode) {
-        setErrorMessage('El código de validación es incorrecto.');
+      if (!email || !email.includes('@')) {
+        setErrorMessage('Por favor ingresa un email válido.');
         return;
       }
+      
+      setIsSubmitting(true);
+      setErrorMessage(null);
+
+      try {
+        // 1. Auth anónima para poder subir la imagen
+        const anonUser = await loginAnonymously();
+        
+        // 2. Subir imagen
+        const storageRef = ref(storage, `jobs/${Date.now()}-${anonUser.uid}`);
+        const fetchRes = await fetch(image!);
+        const blob = await fetchRes.blob();
+        
+        await uploadBytes(storageRef, blob, {
+          contentType: 'image/jpeg',
+          customMetadata: { 'userId': anonUser.uid }
+        });
+        
+        const downloadURL = await getDownloadURL(storageRef);
+
+        // 3. Guardar datos en localStorage para recuperarlos al volver del link
+        const jobData = {
+          title,
+          category,
+          zone,
+          whatsapp,
+          imageUrl: downloadURL,
+          professionalName: profName,
+          createdAt: Date.now()
+        };
+        localStorage.setItem('pendingJob', JSON.stringify(jobData));
+
+        // 4. Enviar link mágico
+        await sendMagicLink(email);
+        setLinkSent(true);
+      } catch (error: any) {
+        console.error('Error en el proceso de validación:', error);
+        setErrorMessage(error.message || 'Error al enviar el link de validación.');
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
     }
 
     setIsSubmitting(true);
@@ -134,11 +176,21 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
       const storageRef = ref(storage, `jobs/${Date.now()}-${finalUserId}`);
       
       try {
-        await uploadString(storageRef, image!, 'data_url');
+        // Convertir Data URL a Blob (más robusto para CORS y memoria)
+        const fetchRes = await fetch(image!);
+        const blob = await fetchRes.blob();
+        
+        await uploadBytes(storageRef, blob, {
+          contentType: 'image/jpeg',
+          customMetadata: { 'userId': finalUserId }
+        });
       } catch (storageErr: any) {
-        console.error('Error en Storage:', storageErr);
+        console.error('Error detallado en Storage:', storageErr);
         if (storageErr.message?.includes('CORS') || storageErr.code === 'storage/retry-limit-exceeded') {
-          throw new Error('Error de CORS: Firebase Storage bloqueó la subida. Por favor, configurá el acceso CORS en Google Cloud Console como te indiqué.');
+          throw new Error('Error de comunicación con el servidor de fotos (CORS). Si ya configuraste Google Cloud, por favor espera 5 minutos e intenta de nuevo o usa una pestaña de incógnito.');
+        }
+        if (storageErr.code === 'storage/unauthorized') {
+          throw new Error('No tienes permisos para subir la foto. Verifica que las reglas de Storage permitan el acceso.');
         }
         throw storageErr;
       }
@@ -178,9 +230,10 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
     setZone('');
     setWhatsapp('');
     setProfName('');
+    setEmail('');
     setImage(null);
     setStep(1);
-    setVerificationCode('');
+    setLinkSent(false);
   };
 
   return (
@@ -340,40 +393,64 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
 
               {step === 3 && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 text-center">
-                  <div className="flex justify-center">
-                    <div className="p-4 bg-green-50 rounded-full">
-                      <ShieldCheck className="w-12 h-12 text-green-500" />
+                  {!linkSent ? (
+                    <>
+                      <div className="flex justify-center">
+                        <div className="p-4 bg-indigo-50 rounded-full">
+                          <Mail className="w-12 h-12 text-indigo-600" />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Validación por Email</h3>
+                        <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+                          Te enviaremos un <strong>"Link Mágico"</strong> a tu email para validar tu identidad y publicar el trabajo automáticamente.
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 text-left">
+                        <label className="text-sm font-semibold text-gray-700">Tu Email</label>
+                        <input
+                          required
+                          type="email"
+                          placeholder="ejemplo@correo.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="py-8 space-y-6">
+                      <div className="flex justify-center">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-green-200 rounded-full animate-ping opacity-20" />
+                          <div className="relative p-6 bg-green-50 rounded-full">
+                            <Send className="w-12 h-12 text-green-600" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-black text-gray-900">¡Link enviado!</h3>
+                        <p className="text-gray-600 leading-relaxed px-4">
+                          Revisá tu bandeja de entrada (y la carpeta de Spam) y hacé clic en el enlace para finalizar la publicación.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <p className="text-xs text-gray-500">
+                          Enviado a: <span className="font-bold text-gray-700">{email}</span>
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Validación de Seguridad</h3>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Para evitar spam, ingresá el código que ves a continuación:
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-900 text-white text-4xl font-mono tracking-[1em] py-6 rounded-2xl pl-[0.5em]">
-                    {generatedCode}
-                  </div>
-
-                  <div className="space-y-2">
-                    <input
-                      required
-                      type="tel"
-                      maxLength={4}
-                      placeholder="Ingresá los 4 dígitos"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                      className="w-full text-center text-2xl font-bold tracking-widest px-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
+                  )}
                 </motion.div>
               )}
 
               {/* Navigation Buttons */}
               <div className="flex gap-3 pt-4">
-                {step > 1 && (
+                {step > 1 && !linkSent && (
                   <button
                     type="button"
                     onClick={() => setStep(step - 1)}
@@ -383,31 +460,41 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
                     Atrás
                   </button>
                 )}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`flex-[2] py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                    isSubmitting ? 'bg-gray-400' : 'bg-brand-primary hover:bg-indigo-700'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      {step < 3 ? (
-                        <>
-                          Siguiente
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      ) : (
-                        <>
-                          <Check className="w-5 h-5" />
-                          Confirmar y Publicar
-                        </>
-                      )}
-                    </>
-                  )}
-                </button>
+                {!linkSent ? (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`flex-[2] py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                      isSubmitting ? 'bg-gray-400' : 'bg-brand-primary hover:bg-indigo-700'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        {step < 3 ? (
+                          <>
+                            Siguiente
+                            <ArrowRight className="w-5 h-5" />
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="w-5 h-5" />
+                            Enviar Link Mágico
+                          </>
+                        )}
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all"
+                  >
+                    Entendido
+                  </button>
+                )}
               </div>
             </form>
           </motion.div>
