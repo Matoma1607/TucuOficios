@@ -30,62 +30,75 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        setErrorMessage('La imagen es demasiado grande (máx 10MB)');
-        return;
-      }
+    if (!file) return;
 
-      setIsProcessingImage(true);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const MAX_SIZE = 1200;
-
-            if (width > height) {
-              if (width > MAX_SIZE) {
-                height *= MAX_SIZE / width;
-                width = MAX_SIZE;
-              }
-            } else {
-              if (height > MAX_SIZE) {
-                width *= MAX_SIZE / height;
-                height = MAX_SIZE;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, width, height);
-              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-              setImage(compressedDataUrl);
-            }
-          } catch (err) {
-            console.error('Error processing image:', err);
-            setErrorMessage('Error al procesar la imagen.');
-          } finally {
-            setIsProcessingImage(false);
-          }
-        };
-        img.onerror = () => {
-          setErrorMessage('Error al cargar la imagen. Intentá con otra.');
-          setIsProcessingImage(false);
-        };
-        img.src = event.target?.result as string;
-      };
-      reader.onerror = () => {
-        setErrorMessage('Error al leer el archivo.');
-        setIsProcessingImage(false);
-      };
-      reader.readAsDataURL(file);
+    // Validar tamaño (15MB para dar margen a fotos de alta resolución)
+    if (file.size > 15 * 1024 * 1024) {
+      setErrorMessage('La imagen es demasiado grande (máx 15MB)');
+      return;
     }
+
+    setIsProcessingImage(true);
+    
+    // Usar URL.createObjectURL es más eficiente en memoria que FileReader para móviles
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const MAX_SIZE = 1200;
+
+        if (width > height) {
+          if (width > MAX_SIZE) {
+            height *= MAX_SIZE / width;
+            width = MAX_SIZE;
+          }
+        } else {
+          if (height > MAX_SIZE) {
+            width *= MAX_SIZE / height;
+            height = MAX_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Dibujar imagen en el canvas
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Comprimir a JPEG (calidad 0.7)
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          
+          if (compressedDataUrl && compressedDataUrl.length > 100) {
+            setImage(compressedDataUrl);
+          } else {
+            throw new Error('Error al generar la vista previa');
+          }
+        }
+      } catch (err) {
+        console.error('Error processing image:', err);
+        setErrorMessage('No pudimos procesar esta foto. Intentá con otra o sacá una foto nueva.');
+      } finally {
+        setIsProcessingImage(false);
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+
+    img.onerror = () => {
+      console.error('Error loading image object');
+      setErrorMessage('Formato de imagen no compatible o archivo dañado.');
+      setIsProcessingImage(false);
+      URL.revokeObjectURL(objectUrl);
+    };
+
+    img.src = objectUrl;
+    
+    // Limpiar el input para permitir seleccionar la misma foto si falla
+    e.target.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
