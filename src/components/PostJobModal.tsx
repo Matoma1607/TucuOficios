@@ -52,67 +52,67 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
             toType: 'image/jpeg',
             quality: 0.7
           });
-          // heic2any puede devolver un array si el HEIC tiene varias fotos
           const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
           file = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' });
         } catch (heicErr) {
           console.error('Error convirtiendo HEIC:', heicErr);
-          // Si falla la conversión, intentamos seguir igual por si el navegador lo soporta
         }
       }
 
-      const objectUrl = URL.createObjectURL(file);
-      const img = new Image();
-      
-      img.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const MAX_SIZE = 1200;
+      // Usar FileReader como método principal por ser más compatible con WebViews (WhatsApp/FB)
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_SIZE = 1200;
 
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            
-            if (compressedDataUrl && compressedDataUrl.length > 100) {
-              setImage(compressedDataUrl);
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
+              }
             } else {
-              throw new Error('Error al generar la vista previa');
+              if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+              }
             }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+              
+              if (compressedDataUrl && compressedDataUrl.length > 100) {
+                setImage(compressedDataUrl);
+              } else {
+                throw new Error('Preview empty');
+              }
+            }
+          } catch (err) {
+            console.error('Error processing image:', err);
+            setErrorMessage('No pudimos procesar esta foto. Intentá con otra.');
+          } finally {
+            setIsProcessingImage(false);
           }
-        } catch (err) {
-          console.error('Error processing image:', err);
-          setErrorMessage('No pudimos procesar esta foto. Intentá con otra.');
-        } finally {
+        };
+        img.onerror = () => {
+          setErrorMessage('Error al decodificar la imagen. Intentá sacando una foto nueva.');
           setIsProcessingImage(false);
-          URL.revokeObjectURL(objectUrl);
-        }
+        };
+        img.src = event.target?.result as string;
       };
-
-      img.onerror = () => {
-        console.error('Error loading image object');
-        setErrorMessage('Formato de imagen no compatible. Si es un iPhone, asegurate de que la foto no esté dañada.');
+      reader.onerror = () => {
+        setErrorMessage('Error al leer el archivo del celular.');
         setIsProcessingImage(false);
-        URL.revokeObjectURL(objectUrl);
       };
-
-      img.src = objectUrl;
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error('General image error:', err);
       setErrorMessage('Error al cargar la imagen.');
