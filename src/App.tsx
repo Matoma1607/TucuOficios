@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, SlidersHorizontal, ExternalLink, Copy, Check, X } from 'lucide-react';
-import { onSnapshot, collection, query, orderBy, doc, getDoc, setDoc, addDoc } from 'firebase/firestore';
-import { onAuthStateChanged, getRedirectResult, isSignInWithEmailLink } from 'firebase/auth';
+import { onSnapshot, collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
+import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import CategoryFilter from './components/CategoryFilter';
@@ -13,7 +13,7 @@ import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
-import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType, completeEmailSignIn } from './services/firebase';
+import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
 import { Job, Category, User } from './types';
 
 function HomePage() {
@@ -29,7 +29,6 @@ function HomePage() {
   const [showWAGuide, setShowWAGuide] = useState(false);
   const [copied, setCopied] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isProcessingLink, setIsProcessingLink] = useState(false);
   const location = useLocation();
 
   const handleCopyLink = () => {
@@ -55,55 +54,6 @@ function HomePage() {
     if (isRestricted) {
       setIsRestrictedEnv(true);
     }
-  }, []);
-
-  // Manejar Link Mágico (Email Link Auth)
-  useEffect(() => {
-    const handleMagicLink = async () => {
-      if (isSignInWithEmailLink(auth, window.location.href)) {
-        setIsProcessingLink(true);
-        try {
-          const firebaseUser = await completeEmailSignIn();
-          if (firebaseUser) {
-            // Actualizar estado local del usuario
-            setUser({
-              uid: firebaseUser.uid,
-              displayName: firebaseUser.displayName,
-              email: firebaseUser.email,
-              photoURL: firebaseUser.photoURL
-            });
-
-            // Verificar si hay un trabajo pendiente en localStorage
-            const pendingJobStr = localStorage.getItem('pendingJob');
-            if (pendingJobStr) {
-              const jobData = JSON.parse(pendingJobStr);
-              
-              // Publicar el trabajo automáticamente
-              await addDoc(collection(db, 'jobs'), {
-                ...jobData,
-                professionalId: firebaseUser.uid,
-                professionalName: firebaseUser.displayName || jobData.professionalName
-              });
-              
-              localStorage.removeItem('pendingJob');
-              // Limpiar la URL para que no intente procesar el link de nuevo
-              window.history.replaceState({}, document.title, window.location.origin);
-              
-              // Pequeño delay para que el usuario vea que algo pasó
-              setTimeout(() => {
-                alert('¡Tu trabajo ha sido publicado con éxito!');
-              }, 500);
-            }
-          }
-        } catch (error: any) {
-          console.error("Error al procesar el link mágico:", error);
-          setAuthError("No pudimos validar tu email. El link puede haber expirado o ya fue usado.");
-        } finally {
-          setIsProcessingLink(false);
-        }
-      }
-    };
-    handleMagicLink();
   }, []);
 
   // Auth Listener
@@ -195,16 +145,10 @@ function HomePage() {
     }
   };
 
-  if (!isAuthReady || isProcessingLink) {
+  if (!isAuthReady) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center">
-        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4" />
-        {isProcessingLink && (
-          <div className="animate-in fade-in slide-in-from-bottom-2">
-            <h2 className="text-xl font-bold text-gray-900">Validando tu email...</h2>
-            <p className="text-gray-500 text-sm mt-2">Estamos publicando tu trabajo, no cierres esta ventana.</p>
-          </div>
-        )}
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
       </div>
     );
   }
