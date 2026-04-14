@@ -25,51 +25,64 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [linkSent, setLinkSent] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
     const file = e.target.files?.[0];
     if (file) {
-      // Validar tamaño máximo (10MB antes de comprimir)
       if (file.size > 10 * 1024 * 1024) {
         setErrorMessage('La imagen es demasiado grande (máx 10MB)');
         return;
       }
-// ... (rest of image compression logic stays same)
 
+      setIsProcessingImage(true);
       const reader = new FileReader();
       reader.onload = (event) => {
         const img = new Image();
         img.onload = () => {
-          // Crear un canvas para redimensionar la imagen
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
+          try {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const MAX_SIZE = 1200;
 
-          // Redimensionar si es muy grande (max 1200px)
-          const MAX_SIZE = 1200;
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
+              }
+            } else {
+              if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+              }
             }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+              setImage(compressedDataUrl);
             }
+          } catch (err) {
+            console.error('Error processing image:', err);
+            setErrorMessage('Error al procesar la imagen.');
+          } finally {
+            setIsProcessingImage(false);
           }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          // Exportar como JPEG comprimido (calidad 0.7)
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          setImage(compressedDataUrl);
+        };
+        img.onerror = () => {
+          setErrorMessage('Error al cargar la imagen. Intentá con otra.');
+          setIsProcessingImage(false);
         };
         img.src = event.target?.result as string;
+      };
+      reader.onerror = () => {
+        setErrorMessage('Error al leer el archivo.');
+        setIsProcessingImage(false);
       };
       reader.readAsDataURL(file);
     }
@@ -137,7 +150,15 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
         setLinkSent(true);
       } catch (error: any) {
         console.error('Error en el proceso de validación:', error);
-        setErrorMessage(error.message || 'Error al enviar el link de validación.');
+        let msg = 'Error al enviar el link de validación.';
+        if (error.code === 'storage/unauthorized') {
+          msg = 'Error de permisos en Storage. Verifica las reglas de seguridad.';
+        } else if (error.message?.includes('CORS') || error.code === 'storage/retry-limit-exceeded') {
+          msg = 'Error de conexión con el servidor de fotos (CORS). Por favor, configurá CORS en Google Cloud.';
+        } else if (error.code === 'auth/operation-not-allowed') {
+          msg = 'El inicio de sesión anónimo no está habilitado en Firebase.';
+        }
+        setErrorMessage(msg);
       } finally {
         setIsSubmitting(false);
       }
@@ -300,13 +321,29 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
                           </button>
                         </>
                       ) : (
-                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-                          <div className="p-4 bg-white rounded-full shadow-sm mb-3">
-                            <Camera className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-600">Click para subir foto</span>
-                          <span className="text-xs text-gray-400 mt-1">JPG, PNG (Max 5MB)</span>
-                          <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                        <label htmlFor="job-image-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
+                          {isProcessingImage ? (
+                            <div className="flex flex-col items-center">
+                              <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-2" />
+                              <span className="text-xs text-gray-500">Procesando...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="p-4 bg-white rounded-full shadow-sm mb-3">
+                                <Camera className="w-6 h-6 text-blue-600" />
+                              </div>
+                              <span className="text-sm font-medium text-gray-600">Click para subir foto</span>
+                              <span className="text-xs text-gray-400 mt-1">JPG, PNG (Max 10MB)</span>
+                            </>
+                          )}
+                          <input 
+                            id="job-image-upload"
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleImageChange} 
+                            className="hidden" 
+                            disabled={isProcessingImage}
+                          />
                         </label>
                       )}
                     </div>
