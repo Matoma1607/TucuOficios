@@ -7,6 +7,8 @@ import { db, storage, handleFirestoreError, OperationType, loginAnonymously } fr
 import { CATEGORIES, Category } from '../types';
 import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Key } from 'lucide-react';
 
+import heic2any from 'heic2any';
+
 const VALID_KEYWORD = 'TUCUMAN2026';
 
 interface PostJobModalProps {
@@ -28,77 +30,95 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
-    const file = e.target.files?.[0];
+    let file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamaño (15MB para dar margen a fotos de alta resolución)
+    // Validar tamaño (15MB)
     if (file.size > 15 * 1024 * 1024) {
       setErrorMessage('La imagen es demasiado grande (máx 15MB)');
       return;
     }
 
     setIsProcessingImage(true);
-    
-    // Usar URL.createObjectURL es más eficiente en memoria que FileReader para móviles
-    const objectUrl = URL.createObjectURL(file);
-    const img = new Image();
-    
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const MAX_SIZE = 1200;
 
-        if (width > height) {
-          if (width > MAX_SIZE) {
-            height *= MAX_SIZE / width;
-            width = MAX_SIZE;
-          }
-        } else {
-          if (height > MAX_SIZE) {
-            width *= MAX_SIZE / height;
-            height = MAX_SIZE;
-          }
+    try {
+      // Soporte para HEIC (iPhone)
+      if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic' || file.type === 'image/heif') {
+        try {
+          const convertedBlob = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+            quality: 0.7
+          });
+          // heic2any puede devolver un array si el HEIC tiene varias fotos
+          const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+          file = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' });
+        } catch (heicErr) {
+          console.error('Error convirtiendo HEIC:', heicErr);
+          // Si falla la conversión, intentamos seguir igual por si el navegador lo soporta
         }
+      }
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          // Dibujar imagen en el canvas
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // Comprimir a JPEG (calidad 0.7)
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          
-          if (compressedDataUrl && compressedDataUrl.length > 100) {
-            setImage(compressedDataUrl);
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_SIZE = 1200;
+
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
           } else {
-            throw new Error('Error al generar la vista previa');
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
           }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            
+            if (compressedDataUrl && compressedDataUrl.length > 100) {
+              setImage(compressedDataUrl);
+            } else {
+              throw new Error('Error al generar la vista previa');
+            }
+          }
+        } catch (err) {
+          console.error('Error processing image:', err);
+          setErrorMessage('No pudimos procesar esta foto. Intentá con otra.');
+        } finally {
+          setIsProcessingImage(false);
+          URL.revokeObjectURL(objectUrl);
         }
-      } catch (err) {
-        console.error('Error processing image:', err);
-        setErrorMessage('No pudimos procesar esta foto. Intentá con otra o sacá una foto nueva.');
-      } finally {
+      };
+
+      img.onerror = () => {
+        console.error('Error loading image object');
+        setErrorMessage('Formato de imagen no compatible. Si es un iPhone, asegurate de que la foto no esté dañada.');
         setIsProcessingImage(false);
         URL.revokeObjectURL(objectUrl);
-      }
-    };
+      };
 
-    img.onerror = () => {
-      console.error('Error loading image object');
-      setErrorMessage('Formato de imagen no compatible o archivo dañado.');
+      img.src = objectUrl;
+    } catch (err) {
+      console.error('General image error:', err);
+      setErrorMessage('Error al cargar la imagen.');
       setIsProcessingImage(false);
-      URL.revokeObjectURL(objectUrl);
-    };
-
-    img.src = objectUrl;
+    }
     
-    // Limpiar el input para permitir seleccionar la misma foto si falla
     e.target.value = '';
   };
 
