@@ -7,7 +7,7 @@ export interface Job {
   professionalId: string;
   whatsapp: string;
   imageUrl: string;
-  createdAt: number;
+  createdAt: number | string;
 }
 
 export interface User {

@@ -153,26 +153,39 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
     }, 45000);
     
     try {
-      // 1. Auth anónima en segundo plano para seguridad de Firestore
-      let finalUserId = currentUser?.uid;
-      if (!finalUserId) {
-        const anonUser = await loginAnonymously();
-        finalUserId = anonUser.uid;
+      // 1. Subida a Cloudinary
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      
+      if (!cloudName || !uploadPreset) {
+        throw new Error('Configuración de Cloudinary faltante en .env');
       }
 
-      // 2. Subida de imagen
-      const storageRef = ref(storage, `jobs/${Date.now()}-${finalUserId}`);
-      const fetchRes = await fetch(image!);
-      const blob = await fetchRes.blob();
-      
-      await uploadBytes(storageRef, blob, {
-        contentType: 'image/jpeg',
-        customMetadata: { 'userId': finalUserId }
-      });
+      const formData = new FormData();
+      formData.append('file', image!);
+      formData.append('upload_preset', uploadPreset);
 
-      const downloadURL = await getDownloadURL(storageRef);
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
 
-      // 3. Guardar en Firestore
+      if (!cloudinaryRes.ok) {
+        throw new Error('Error al subir imagen a Cloudinary');
+      }
+
+      const cloudinaryData = await cloudinaryRes.json();
+      const downloadURL = cloudinaryData.secure_url;
+
+      // 2. Guardar en Google Sheets vía Google Apps Script
+      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      if (!scriptUrl) {
+        throw new Error('URL de Google Script faltante en .env');
+      }
+
       const jobData = {
         title,
         category,
@@ -180,17 +193,30 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
         whatsapp,
         imageUrl: downloadURL,
         professionalName: profName,
-        professionalId: finalUserId,
-        createdAt: Date.now()
+        professionalId: currentUser?.uid || 'anonymous',
+        createdAt: new Date().toISOString()
       };
 
-      await addDoc(collection(db, 'jobs'), jobData);
+      // Usamos mode: 'no-cors' si solo queremos enviar, pero para recibir confirmación
+      // Google Apps Script requiere manejar el redirect. fetch lo hace por defecto.
+      const gasRes = await fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Importante para evitar bloqueos de CORS en Web Apps de Google al hacer POST
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jobData),
+      });
+
+      // Nota: Con mode: 'no-cors', no podemos leer la respuesta (gasRes.ok será false y status 0)
+      // Pero los datos llegan igual a la Google Sheet.
       
       isFinished = true;
       clearTimeout(timeoutId);
       resetForm();
       onClose();
-      alert('¡Excelente! Tu trabajo ha sido publicado con éxito.');
+      alert('¡Excelente! Tu trabajo ha sido enviado para revisión.');
     } catch (error: any) {
       isFinished = true;
       clearTimeout(timeoutId);

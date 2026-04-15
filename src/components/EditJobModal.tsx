@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check } from 'lucide-react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
 import { Job, CATEGORIES, Category } from '../types';
 
 interface EditJobModalProps {
@@ -38,14 +36,24 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
     setErrorMessage(null);
 
     try {
-      const jobRef = doc(db, 'jobs', job.id);
-      await updateDoc(jobRef, {
-        title,
-        category,
-        zone,
-        whatsapp,
-        professionalName: profName,
+      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      if (!scriptUrl) throw new Error('GAS URL missing');
+
+      await fetch(`${scriptUrl}?action=update`, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: job.id,
+          title,
+          category,
+          zone,
+          whatsapp,
+          professionalName: profName,
+        })
       });
+      
+      alert('Cambios guardados (pueden tardar un minuto en reflejarse)');
       onClose();
     } catch (error: any) {
       console.error('Error updating job:', error);

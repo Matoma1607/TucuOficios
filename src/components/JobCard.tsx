@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2 } from 'lucide-react';
 import { Job, User as UserType } from '../types';
-import { deleteJob } from '../services/firebase';
 import EditJobModal from './EditJobModal';
 
 interface JobCardProps {
@@ -25,9 +24,21 @@ export default function JobCard({ job, currentUser, onEdit }: JobCardProps) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteJob(job.id);
+      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      if (!scriptUrl) throw new Error('GAS URL missing');
+
+      await fetch(`${scriptUrl}?action=delete`, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: job.id })
+      });
+      
+      // Como usamos no-cors, asumimos éxito o esperamos al polling de App.tsx
+      alert('Trabajo eliminado (los cambios pueden tardar un minuto en reflejarse)');
     } catch (error) {
       console.error("Error deleting job:", error);
+      alert('Error al eliminar el trabajo.');
     } finally {
       setIsDeleting(false);
       setShowConfirm(false);

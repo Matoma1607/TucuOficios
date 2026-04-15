@@ -116,26 +116,31 @@ function HomePage() {
     return () => unsubscribe();
   }, []);
 
-  // Real-time Jobs Listener
+  // Jobs Listener (Google Apps Script)
   useEffect(() => {
-    const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
-    
-    const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
-        const loadedJobs = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Job[];
-        setJobs(loadedJobs);
-        setIsLoading(false);
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'jobs');
+    const fetchJobs = async () => {
+      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      if (!scriptUrl) return;
+
+      try {
+        const response = await fetch(scriptUrl);
+        if (response.ok) {
+          const data = await response.json();
+          // Mapear si es necesario para asegurar tipos
+          setJobs(data as Job[]);
+        }
+      } catch (error) {
+        console.error("Error fetching jobs from GAS:", error);
+      } finally {
         setIsLoading(false);
       }
-    );
+    };
 
-    return () => unsubscribe();
+    fetchJobs();
+    
+    // Opcional: Polling cada 1 minuto para simular "real-time"
+    const interval = setInterval(fetchJobs, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredJobs = useMemo(() => {
