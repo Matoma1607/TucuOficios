@@ -28,6 +28,7 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
   const [image, setImage] = useState<string | null>(null);
+  const [accessCode, setAccessCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
@@ -140,6 +141,10 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
         setErrorMessage('Por favor ingresa tu nombre y un WhatsApp válido.');
         return;
       }
+      if (!currentUser && accessCode !== CONFIG.ACCESS_CODE) {
+        setErrorMessage('El código de acceso es incorrecto.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -154,6 +159,17 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
     }, 45000);
     
     try {
+      // Si no hay usuario, loguear anónimamente para tener un UID
+      let finalUser = currentUser;
+      if (!finalUser) {
+        try {
+          finalUser = await loginAnonymously() as User;
+        } catch (authErr) {
+          console.error("Error in anonymous login:", authErr);
+          // Continuamos igual, el GAS aceptará 'anonymous'
+        }
+      }
+
       // 1. Subida a Cloudinary
       const cloudName = CONFIG.CLOUDINARY_CLOUD_NAME;
       const uploadPreset = CONFIG.CLOUDINARY_UPLOAD_PRESET;
@@ -194,7 +210,7 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
         whatsapp,
         imageUrl: downloadURL,
         professionalName: profName,
-        professionalId: currentUser?.uid || 'anonymous',
+        professionalId: currentUser?.uid || 'anonymous_guest',
         createdAt: new Date().toISOString()
       };
 
@@ -242,6 +258,7 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
     setWhatsapp('');
     setProfName('');
     setImage(null);
+    setAccessCode('');
     setStep(1);
   };
 
@@ -281,25 +298,6 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar">
-              {!currentUser && (
-                <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-between gap-4">
-                  <p className="text-xs text-indigo-700 font-medium">¿Sos el administrador?</p>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      if (isRestrictedEnv) {
-                        onShowWAGuide?.();
-                      } else {
-                        loginWithGoogle();
-                      }
-                    }}
-                    className="px-4 py-2 bg-white text-indigo-600 text-xs font-bold rounded-xl border border-indigo-100 shadow-sm hover:bg-indigo-50 transition-all"
-                  >
-                    Iniciar Sesión
-                  </button>
-                </div>
-              )}
-              
               {errorMessage && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
                   {errorMessage}
@@ -394,6 +392,26 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
                       />
                     </div>
                   </div>
+
+                  {!currentUser && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-gray-700">Código de Acceso</label>
+                      <div className="relative">
+                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          required
+                          type="password"
+                          placeholder="Ingresá el código para publicar"
+                          value={accessCode}
+                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                          className="w-full pl-12 pr-4 py-3 bg-amber-50 border border-amber-100 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-all placeholder:text-amber-200"
+                        />
+                      </div>
+                      <p className="text-[10px] text-amber-600 font-medium">
+                        Como estás en WhatsApp, usá el código de seguridad para publicar sin cuenta de Google.
+                      </p>
+                    </div>
+                  )}
                 </motion.div>
               )}
 
