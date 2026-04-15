@@ -8,6 +8,7 @@ import Header from './components/Header';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import PostJobModal from './components/PostJobModal';
+import EditJobModal from './components/EditJobModal';
 import NotFound from './components/NotFound';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
@@ -22,6 +23,7 @@ function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
@@ -84,13 +86,19 @@ function HomePage() {
         }
       });
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        // Fetch role from Firestore
+        const userRef = doc(db, 'users', firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.exists() ? userSnap.data() : null;
+
         setUser({
           uid: firebaseUser.uid,
           displayName: firebaseUser.displayName,
           email: firebaseUser.email,
-          photoURL: firebaseUser.photoURL
+          photoURL: firebaseUser.photoURL,
+          role: userData?.role || (firebaseUser.email === 'matias39974593@gmail.com' ? 'admin' : 'user')
         });
       } else {
         setUser(null);
@@ -277,8 +285,13 @@ function HomePage() {
                       layout
                       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
                     >
-                      {filteredJobs.map((job) => (
-                        <JobCard key={job.id} job={job} currentUser={user} />
+                      {filteredJobs.map((job: Job) => (
+                        <JobCard 
+                          key={job.id} 
+                          job={job} 
+                          currentUser={user} 
+                          onEdit={(j: Job) => setEditingJob(j)}
+                        />
                       ))}
                     </motion.div>
                   ) : (
@@ -303,6 +316,12 @@ function HomePage() {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             currentUser={user}
+          />
+
+          <EditJobModal 
+            isOpen={!!editingJob}
+            onClose={() => setEditingJob(null)}
+            job={editingJob}
           />
 
           {/* WhatsApp Guide Modal */}
@@ -362,6 +381,9 @@ function HomePage() {
               <div className="flex flex-col items-center justify-center gap-6">
                 <div className="flex gap-8 text-sm font-bold text-gray-500">
                   <Link to="/privacidad" className="hover:text-brand-primary transition-colors">Política de Privacidad</Link>
+                  {!user && (
+                    <button onClick={loginWithGoogle} className="hover:text-brand-primary transition-colors">Admin Login</button>
+                  )}
                 </div>
                 <p className="text-gray-400 text-[10px] font-medium uppercase tracking-[0.2em]">
                   © 2026 • San Miguel de Tucumán

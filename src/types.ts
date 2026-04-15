@@ -15,6 +15,7 @@ export interface User {
   displayName: string | null;
   email: string | null;
   photoURL: string | null;
+  role?: string;
 }
 
 export type Category = 'Plomería' | 'Cerrajería' | 'Aires' | 'Mudanzas' | 'Electricidad' | 'Pintura' | 'Otros';

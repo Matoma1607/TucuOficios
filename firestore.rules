@@ -45,6 +45,12 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == resource.data.professionalId;
     }
 
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "matias39974593@gmail.com");
+    }
+
     function isValidEmail(email) {
       return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
@@ -84,15 +90,14 @@ service cloud.firestore {
     match /jobs/{jobId} {
       allow read: if true; // Public viewable
       allow create: if isAuthenticated() && isValidJob(request.resource.data);
-      allow update: if isDocOwner() && isValidJob(request.resource.data) && 
-                      request.resource.data.professionalId == resource.data.professionalId;
-      allow delete: if isDocOwner();
+      allow update: if (isDocOwner() || isAdmin()) && isValidJob(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
     }
 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role;
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
     }
   }
 }

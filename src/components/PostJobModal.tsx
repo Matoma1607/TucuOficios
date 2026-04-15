@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, handleFirestoreError, OperationType, loginAnonymously } from '../services/firebase';
+import { db, storage, handleFirestoreError, OperationType, loginAnonymously, loginWithGoogle } from '../services/firebase';
 import { CATEGORIES, Category } from '../types';
 import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Key } from 'lucide-react';
 
@@ -17,14 +17,13 @@ interface PostJobModalProps {
   currentUser: any;
 }
 
-export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobModalProps) {
+const PostJobModal = ({ isOpen, onClose, currentUser }: PostJobModalProps) => {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
-  const [keyword, setKeyword] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -138,15 +137,6 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
         setErrorMessage('Por favor ingresa tu nombre y un WhatsApp válido.');
         return;
       }
-      setStep(3);
-      return;
-    }
-
-    if (step === 3) {
-      if (keyword.toUpperCase() !== VALID_KEYWORD) {
-        setErrorMessage('La palabra clave es incorrecta.');
-        return;
-      }
     }
 
     setIsSubmitting(true);
@@ -222,7 +212,6 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
     setZone('');
     setWhatsapp('');
     setProfName('');
-    setKeyword('');
     setImage(null);
     setStep(1);
   };
@@ -249,7 +238,7 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Subir nuevo trabajo</h2>
                 <div className="flex gap-1 mt-1">
-                  {[1, 2, 3].map((s) => (
+                  {[1, 2].map((s) => (
                     <div 
                       key={s} 
                       className={`h-1 w-8 rounded-full transition-all ${s <= step ? 'bg-blue-600' : 'bg-gray-100'}`}
@@ -263,6 +252,19 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar">
+              {!currentUser && (
+                <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-between gap-4">
+                  <p className="text-xs text-indigo-700 font-medium">¿Sos el administrador?</p>
+                  <button 
+                    type="button"
+                    onClick={loginWithGoogle}
+                    className="px-4 py-2 bg-white text-indigo-600 text-xs font-bold rounded-xl border border-indigo-100 shadow-sm hover:bg-indigo-50 transition-all"
+                  >
+                    Iniciar Sesión
+                  </button>
+                </div>
+              )}
+              
               {errorMessage && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
                   {errorMessage}
@@ -398,38 +400,6 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
                 </motion.div>
               )}
 
-              {step === 3 && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6 text-center">
-                  <div className="flex justify-center">
-                    <div className="p-4 bg-indigo-50 rounded-full">
-                      <Key className="w-12 h-12 text-indigo-600" />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Validación de Seguridad</h3>
-                    <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-                      Para publicar, ingresá la palabra clave de invitación.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2 text-left">
-                    <label className="text-sm font-semibold text-gray-700">Palabra Clave</label>
-                    <input
-                      required
-                      type="text"
-                      placeholder="Ej: TUCUMAN2026"
-                      value={keyword}
-                      onChange={(e) => setKeyword(e.target.value)}
-                      className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold tracking-widest text-center uppercase"
-                    />
-                    <p className="text-[10px] text-gray-400 text-center mt-2 italic">
-                      Tip: Es la que definimos para el lanzamiento.
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-
               {/* Navigation Buttons */}
               <div className="flex gap-3 pt-4">
                 {step > 1 && (
@@ -453,7 +423,7 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
-                      {step < 3 ? (
+                      {step < 2 ? (
                         <>
                           Siguiente
                           <ArrowRight className="w-5 h-5" />
@@ -474,4 +444,6 @@ export default function PostJobModal({ isOpen, onClose, currentUser }: PostJobMo
       )}
     </AnimatePresence>
   );
-}
+};
+
+export default PostJobModal;

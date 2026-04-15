@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, MapPin, User, Trash2, AlertCircle } from 'lucide-react';
+import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2 } from 'lucide-react';
 import { Job, User as UserType } from '../types';
 import { deleteJob } from '../services/firebase';
+import EditJobModal from './EditJobModal';
 
 interface JobCardProps {
   job: Job;
   currentUser: UserType | null;
+  onEdit?: (job: Job) => void;
   key?: React.Key;
 }
 
-export default function JobCard({ job, currentUser }: JobCardProps) {
+export default function JobCard({ job, currentUser, onEdit }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const isOwner = currentUser?.uid === job.professionalId;
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'matias39974593@gmail.com';
 
   const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
     `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`
@@ -91,13 +94,25 @@ export default function JobCard({ job, currentUser }: JobCardProps) {
           </span>
         </div>
         
-        {isOwner && (
-          <button
-            onClick={() => setShowConfirm(true)}
-            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm text-red-500 rounded-full shadow-sm hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+        {(isOwner || isAdmin) && (
+          <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {isAdmin && (
+              <button
+                onClick={() => onEdit?.(job)}
+                className="p-2 bg-white/90 backdrop-blur-sm text-blue-500 rounded-full shadow-sm hover:bg-blue-50 transition-colors"
+                title="Editar"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="p-2 bg-white/90 backdrop-blur-sm text-red-500 rounded-full shadow-sm hover:bg-red-50 transition-colors"
+              title="Borrar"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         )}
       </div>
 
