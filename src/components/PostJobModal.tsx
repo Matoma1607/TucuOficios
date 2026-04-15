@@ -4,7 +4,7 @@ import { X, Upload, Camera } from 'lucide-react';
 import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType, loginAnonymously, loginWithGoogle } from '../services/firebase';
-import { CATEGORIES, Category } from '../types';
+import { CATEGORIES, Category, User } from '../types';
 import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Key } from 'lucide-react';
 
 import heic2any from 'heic2any';
@@ -14,10 +14,12 @@ const VALID_KEYWORD = 'TUCUMAN2026';
 interface PostJobModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentUser: any;
+  currentUser: User | null;
+  isRestrictedEnv?: boolean;
+  onShowWAGuide?: () => void;
 }
 
-const PostJobModal = ({ isOpen, onClose, currentUser }: PostJobModalProps) => {
+const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAGuide }: PostJobModalProps) => {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
@@ -257,7 +259,13 @@ const PostJobModal = ({ isOpen, onClose, currentUser }: PostJobModalProps) => {
                   <p className="text-xs text-indigo-700 font-medium">¿Sos el administrador?</p>
                   <button 
                     type="button"
-                    onClick={loginWithGoogle}
+                    onClick={() => {
+                      if (isRestrictedEnv) {
+                        onShowWAGuide?.();
+                      } else {
+                        loginWithGoogle();
+                      }
+                    }}
                     className="px-4 py-2 bg-white text-indigo-600 text-xs font-bold rounded-xl border border-indigo-100 shadow-sm hover:bg-indigo-50 transition-all"
                   >
                     Iniciar Sesión

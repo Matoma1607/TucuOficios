@@ -28,6 +28,7 @@ function HomePage() {
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [isRestrictedEnv, setIsRestrictedEnv] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
   const [showWAGuide, setShowWAGuide] = useState(false);
   const [copied, setCopied] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -48,10 +49,14 @@ function HomePage() {
 
   useEffect(() => {
     const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    const isIOSDevice = /iPhone|iPad|iPod/i.test(ua);
+    setIsIOS(isIOSDevice);
+
     const isRestricted = 
       /WhatsApp|FBAN|FBAV|Instagram|Messenger|LinkedIn|Pinterest|Snapchat|Line|Viber|Twitter|GSA|DuckDuckGo|Focus/i.test(ua) ||
       (/Android/i.test(ua) && /Version\/[0-9.]+/i.test(ua) && !/Chrome\/[0-9.]+/i.test(ua)) || // Generic Android WebView
-      (/iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua)); // iOS WebView (not Safari)
+      (isIOSDevice && !/Safari/i.test(ua) && !/CriOS/i.test(ua) && !/FxiOS/i.test(ua)) || // iOS WebView (not Safari/Chrome/Firefox)
+      (ua.includes('wv')); // Common WebView indicator
     
     if (isRestricted) {
       setIsRestrictedEnv(true);
@@ -81,7 +86,10 @@ function HomePage() {
       })
       .catch(err => {
         console.error("Error en redirección:", err);
-        if (err.code === 'auth/internal-error' || err.message?.includes('missing initial state')) {
+        if (err.code === 'auth/disallowed-useragent' || err.message?.includes('disallowed_useragent')) {
+          setAuthError("Google no permite iniciar sesión desde esta aplicación (WhatsApp/Instagram). Por favor, abrí el link directamente en Chrome o Safari.");
+          setShowWAGuide(true);
+        } else if (err.code === 'auth/internal-error' || err.message?.includes('missing initial state')) {
           setAuthError("Hubo un problema de seguridad al volver de Google. Por favor, asegurate de no estar en modo incógnito y de permitir cookies.");
         }
       });
@@ -141,8 +149,15 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = async () => {
-    // Ya no usamos login obligatorio de Google para publicar
-    setIsModalOpen(true);
+    if (isRestrictedEnv) {
+      setShowWAGuide(true);
+      return;
+    }
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      console.error("Login failed", error);
+    }
   };
 
   const handleLogout = async () => {
@@ -316,6 +331,8 @@ function HomePage() {
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             currentUser={user}
+            isRestrictedEnv={isRestrictedEnv}
+            onShowWAGuide={() => setShowWAGuide(true)}
           />
 
           <EditJobModal 
@@ -349,7 +366,15 @@ function HomePage() {
                   </h2>
                   <p className="text-gray-600 mb-8 leading-relaxed">
                     Por seguridad, Google no permite iniciar sesión dentro de WhatsApp.<br/><br/>
-                    Para continuar, tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
+                    {isIOS ? (
+                      <>
+                        Tocá el icono de <strong>Compartir</strong> (el cuadrado con la flecha) y elegí <strong>"Abrir en Safari"</strong>.
+                      </>
+                    ) : (
+                      <>
+                        Tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
+                      </>
+                    )}
                   </p>
                   
                   <div className="space-y-3">
@@ -382,7 +407,12 @@ function HomePage() {
                 <div className="flex gap-8 text-sm font-bold text-gray-500">
                   <Link to="/privacidad" className="hover:text-brand-primary transition-colors">Política de Privacidad</Link>
                   {!user && (
-                    <button onClick={loginWithGoogle} className="hover:text-brand-primary transition-colors">Admin Login</button>
+                    <button 
+                      onClick={handleLogin} 
+                      className="hover:text-brand-primary transition-colors"
+                    >
+                      Admin Login
+                    </button>
                   )}
                 </div>
                 <p className="text-gray-400 text-[10px] font-medium uppercase tracking-[0.2em]">
