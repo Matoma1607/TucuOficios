@@ -8,7 +8,7 @@ export const CONFIG = {
   CLOUDINARY_UPLOAD_PRESET: 'tucu_oficios',
 
   // Google Apps Script (URL de implementación que termina en /exec)
-  GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw6eOCipUdCzKA4a403NSGVDj3ZEZS-yq9QnsVNiGEmCKX9TRPzpsHR8l5hICGbXy7/exec',
+  GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxLGxMjuq3a7ZHoSXGrigP5xTVOAtKi3I9HsnEQk4afQsUzDiy5dOi5WTyG1syS5RH2/exec',
 
   // Google Analytics (Opcional)
   GA_MEASUREMENT_ID: ''

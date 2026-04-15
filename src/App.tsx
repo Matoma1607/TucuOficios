@@ -125,17 +125,16 @@ function HomePage() {
       const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
       
       if (!scriptUrl) {
-        console.error("VITE_GOOGLE_SCRIPT_URL is missing");
-        setFetchError("Configuración incompleta: Falta la URL de la base de datos en los Secrets.");
+        console.error("GOOGLE_SCRIPT_URL is missing in config.ts");
+        setFetchError("Configuración incompleta: Falta la URL de la base de datos.");
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await fetch(scriptUrl, {
-          method: 'GET',
-          cache: 'no-cache',
-        });
+        // Agregamos un timestamp para evitar que el navegador use una copia vieja (caché)
+        const urlWithCacheBuster = `${scriptUrl}${scriptUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+        const response = await fetch(urlWithCacheBuster);
         
         if (response.ok) {
           const data = await response.json();
