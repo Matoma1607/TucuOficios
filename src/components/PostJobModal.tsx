@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera } from 'lucide-react';
-import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage, handleFirestoreError, OperationType, loginAnonymously, loginWithGoogle } from '../services/firebase';
-import { CATEGORIES, Category, User } from '../types';
+import { CATEGORIES, Category } from '../types';
 import { CONFIG } from '../config';
 import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Key } from 'lucide-react';
 
@@ -15,12 +12,12 @@ const VALID_KEYWORD = 'TUCUMAN2026';
 interface PostJobModalProps {
   isOpen: boolean;
   onClose: () => void;
-  currentUser: User | null;
+  isAdmin: boolean;
   isRestrictedEnv?: boolean;
   onShowWAGuide?: () => void;
 }
 
-const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAGuide }: PostJobModalProps) => {
+const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide }: PostJobModalProps) => {
   const [step, setStep] = useState(1);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>(CATEGORIES[0]);
@@ -141,7 +138,7 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
         setErrorMessage('Por favor ingresa tu nombre y un WhatsApp válido.');
         return;
       }
-      if (!currentUser && accessCode !== CONFIG.ACCESS_CODE) {
+      if (!isAdmin && accessCode !== CONFIG.ACCESS_CODE) {
         setErrorMessage('El código de acceso es incorrecto.');
         return;
       }
@@ -159,17 +156,6 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
     }, 45000);
     
     try {
-      // Si no hay usuario, loguear anónimamente para tener un UID
-      let finalUser = currentUser;
-      if (!finalUser) {
-        try {
-          finalUser = await loginAnonymously() as User;
-        } catch (authErr) {
-          console.error("Error in anonymous login:", authErr);
-          // Continuamos igual, el GAS aceptará 'anonymous'
-        }
-      }
-
       // 1. Subida a Cloudinary
       const cloudName = CONFIG.CLOUDINARY_CLOUD_NAME;
       const uploadPreset = CONFIG.CLOUDINARY_UPLOAD_PRESET;
@@ -210,7 +196,7 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
         whatsapp,
         imageUrl: downloadURL,
         professionalName: profName,
-        professionalId: currentUser?.uid || 'anonymous_guest',
+        professionalId: isAdmin ? 'admin' : 'anonymous_guest',
         createdAt: new Date().toISOString()
       };
 
@@ -393,7 +379,7 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
                     </div>
                   </div>
 
-                  {!currentUser && (
+                  {!isAdmin && (
                     <div className="space-y-2">
                       <label className="text-sm font-semibold text-gray-700">Código de Acceso</label>
                       <div className="relative">

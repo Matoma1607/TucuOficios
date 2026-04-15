@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, ExternalLink, Copy, Check, X } from 'lucide-react';
-import { onSnapshot, collection, query, orderBy, doc, getDoc, setDoc } from 'firebase/firestore';
-import { onAuthStateChanged, getRedirectResult } from 'firebase/auth';
+import { Search, SlidersHorizontal, ExternalLink, Copy, Check, X, ShieldCheck, LogOut } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import CategoryFilter from './components/CategoryFilter';
@@ -14,13 +12,12 @@ import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
-import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
 import { CONFIG } from './config';
-import { Job, Category, User } from './types';
+import { Job, Category } from './types';
 
 function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,6 +46,11 @@ function HomePage() {
   }, [location]);
 
   useEffect(() => {
+    const savedAdmin = localStorage.getItem('tucu_admin_mode');
+    if (savedAdmin === 'true') {
+      setIsAdmin(true);
+    }
+
     const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
     const isIOSDevice = /iPhone|iPad|iPod/i.test(ua);
     setIsIOS(isIOSDevice);
@@ -69,59 +71,6 @@ function HomePage() {
       setShowSplash(false);
     }, 3000);
     return () => clearTimeout(timer);
-  }, []);
-
-  // Auth Listener
-  useEffect(() => {
-    // Manejar resultado de redirección (para móviles)
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result?.user) {
-          const user = result.user;
-          // Asegurarnos que el documento del usuario exista
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
-          if (!userSnap.exists()) {
-            await setDoc(userRef, {
-              uid: user.uid,
-              displayName: user.displayName,
-              email: user.email,
-              photoURL: user.photoURL,
-              role: 'user'
-            });
-          }
-        }
-      })
-      .catch(err => {
-        console.error("Error en redirección:", err);
-        if (err.code === 'auth/disallowed-useragent' || err.message?.includes('disallowed_useragent')) {
-          setAuthError("Google no permite iniciar sesión desde esta aplicación (WhatsApp/Instagram). Por favor, abrí el link directamente en Chrome o Safari.");
-          setShowWAGuide(true);
-        } else if (err.code === 'auth/internal-error' || err.message?.includes('missing initial state')) {
-          setAuthError("Hubo un problema de seguridad al volver de Google. Por favor, asegurate de no estar en modo incógnito y de permitir cookies.");
-        }
-      });
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch role from Firestore
-        const userRef = doc(db, 'users', firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
-        const userData = userSnap.exists() ? userSnap.data() : null;
-
-        setUser({
-          uid: firebaseUser.uid,
-          displayName: firebaseUser.displayName,
-          email: firebaseUser.email,
-          photoURL: firebaseUser.photoURL,
-          role: userData?.role || (firebaseUser.email === 'matias39974593@gmail.com' ? 'admin' : 'user')
-        });
-      } else {
-        setUser(null);
-      }
-      setIsAuthReady(true);
-    });
-    return () => unsubscribe();
   }, []);
 
   // Jobs Listener (Google Apps Script)
@@ -174,33 +123,22 @@ function HomePage() {
     });
   }, [jobs, selectedCategory, searchQuery]);
 
-  const handleLogin = async () => {
-    if (isRestrictedEnv) {
-      setShowWAGuide(true);
-      return;
-    }
-    try {
-      await loginWithGoogle();
-    } catch (error) {
-      console.error("Login failed", error);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("Logout failed", error);
+  const handleLogin = () => {
+    const code = window.prompt('Ingresá el código de Administrador:');
+    if (code === CONFIG.ADMIN_CODE) {
+      setIsAdmin(true);
+      localStorage.setItem('tucu_admin_mode', 'true');
+      alert('¡Modo Administrador activado!');
+    } else if (code !== null) {
+      alert('Código incorrecto.');
     }
   };
 
-  if (!isAuthReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-12 h-12 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const handleLogout = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('tucu_admin_mode');
+    alert('Sesión de administrador cerrada.');
+  };
 
   return (
     <div className="min-h-screen">
@@ -217,46 +155,31 @@ function HomePage() {
           transition={{ duration: 0.5 }}
         >
           <Header 
-            user={user} 
+            isAdmin={isAdmin}
             onLogin={handleLogin} 
             onLogout={handleLogout} 
             onPostClick={() => setIsModalOpen(true)} 
           />
 
-          {authError && (
+          {isAdmin && (
             <div className="max-w-7xl mx-auto px-4 mt-4">
-              <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-                <div className="p-2 bg-red-500 rounded-lg text-white shrink-0">
-                  <SlidersHorizontal className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-red-900 text-sm">Error de Inicio de Sesión</h3>
-                  <p className="text-red-700 text-xs mt-1 leading-relaxed">
-                    {authError}
-                  </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-500 rounded-lg text-white">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-amber-900 text-sm">Modo Administrador Activo</h3>
+                    <p className="text-amber-700 text-xs">Podés editar y borrar cualquier trabajo.</p>
+                  </div>
                 </div>
                 <button 
-                  onClick={() => setAuthError(null)}
-                  className="text-red-400 hover:text-red-600 transition-colors"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-4 py-2 bg-white text-amber-700 text-xs font-bold rounded-xl border border-amber-200 hover:bg-amber-100 transition-all"
                 >
-                  <X className="w-5 h-5" />
+                  <LogOut className="w-4 h-4" />
+                  Salir
                 </button>
-              </div>
-            </div>
-          )}
-
-          {isRestrictedEnv && !user && (
-            <div className="max-w-7xl mx-auto px-4 mt-4">
-              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-                <div className="p-2 bg-indigo-500 rounded-lg text-white shrink-0">
-                  <ExternalLink className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-indigo-900 text-sm">¿Querés publicar un trabajo?</h3>
-                  <p className="text-indigo-700 text-xs mt-1 leading-relaxed">
-                    Google no permite iniciar sesión dentro de WhatsApp o redes sociales. Tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
-                  </p>
-                </div>
               </div>
             </div>
           )}
@@ -341,7 +264,7 @@ function HomePage() {
                         <JobCard 
                           key={job.id} 
                           job={job} 
-                          currentUser={user} 
+                          isAdmin={isAdmin} 
                           onEdit={(j: Job) => setEditingJob(j)}
                         />
                       ))}
@@ -367,7 +290,7 @@ function HomePage() {
           <PostJobModal 
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            currentUser={user}
+            isAdmin={isAdmin}
             isRestrictedEnv={isRestrictedEnv}
             onShowWAGuide={() => setShowWAGuide(true)}
           />
@@ -443,7 +366,7 @@ function HomePage() {
               <div className="flex flex-col items-center justify-center gap-6">
                 <div className="flex gap-8 text-sm font-bold text-gray-500">
                   <Link to="/privacidad" className="hover:text-brand-primary transition-colors">Política de Privacidad</Link>
-                  {!user && (
+                  {!isAdmin && (
                     <button 
                       onClick={handleLogin} 
                       className="hover:text-brand-primary transition-colors"

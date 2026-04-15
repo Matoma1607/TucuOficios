@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2 } from 'lucide-react';
-import { Job, User as UserType } from '../types';
+import { Job } from '../types';
 import { CONFIG } from '../config';
 import EditJobModal from './EditJobModal';
 
 interface JobCardProps {
   job: Job;
-  currentUser: UserType | null;
+  isAdmin: boolean;
   onEdit?: (job: Job) => void;
   key?: React.Key;
 }
 
-export default function JobCard({ job, currentUser, onEdit }: JobCardProps) {
+export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const isOwner = currentUser?.uid === job.professionalId;
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.email === 'matias39974593@gmail.com';
+  const isOwner = false; // Ya no usamos Firebase Auth para dueños individuales
 
   const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
     `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`

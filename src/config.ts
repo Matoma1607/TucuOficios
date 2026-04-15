@@ -8,10 +8,13 @@ export const CONFIG = {
   CLOUDINARY_UPLOAD_PRESET: 'tucu_oficios',
 
   // Google Apps Script (URL de implementación que termina en /exec)
-  GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzjqSdyAwEj0IjNnDHjfQ8x3tsJaVGdJlvMbU1TlLH7_3qR3h6V9vyAQVwMlZOUygRp/exec',
+  GOOGLE_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxiaqhuqmoYfRSv50_8gQtc8_-0_9kqpspx3OsMHgJc0oV_mc_AnwCdt9BzPqhwymVF/exec',
 
   // Código de acceso para publicar desde el celular sin Google Login
   ACCESS_CODE: 'TUCU2026',
+
+  // Código para entrar como Administrador (para borrar o editar trabajos)
+  ADMIN_CODE: 'ADMIN2026',
 
   // Google Analytics (Opcional)
   GA_MEASUREMENT_ID: ''
