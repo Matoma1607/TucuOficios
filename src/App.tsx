@@ -183,7 +183,11 @@ function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <SplashScreen onComplete={() => setShowSplash(false)} />
+      <AnimatePresence>
+        {showSplash && (
+          <SplashScreen onComplete={() => setShowSplash(false)} />
+        )}
+      </AnimatePresence>
       
       {!showSplash && (
         <motion.div
