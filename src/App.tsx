@@ -64,6 +64,13 @@ function HomePage() {
     }
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Auth Listener
   useEffect(() => {
     // Manejar resultado de redirección (para móviles)
@@ -197,9 +204,9 @@ function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {showSplash && (
-          <SplashScreen onComplete={() => setShowSplash(false)} />
+          <SplashScreen key="splash" />
         )}
       </AnimatePresence>
       

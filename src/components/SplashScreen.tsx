@@ -1,21 +1,11 @@
-import { motion, AnimatePresence } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 
-export default function SplashScreen({ onComplete }: { onComplete: () => void }) {
-  const [isVisible, setIsVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onComplete, 500); // Wait for fade out animation
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [onComplete]);
-
+export default function SplashScreen() {
   return (
     <motion.div
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
       className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center overflow-hidden"
     >
       {/* Background Pattern / Scribbles */}
