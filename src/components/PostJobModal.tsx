@@ -5,6 +5,7 @@ import { collection, addDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, handleFirestoreError, OperationType, loginAnonymously, loginWithGoogle } from '../services/firebase';
 import { CATEGORIES, Category, User } from '../types';
+import { CONFIG } from '../config';
 import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Key } from 'lucide-react';
 
 import heic2any from 'heic2any';
@@ -154,11 +155,11 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
     
     try {
       // 1. Subida a Cloudinary
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      const cloudName = CONFIG.CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = CONFIG.CLOUDINARY_UPLOAD_PRESET;
       
       if (!cloudName || !uploadPreset) {
-        throw new Error('Configuración de Cloudinary faltante en .env');
+        throw new Error('Configuración de Cloudinary faltante en config.ts');
       }
 
       const formData = new FormData();
@@ -181,9 +182,9 @@ const PostJobModal = ({ isOpen, onClose, currentUser, isRestrictedEnv, onShowWAG
       const downloadURL = cloudinaryData.secure_url;
 
       // 2. Guardar en Google Sheets vía Google Apps Script
-      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
       if (!scriptUrl) {
-        throw new Error('URL de Google Script faltante en .env');
+        throw new Error('URL de Google Script faltante en config.ts');
       }
 
       const jobData = {

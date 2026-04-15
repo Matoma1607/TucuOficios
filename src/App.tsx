@@ -15,6 +15,7 @@ import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
 import { db, auth, loginWithGoogle, logoutUser, handleFirestoreError, OperationType } from './services/firebase';
+import { CONFIG } from './config';
 import { Job, Category, User } from './types';
 
 function HomePage() {
@@ -117,20 +118,35 @@ function HomePage() {
   }, []);
 
   // Jobs Listener (Google Apps Script)
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchJobs = async () => {
-      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-      if (!scriptUrl) return;
+      const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
+      
+      if (!scriptUrl) {
+        console.error("VITE_GOOGLE_SCRIPT_URL is missing");
+        setFetchError("Configuración incompleta: Falta la URL de la base de datos en los Secrets.");
+        setIsLoading(false);
+        return;
+      }
 
       try {
-        const response = await fetch(scriptUrl);
+        const response = await fetch(scriptUrl, {
+          method: 'GET',
+          cache: 'no-cache',
+        });
+        
         if (response.ok) {
           const data = await response.json();
-          // Mapear si es necesario para asegurar tipos
           setJobs(data as Job[]);
+          setFetchError(null);
+        } else {
+          throw new Error(`Error de servidor: ${response.status}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching jobs from GAS:", error);
+        setFetchError("No se pudo conectar con la base de datos. Verificá tu conexión o la configuración del script.");
       } finally {
         setIsLoading(false);
       }
@@ -138,7 +154,6 @@ function HomePage() {
 
     fetchJobs();
     
-    // Opcional: Polling cada 1 minuto para simular "real-time"
     const interval = setInterval(fetchJobs, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -279,6 +294,13 @@ function HomePage() {
               selectedCategory={selectedCategory} 
               onSelectCategory={setSelectedCategory} 
             />
+
+            {fetchError && (
+              <div className="mt-8 p-6 bg-amber-50 border border-amber-100 rounded-3xl text-center">
+                <p className="text-amber-800 font-medium">{fetchError}</p>
+                <p className="text-amber-600 text-xs mt-2">Si acabás de configurar los Secrets, esperá un minuto y refrescá la página.</p>
+              </div>
+            )}
 
             {/* Jobs Grid */}
             <div className="mt-12">

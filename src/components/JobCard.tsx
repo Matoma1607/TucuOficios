@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2 } from 'lucide-react';
 import { Job, User as UserType } from '../types';
+import { CONFIG } from '../config';
 import EditJobModal from './EditJobModal';
 
 interface JobCardProps {
@@ -24,7 +25,7 @@ export default function JobCard({ job, currentUser, onEdit }: JobCardProps) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
       if (!scriptUrl) throw new Error('GAS URL missing');
 
       await fetch(`${scriptUrl}?action=delete`, {

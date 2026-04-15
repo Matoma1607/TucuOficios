@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check } from 'lucide-react';
 import { Job, CATEGORIES, Category } from '../types';
+import { CONFIG } from '../config';
 
 interface EditJobModalProps {
   isOpen: boolean;
@@ -36,7 +37,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
     setErrorMessage(null);
 
     try {
-      const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+      const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
       if (!scriptUrl) throw new Error('GAS URL missing');
 
       await fetch(`${scriptUrl}?action=update`, {
