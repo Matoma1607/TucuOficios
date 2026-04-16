@@ -52,12 +52,32 @@ function HomePage() {
       if (!scriptUrl) return;
 
       try {
+        console.log("Fetching from GAS:", scriptUrl);
         const response = await fetch(scriptUrl);
         if (response.ok) {
           const data = await response.json();
+          console.log("Data received from GAS:", data);
+          
           if (Array.isArray(data)) {
-            // Filter only approved jobs for public view, unless admin
-            const visibleJobs = isAdmin ? data : data.filter((j: any) => j.estado === 'aprobado');
+            // Normalizar las claves por si GAS le puso mayúsculas
+            const normalizedData = data.map((j: any) => ({
+              id: j.id || j.Id || '',
+              title: j.title || j.Title || '',
+              category: j.category || j.Category || '',
+              zone: j.zone || j.Zone || '',
+              professionalName: j.professionalName || j.ProfessionalName || '',
+              whatsapp: j.whatsapp || j.Whatsapp || '',
+              description: j.description || j.Description || '',
+              imageUrl: j.imageUrl || j.ImageUrl || '',
+              estado: j.estado || j.Estado || 'pendiente',
+              createdAt: j.createdAt || j.CreatedAt || Date.now()
+            }));
+
+            // Mostramos aprobados y pendientes al público
+            const visibleJobs = isAdmin 
+              ? normalizedData 
+              : normalizedData.filter((j: any) => j.id && (j.estado === 'aprobado' || j.estado === 'pendiente'));
+            
             setJobs(visibleJobs as Job[]);
           }
         }

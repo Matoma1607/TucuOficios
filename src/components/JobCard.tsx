@@ -73,10 +73,15 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
             <span className="px-2 py-1 bg-brand-primary text-white text-[10px] font-black uppercase rounded-md">
               {job.category}
             </span>
+            {job.estado === 'pendiente' && (
+              <span className="px-2 py-1 bg-amber-500 text-white text-[10px] font-black uppercase rounded-md shadow-sm">
+                En Revisión
+              </span>
+            )}
           </div>
         </div>
 

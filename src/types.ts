@@ -4,7 +4,7 @@ export interface Job {
   category: string;
   zone: string;
   professionalName: string;
-  professionalId: string;
+  professionalId?: string;
   whatsapp: string;
   imageUrl: string;
   createdAt: number | string;
