@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, ExternalLink, Copy, Check, X, ShieldCheck, LogOut } from 'lucide-react';
+import { Search, Plus, X, ShieldCheck, LogOut, Camera, Upload, Check, ChevronRight } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import Header from './components/Header';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import PostJobModal from './components/PostJobModal';
@@ -23,20 +22,8 @@ function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthReady, setIsAuthReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
-  const [isRestrictedEnv, setIsRestrictedEnv] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [showWAGuide, setShowWAGuide] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const location = useLocation();
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie-consent');
@@ -50,20 +37,6 @@ function HomePage() {
     if (savedAdmin === 'true') {
       setIsAdmin(true);
     }
-
-    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
-    const isIOSDevice = /iPhone|iPad|iPod/i.test(ua);
-    setIsIOS(isIOSDevice);
-
-    const isRestricted = 
-      /WhatsApp|FBAN|FBAV|Instagram|Messenger|LinkedIn|Pinterest|Snapchat|Line|Viber|Twitter|GSA|DuckDuckGo|Focus/i.test(ua) ||
-      (/Android/i.test(ua) && /Version\/[0-9.]+/i.test(ua) && !/Chrome\/[0-9.]+/i.test(ua)) || // Generic Android WebView
-      (isIOSDevice && !/Safari/i.test(ua) && !/CriOS/i.test(ua) && !/FxiOS/i.test(ua)) || // iOS WebView (not Safari/Chrome/Firefox)
-      (ua.includes('wv')); // Common WebView indicator
-    
-    if (isRestricted) {
-      setIsRestrictedEnv(true);
-    }
   }, []);
 
   useEffect(() => {
@@ -73,234 +46,134 @@ function HomePage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Jobs Listener (Google Apps Script)
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
   useEffect(() => {
     const fetchJobs = async () => {
       const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
-      
-      if (!scriptUrl) {
-        console.error("GOOGLE_SCRIPT_URL is missing in config.ts");
-        setFetchError("Configuración incompleta: Falta la URL de la base de datos.");
-        setIsLoading(false);
-        return;
-      }
+      if (!scriptUrl) return;
 
       try {
-        // Petición simple sin headers personalizados para evitar cualquier preflight de CORS
         const response = await fetch(scriptUrl);
-        
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data)) {
-            setJobs(data as Job[]);
-            setFetchError(null);
-          } else {
-            console.error("Data is not an array:", data);
-            setFetchError("La base de datos devolvió un formato inesperado.");
+            // Filter only approved jobs for public view, unless admin
+            const visibleJobs = isAdmin ? data : data.filter((j: any) => j.estado === 'aprobado');
+            setJobs(visibleJobs as Job[]);
           }
-        } else {
-          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
-      } catch (error: any) {
-        console.error("Error fetching jobs from GAS:", error);
-        // "Failed to fetch" es el error típico de CORS o URL caída
-        const isCorsError = error.message === 'Failed to fetch';
-        setFetchError(
-          isCorsError 
-            ? "Error de conexión. Esto ocurre si el Script de Google no está publicado como 'Cualquiera' (Anyone) o si la URL es incorrecta."
-            : `No se pudo cargar la base de datos: ${error.message}`
-        );
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchJobs();
-    
     const interval = setInterval(fetchJobs, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAdmin]);
 
   const filteredJobs = useMemo(() => {
-    if (!Array.isArray(jobs)) return [];
-    
     return jobs.filter(job => {
-      if (!job) return false;
-      
-      const title = job.title || '';
-      const zone = job.zone || '';
-      const profName = job.professionalName || '';
-      const search = searchQuery.toLowerCase();
-
       const matchesCategory = selectedCategory === 'All' || job.category === selectedCategory;
-      const matchesSearch = title.toLowerCase().includes(search) ||
-                          zone.toLowerCase().includes(search) ||
-                          profName.toLowerCase().includes(search);
-      
+      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          job.zone.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          job.professionalName.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = () => {
-    const code = window.prompt('Ingresá el código de Administrador:');
+    const code = window.prompt('Código de Administrador:');
     if (code === CONFIG.ADMIN_CODE) {
       setIsAdmin(true);
       localStorage.setItem('tucu_admin_mode', 'true');
-      alert('¡Modo Administrador activado!');
-    } else if (code !== null) {
-      alert('Código incorrecto.');
     }
   };
 
   const handleLogout = () => {
     setIsAdmin(false);
     localStorage.removeItem('tucu_admin_mode');
-    alert('Sesión de administrador cerrada.');
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#F5F5F5]">
       <AnimatePresence mode="wait">
-        {showSplash && (
-          <SplashScreen key="splash" />
-        )}
+        {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
       
       {!showSplash && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Header 
-            isAdmin={isAdmin}
-            onLogin={handleLogin} 
-            onLogout={handleLogout} 
-            onPostClick={() => setIsModalOpen(true)} 
-          />
-
-          {isAdmin && (
-            <div className="max-w-7xl mx-auto px-4 mt-4">
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-500 rounded-lg text-white">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-amber-900 text-sm">Modo Administrador Activo</h3>
-                    <p className="text-amber-700 text-xs">Podés editar y borrar cualquier trabajo.</p>
-                  </div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          {/* Strava-like Header */}
+          <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-black text-xl">T</span>
                 </div>
+                <span className="text-xl font-black tracking-tighter text-brand-dark">
+                  Tucu<span className="text-brand-primary">Oficios</span>
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                {isAdmin && (
+                  <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-brand-primary">
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                )}
                 <button 
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-4 py-2 bg-white text-amber-700 text-xs font-bold rounded-xl border border-amber-200 hover:bg-amber-100 transition-all"
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-brand-primary text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-1 shadow-lg shadow-orange-200 active:scale-95 transition-all"
                 >
-                  <LogOut className="w-4 h-4" />
-                  Salir
+                  <Plus className="w-4 h-4" />
+                  Publicar
                 </button>
               </div>
             </div>
-          )}
+          </header>
 
-          <main className="max-w-7xl mx-auto px-4 pb-20">
-            {/* Hero / Search Section */}
-            <section className="py-16 flex flex-col items-center text-center">
-              <motion.h1 
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-5xl md:text-7xl font-extrabold text-brand-dark tracking-tight mb-8"
-              >
-                Encontrá al profesional <br />
-                <span className="text-brand-primary">que necesitás.</span>
-              </motion.h1>
-              
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="w-full max-w-2xl relative"
-              >
-                <div className="relative flex items-center bg-white/70 backdrop-blur-xl rounded-3xl border border-white/40 shadow-2xl shadow-indigo-100/30 p-2 focus-within:ring-2 focus-within:ring-brand-primary transition-all">
-                  <Search className="w-5 h-5 text-gray-400 ml-4" />
-                  <input 
-                    type="text" 
-                    placeholder="¿Qué servicio estás buscando? (ej: Plomero en Yerba Buena)" 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-grow px-4 py-4 bg-transparent outline-none text-brand-dark font-medium placeholder:text-gray-400"
-                  />
-                  <button className="hidden sm:flex items-center gap-2 bg-brand-primary text-white px-8 py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200">
-                    Buscar
-                  </button>
-                </div>
-              </motion.div>
-            </section>
+          <main className="max-w-5xl mx-auto px-4 py-8">
+            {/* Search Bar */}
+            <div className="mb-8">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-primary transition-colors" />
+                <input 
+                  type="text"
+                  placeholder="Buscar plomero, electricista..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 pl-12 pr-4 shadow-sm outline-none transition-all font-medium"
+                />
+              </div>
+            </div>
 
-            {/* Categories */}
             <CategoryFilter 
               selectedCategory={selectedCategory} 
               onSelectCategory={setSelectedCategory} 
             />
 
-            {fetchError && (
-              <div className="mt-8 p-6 bg-amber-50 border border-amber-100 rounded-3xl text-center">
-                <p className="text-amber-800 font-medium">{fetchError}</p>
-                <p className="text-amber-600 text-xs mt-2">Si acabás de configurar los Secrets, esperá un minuto y refrescá la página.</p>
-              </div>
-            )}
-
-            {/* Jobs Grid */}
-            <div className="mt-12">
-              <div className="flex items-center justify-between mb-10">
-                <h2 className="text-3xl font-extrabold text-brand-dark tracking-tight">
-                  {selectedCategory === 'All' ? 'Trabajos Recientes' : `Trabajos de ${selectedCategory}`}
-                </h2>
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-500 bg-white/50 backdrop-blur-sm border border-white/20 px-5 py-2.5 rounded-2xl">
-                  <SlidersHorizontal className="w-4 h-4" />
-                  <span>Filtros</span>
-                </div>
-              </div>
-
+            {/* Jobs List */}
+            <div className="mt-8 space-y-4">
               {isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                  {[1, 2, 3, 4, 5, 6].map(i => (
-                    <div key={i} className="animate-pulse">
-                      <div className="aspect-[4/3] bg-gray-100 rounded-3xl mb-4" />
-                      <div className="h-6 bg-gray-100 rounded-full w-3/4 mb-3" />
-                      <div className="h-4 bg-gray-100 rounded-full w-1/2" />
-                    </div>
-                  ))}
-                </div>
+                [1,2,3].map(i => (
+                  <div key={i} className="bg-white h-32 rounded-2xl animate-pulse" />
+                ))
               ) : (
                 <AnimatePresence mode="popLayout">
                   {filteredJobs.length > 0 ? (
-                    <motion.div 
-                      layout
-                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10"
-                    >
-                      {filteredJobs.map((job: Job) => (
-                        <JobCard 
-                          key={job.id} 
-                          job={job} 
-                          isAdmin={isAdmin} 
-                          onEdit={(j: Job) => setEditingJob(j)}
-                        />
-                      ))}
-                    </motion.div>
+                    filteredJobs.map((job) => (
+                      <JobCard 
+                        key={job.id} 
+                        job={job} 
+                        isAdmin={isAdmin} 
+                        onEdit={(j) => setEditingJob(j)}
+                      />
+                    ))
                   ) : (
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="py-24 text-center"
-                    >
-                      <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Search className="w-12 h-12 text-gray-300" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-brand-dark mb-2">No encontramos resultados</h3>
-                      <p className="text-gray-500">Probá buscando con otras palabras o categorías.</p>
-                    </motion.div>
+                    <div className="text-center py-20">
+                      <p className="text-gray-400 font-medium">No se encontraron resultados</p>
+                    </div>
                   )}
                 </AnimatePresence>
               )}
@@ -310,9 +183,6 @@ function HomePage() {
           <PostJobModal 
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            isAdmin={isAdmin}
-            isRestrictedEnv={isRestrictedEnv}
-            onShowWAGuide={() => setShowWAGuide(true)}
           />
 
           <EditJobModal 
@@ -321,88 +191,18 @@ function HomePage() {
             job={editingJob}
           />
 
-          {/* WhatsApp Guide Modal */}
-          <AnimatePresence>
-            {showWAGuide && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setShowWAGuide(false)}
-                  className="absolute inset-0 bg-black/60 backdrop-blur-md"
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="relative w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl text-center"
-                >
-                  <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <ExternalLink className="w-10 h-10 text-indigo-600" />
-                  </div>
-                  <h2 className="text-2xl font-black text-gray-900 mb-4 leading-tight">
-                    ¡Casi listo!<br/><span className="text-indigo-600">Salí de WhatsApp</span>
-                  </h2>
-                  <p className="text-gray-600 mb-8 leading-relaxed">
-                    Por seguridad, Google no permite iniciar sesión dentro de WhatsApp.<br/><br/>
-                    {isIOS ? (
-                      <>
-                        Tocá el icono de <strong>Compartir</strong> (el cuadrado con la flecha) y elegí <strong>"Abrir en Safari"</strong>.
-                      </>
-                    ) : (
-                      <>
-                        Tocá los <strong>3 puntitos</strong> de arriba y elegí <strong>"Abrir en el navegador"</strong>.
-                      </>
-                    )}
-                  </p>
-                  
-                  <div className="space-y-3">
-                    <button
-                      onClick={handleCopyLink}
-                      className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold flex items-center justify-center gap-2 border border-indigo-100 active:scale-95 transition-all"
-                    >
-                      {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                      {copied ? '¡Copiado!' : 'Copiar link para Chrome'}
-                    </button>
-                    
-                    <button
-                      onClick={() => setShowWAGuide(false)}
-                      className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95"
-                    >
-                      Entendido
-                    </button>
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
-
-          <CookieBanner />
-
-          {/* Footer Info */}
-          <footer className="bg-white/50 backdrop-blur-md py-12 border-t border-white/20">
-            <div className="max-w-7xl mx-auto px-4">
-              <div className="flex flex-col items-center justify-center gap-6">
-                <div className="flex gap-8 text-sm font-bold text-gray-500">
-                  <Link to="/privacidad" className="hover:text-brand-primary transition-colors">Política de Privacidad</Link>
-                  {!isAdmin && (
-                    <button 
-                      onClick={handleLogin} 
-                      className="hover:text-brand-primary transition-colors"
-                    >
-                      Admin Login
-                    </button>
-                  )}
-                </div>
-                <p className="text-gray-400 text-[10px] font-medium uppercase tracking-[0.2em]">
-                  © 2026 • San Miguel de Tucumán
-                </p>
-              </div>
+          <footer className="py-12 text-center border-t border-gray-200 mt-20">
+            <div className="flex justify-center gap-6 mb-4 text-sm font-bold text-gray-400">
+              <Link to="/privacidad" className="hover:text-brand-primary">Privacidad</Link>
+              {!isAdmin && <button onClick={handleLogin} className="hover:text-brand-primary">Admin</button>}
             </div>
+            <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest">
+              © 2026 • TucuOficios
+            </p>
           </footer>
         </motion.div>
       )}
+      <CookieBanner />
     </div>
   );
 }
@@ -416,5 +216,3 @@ export default function App() {
     </Routes>
   );
 }
-
-

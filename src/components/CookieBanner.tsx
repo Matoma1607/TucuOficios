@@ -39,13 +39,13 @@ export default function CookieBanner() {
         >
           <div className="bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl rounded-[2rem] p-6 flex flex-col gap-5">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-6 h-6 text-brand-primary" />
               </div>
               <div className="flex-grow">
-                <h3 className="text-sm font-bold text-brand-dark mb-1">Control de Privacidad</h3>
+                <h3 className="text-sm font-black text-brand-dark mb-1">Control de Privacidad</h3>
                 <p className="text-[11px] text-gray-500 leading-relaxed">
-                  Respetamos tu privacidad. Podés aceptar todas las cookies para una mejor experiencia, rechazarlas o configurar tus preferencias. No instalaremos cookies de seguimiento sin tu consentimiento.
+                  Respetamos tu privacidad. Usamos cookies para mejorar tu experiencia.
                 </p>
               </div>
             </div>
@@ -53,7 +53,7 @@ export default function CookieBanner() {
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleAccept}
-                className="w-full py-3 bg-brand-primary text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-lg shadow-indigo-100"
+                className="w-full py-3 bg-brand-primary text-white text-xs font-black rounded-xl hover:bg-orange-600 transition-all active:scale-[0.98] shadow-lg shadow-orange-100"
               >
                 Aceptar todas
               </button>

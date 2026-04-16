@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2 } from 'lucide-react';
+import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight } from 'lucide-react';
 import { Job } from '../types';
 import { CONFIG } from '../config';
-import EditJobModal from './EditJobModal';
 
 interface JobCardProps {
   job: Job;
   isAdmin: boolean;
   onEdit?: (job: Job) => void;
-  key?: React.Key;
 }
 
 export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const isOwner = false; // Ya no usamos Firebase Auth para dueños individuales
 
   const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
     `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`
@@ -30,15 +27,12 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
       await fetch(`${scriptUrl}?action=delete`, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: job.id })
       });
       
-      // Como usamos no-cors, asumimos éxito o esperamos al polling de App.tsx
-      alert('Trabajo eliminado (los cambios pueden tardar un minuto en reflejarse)');
+      alert('Solicitud enviada.');
     } catch (error) {
-      console.error("Error deleting job:", error);
-      alert('Error al eliminar el trabajo.');
+      console.error(error);
     } finally {
       setIsDeleting(false);
       setShowConfirm(false);
@@ -48,111 +42,78 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
-      className="group relative flex flex-col bg-white/70 backdrop-blur-md border border-white/40 rounded-[2rem] overflow-hidden shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] hover:shadow-[0_8px_32px_0_rgba(79,70,229,0.15)] transition-all duration-500"
+      className="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative"
     >
-      {/* Delete Confirmation Overlay */}
       <AnimatePresence>
         {showConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center"
+            className="absolute inset-0 z-20 bg-white/95 flex flex-col items-center justify-center p-6 text-center"
           >
-            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
-              <AlertCircle className="w-6 h-6 text-red-500" />
-            </div>
-            <h4 className="text-lg font-bold text-gray-900 mb-2">¿Borrar trabajo?</h4>
-            <p className="text-sm text-gray-500 mb-6">Esta acción no se puede deshacer.</p>
-            <div className="flex gap-3 w-full">
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="flex-1 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-              >
-                {isDeleting ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  'Borrar'
-                )}
-              </button>
+            <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
+            <h4 className="text-lg font-black text-brand-dark mb-4">¿Borrar publicación?</h4>
+            <div className="flex gap-2 w-full">
+              <button onClick={() => setShowConfirm(false)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold">No</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Sí, borrar</button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Image Container */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
-        <img
-          src={job.imageUrl}
-          alt={job.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute top-3 left-3 flex gap-2">
-          <span className="px-3 py-1 text-xs font-semibold bg-white/90 backdrop-blur-sm text-gray-800 rounded-full shadow-sm">
-            {job.category}
-          </span>
+      <div className="flex flex-col sm:flex-row">
+        {/* Image */}
+        <div className="w-full sm:w-40 aspect-video sm:aspect-square relative flex-shrink-0">
+          <img
+            src={job.imageUrl || 'https://picsum.photos/seed/job/400/400'}
+            alt={job.title}
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute top-2 left-2">
+            <span className="px-2 py-1 bg-brand-primary text-white text-[10px] font-black uppercase rounded-md">
+              {job.category}
+            </span>
+          </div>
         </div>
-        
-        {(isOwner || isAdmin) && (
-          <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+
+        {/* Content */}
+        <div className="p-5 flex-grow flex flex-col justify-center">
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="text-lg font-black text-brand-dark leading-tight line-clamp-1">
+              {job.title}
+            </h3>
             {isAdmin && (
-              <button
-                onClick={() => onEdit?.(job)}
-                className="p-2 bg-white/90 backdrop-blur-sm text-blue-500 rounded-full shadow-sm hover:bg-blue-50 transition-colors"
-                title="Editar"
-              >
-                <Edit2 className="w-4 h-4" />
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => onEdit?.(job)} className="p-1 text-gray-400 hover:text-brand-primary"><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => setShowConfirm(true)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+              </div>
             )}
-            <button
-              onClick={() => setShowConfirm(true)}
-              className="p-2 bg-white/90 backdrop-blur-sm text-red-500 rounded-full shadow-sm hover:bg-red-50 transition-colors"
-              title="Borrar"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
           </div>
-        )}
-      </div>
+          
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4">
+            <div className="flex items-center text-gray-400 text-xs font-bold">
+              <MapPin className="w-3 h-3 mr-1 text-brand-primary" />
+              {job.zone}
+            </div>
+            <div className="flex items-center text-gray-400 text-xs font-bold">
+              <User className="w-3 h-3 mr-1 text-brand-primary" />
+              {job.professionalName}
+            </div>
+          </div>
 
-      {/* Content */}
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-lg font-semibold text-gray-900 leading-tight mb-2 line-clamp-2">
-          {job.title}
-        </h3>
-        
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-gray-500 text-sm">
-            <MapPin className="w-4 h-4 mr-1.5 shrink-0" />
-            <span className="truncate">{job.zone}</span>
-          </div>
-          <div className="flex items-center text-gray-500 text-sm">
-            <User className="w-4 h-4 mr-1.5 shrink-0" />
-            <span className="truncate">{job.professionalName}</span>
-          </div>
-        </div>
-
-        <div className="mt-auto">
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-full py-3 px-4 bg-brand-primary hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]"
+            className="inline-flex items-center justify-center gap-2 bg-brand-primary text-white py-3 px-6 rounded-full font-black text-sm shadow-lg shadow-orange-100 active:scale-95 transition-all w-full sm:w-auto"
           >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Contactar por WhatsApp
+            <MessageCircle className="w-4 h-4" />
+            WhatsApp
+            <ChevronRight className="w-4 h-4" />
           </a>
         </div>
       </div>

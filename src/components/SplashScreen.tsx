@@ -40,14 +40,14 @@ export default function SplashScreen() {
         }}
         className="flex flex-col items-center"
       >
-        <div className="text-4xl md:text-6xl font-extrabold tracking-tighter text-brand-dark mb-4">
+        <div className="text-4xl md:text-6xl font-black tracking-tighter text-brand-dark mb-4">
           Tucu<span className="text-brand-primary">Oficios</span>
         </div>
         <motion.div 
           initial={{ width: 0 }}
           animate={{ width: '100%' }}
           transition={{ duration: 1.5, delay: 0.5 }}
-          className="h-1 bg-brand-primary rounded-full"
+          className="h-1.5 bg-brand-primary rounded-full"
         />
         <motion.p 
           initial={{ opacity: 0, y: 10 }}

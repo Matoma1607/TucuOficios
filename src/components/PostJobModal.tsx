@@ -1,492 +1,274 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Upload, Camera } from 'lucide-react';
+import { X, Upload, Camera, Check, ChevronRight, Loader2 } from 'lucide-react';
 import { CATEGORIES, Category } from '../types';
 import { CONFIG } from '../config';
-import { Check, ShieldCheck, Phone, User as UserIcon, ArrowRight, ArrowLeft, Key } from 'lucide-react';
-
-import heic2any from 'heic2any';
-
-const VALID_KEYWORD = 'TUCUMAN2026';
 
 interface PostJobModalProps {
   isOpen: boolean;
   onClose: () => void;
-  isAdmin: boolean;
-  isRestrictedEnv: boolean;
-  onShowWAGuide: () => void;
 }
 
-const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide }: PostJobModalProps) => {
-  const [step, setStep] = useState(1);
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<Category>(CATEGORIES[0]);
-  const [zone, setZone] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [profName, setProfName] = useState('');
-  const [image, setImage] = useState<string | null>(null);
-  const [accessCode, setAccessCode] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isProcessingImage, setIsProcessingImage] = useState(false);
+const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
+  // Form state with localStorage persistence
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem('tucu_form_draft');
+    return saved ? JSON.parse(saved) : {
+      title: '',
+      category: CATEGORIES[0],
+      zone: '',
+      professionalName: '',
+      whatsapp: '',
+      description: ''
+    };
+  });
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setErrorMessage(null);
-    let file = e.target.files?.[0];
+  const [image, setImage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('tucu_form_draft', JSON.stringify(formData));
+  }, [formData]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar tamaño (15MB)
-    if (file.size > 15 * 1024 * 1024) {
-      setErrorMessage('La imagen es demasiado grande (máx 15MB)');
-      return;
-    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
-    setIsProcessingImage(true);
+  const uploadToCloudinary = async (base64Image: string) => {
+    const formData = new FormData();
+    formData.append('file', base64Image);
+    formData.append('upload_preset', CONFIG.CLOUDINARY_UPLOAD_PRESET);
 
-    try {
-      // Soporte para HEIC (iPhone)
-      if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic' || file.type === 'image/heif') {
-        try {
-          const convertedBlob = await heic2any({
-            blob: file,
-            toType: 'image/jpeg',
-            quality: 0.7
-          });
-          const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-          file = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: 'image/jpeg' });
-        } catch (heicErr) {
-          console.error('Error convirtiendo HEIC:', heicErr);
-        }
-      }
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: formData }
+    );
 
-      // Usar FileReader como método principal por ser más compatible con WebViews (WhatsApp/FB)
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const MAX_SIZE = 1200;
-
-            if (width > height) {
-              if (width > MAX_SIZE) {
-                height *= MAX_SIZE / width;
-                width = MAX_SIZE;
-              }
-            } else {
-              if (height > MAX_SIZE) {
-                width *= MAX_SIZE / height;
-                height = MAX_SIZE;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, width, height);
-              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-              
-              if (compressedDataUrl && compressedDataUrl.length > 100) {
-                setImage(compressedDataUrl);
-              } else {
-                throw new Error('Preview empty');
-              }
-            }
-          } catch (err) {
-            console.error('Error processing image:', err);
-            setErrorMessage('No pudimos procesar esta foto. Intentá con otra.');
-          } finally {
-            setIsProcessingImage(false);
-          }
-        };
-        img.onerror = () => {
-          setErrorMessage('Error al decodificar la imagen. Intentá sacando una foto nueva.');
-          setIsProcessingImage(false);
-        };
-        img.src = event.target?.result as string;
-      };
-      reader.onerror = () => {
-        setErrorMessage('Error al leer el archivo del celular.');
-        setIsProcessingImage(false);
-      };
-      reader.readAsDataURL(file);
-    } catch (err) {
-      console.error('General image error:', err);
-      setErrorMessage('Error al cargar la imagen.');
-      setIsProcessingImage(false);
-    }
-    
-    e.target.value = '';
+    if (!response.ok) throw new Error('Error al subir imagen');
+    const data = await response.json();
+    return data.secure_url;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 1) {
-      if (!title || !zone || !image) {
-        setErrorMessage('Por favor completa todos los campos y sube una foto.');
-        return;
-      }
-      setStep(2);
-      return;
-    }
-    
-    if (step === 2) {
-      if (!profName || whatsapp.length < 8) {
-        setErrorMessage('Por favor ingresa tu nombre y un WhatsApp válido.');
-        return;
-      }
-      if (!isAdmin && accessCode !== CONFIG.ACCESS_CODE) {
-        setErrorMessage('El código de acceso es incorrecto.');
-        return;
-      }
-    }
-
     setIsSubmitting(true);
-    setErrorMessage(null);
-    
-    let isFinished = false;
-    const timeoutId = setTimeout(() => {
-      if (!isFinished) {
-        setIsSubmitting(false);
-        setErrorMessage('La subida está tardando demasiado. Verificá tu conexión e intentá de nuevo.');
-      }
-    }, 45000);
-    
+    setError(null);
+
     try {
-      // 1. Subida a Cloudinary
-      const cloudName = CONFIG.CLOUDINARY_CLOUD_NAME;
-      const uploadPreset = CONFIG.CLOUDINARY_UPLOAD_PRESET;
-      
-      if (!cloudName || !uploadPreset) {
-        throw new Error('Configuración de Cloudinary faltante en config.ts');
+      let imageUrl = '';
+      if (image) {
+        imageUrl = await uploadToCloudinary(image);
       }
 
-      const formData = new FormData();
-      formData.append('file', image!);
-      formData.append('upload_preset', uploadPreset);
-
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!cloudinaryRes.ok) {
-        throw new Error('Error al subir imagen a Cloudinary');
-      }
-
-      const cloudinaryData = await cloudinaryRes.json();
-      const downloadURL = cloudinaryData.secure_url;
-
-      // 2. Guardar en Google Sheets vía Google Apps Script
-      const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
-      if (!scriptUrl) {
-        throw new Error('URL de Google Script faltante en config.ts');
-      }
-
-      const jobData = {
-        title,
-        category,
-        zone,
-        whatsapp,
-        imageUrl: downloadURL,
-        professionalName: profName,
-        professionalId: isAdmin ? 'admin' : 'anonymous_guest',
-        createdAt: new Date().toISOString()
+      const payload = {
+        ...formData,
+        imageUrl,
+        estado: 'pendiente',
+        createdAt: new Date().toISOString(),
+        id: Math.random().toString(36).substr(2, 9)
       };
 
-      const createUrl = `${scriptUrl}${scriptUrl.includes('?') ? '&' : '?'}action=create`;
-
-      await fetch(createUrl, {
+      const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: JSON.stringify(jobData),
+        mode: 'no-cors', // GAS requires no-cors for simple POST
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-      
-      isFinished = true;
-      clearTimeout(timeoutId);
-      setSuccessMessage('¡Excelente! Tu trabajo ha sido enviado para revisión.');
+
+      // Since mode is no-cors, we won't get a proper response object, 
+      // but we assume success if no exception is thrown.
+      setSuccess(true);
+      localStorage.removeItem('tucu_form_draft');
       setTimeout(() => {
-        resetForm();
         onClose();
-        setSuccessMessage(null);
-      }, 3000);
-    } catch (error: any) {
-      isFinished = true;
-      clearTimeout(timeoutId);
-      console.error('Error al publicar:', error);
-      
-      let msg = `Error al publicar: ${error.message || 'Error desconocido'}`;
-      if (error.message === 'Failed to fetch') {
-        msg = 'Error de conexión (CORS). Verificá que el Script de Google esté publicado como "Cualquiera".';
-      }
-      setErrorMessage(msg);
+        setSuccess(false);
+        setFormData({
+          title: '',
+          category: CATEGORIES[0],
+          zone: '',
+          professionalName: '',
+          whatsapp: '',
+          description: ''
+        });
+        setImage(null);
+      }, 2000);
+
+    } catch (err) {
+      setError('Hubo un problema al enviar los datos. Reintentá.');
+      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setTitle('');
-    setCategory(CATEGORIES[0]);
-    setZone('');
-    setWhatsapp('');
-    setProfName('');
-    setImage(null);
-    setAccessCode('');
-    setSuccessMessage(null);
-    setStep(1);
-  };
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-          />
-          
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-lg bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-white/40"
-          >
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Subir nuevo trabajo</h2>
-                <div className="flex gap-1 mt-1">
-                  {[1, 2].map((s) => (
-                    <div 
-                      key={s} 
-                      className={`h-1 w-8 rounded-full transition-all ${s <= step ? 'bg-blue-600' : 'bg-gray-100'}`}
-                    />
-                  ))}
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        />
+        
+        <motion.div 
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="relative w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] overflow-hidden shadow-2xl"
+        >
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+            <h2 className="text-xl font-black text-brand-dark">Publicar Oficio</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <X className="w-6 h-6 text-gray-400" />
+            </button>
+          </div>
+
+          <div className="p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
+            {success ? (
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="py-12 text-center"
+              >
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Check className="w-10 h-10 text-green-600" />
                 </div>
-              </div>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar">
-              {successMessage && (
-                <div className="p-4 bg-green-50 border border-green-100 rounded-xl text-green-600 text-sm font-bold flex items-center gap-3 animate-in zoom-in-95">
-                  <Check className="w-5 h-5" />
-                  {successMessage}
+                <h3 className="text-2xl font-black text-brand-dark mb-2">¡Enviado con éxito!</h3>
+                <p className="text-gray-500">Tu oficio está en revisión y aparecerá pronto.</p>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Image Upload */}
+                <div className="relative">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange}
+                    className="hidden" 
+                    id="image-upload" 
+                  />
+                  <label 
+                    htmlFor="image-upload"
+                    className="block aspect-video w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl overflow-hidden cursor-pointer hover:border-brand-primary transition-colors relative group"
+                  >
+                    {image ? (
+                      <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                        <Camera className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform" />
+                        <span className="text-sm font-bold">Subir Foto de tu Trabajo</span>
+                      </div>
+                    )}
+                  </label>
                 </div>
-              )}
 
-              {errorMessage && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
-                  {errorMessage}
-                </div>
-              )}
-
-              {step === 1 && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
-                  {/* Image Upload */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">Foto del trabajo</label>
-                    <div 
-                      className={`relative aspect-[4/3] rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden ${
-                        image ? 'border-transparent' : 'border-gray-200 hover:border-blue-400 bg-gray-50'
-                      }`}
-                    >
-                      {image ? (
-                        <>
-                          <img src={image} alt="Preview" className="w-full h-full object-cover" />
-                          <button 
-                            type="button"
-                            onClick={() => setImage(null)}
-                            className="absolute top-3 right-3 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <label htmlFor="job-image-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-                          {isProcessingImage ? (
-                            <div className="flex flex-col items-center">
-                              <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-2" />
-                              <span className="text-xs text-gray-500">Procesando...</span>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="p-4 bg-white rounded-full shadow-sm mb-3">
-                                <Camera className="w-6 h-6 text-blue-600" />
-                              </div>
-                              <span className="text-sm font-medium text-gray-600">Click para subir foto</span>
-                              <span className="text-xs text-gray-400 mt-1">JPG, PNG (Max 10MB)</span>
-                            </>
-                          )}
-                          <input 
-                            id="job-image-upload"
-                            type="file" 
-                            accept="image/*" 
-                            onChange={handleImageChange} 
-                            className="hidden" 
-                            disabled={isProcessingImage}
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">Título del servicio</label>
-                    <input
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">¿Qué hacés?</label>
+                    <input 
                       required
-                      type="text"
-                      placeholder="Ej: Instalación de Split - Barrio Norte"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                      placeholder="Ej: Plomero Matriculado"
+                      value={formData.title}
+                      onChange={e => setFormData({...formData, title: e.target.value})}
+                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Categoría</label>
-                      <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value as Category)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none"
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Categoría</label>
+                      <select 
+                        value={formData.category}
+                        onChange={e => setFormData({...formData, category: e.target.value as Category})}
+                        className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold appearance-none transition-all"
                       >
-                        {CATEGORIES.map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
+                        {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                       </select>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Zona</label>
-                      <input
+                    <div>
+                      <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Zona</label>
+                      <input 
                         required
-                        type="text"
                         placeholder="Ej: Yerba Buena"
-                        value={zone}
-                        onChange={(e) => setZone(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        value={formData.zone}
+                        onChange={e => setFormData({...formData, zone: e.target.value})}
+                        className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
                       />
                     </div>
                   </div>
 
-                  {!isAdmin && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-gray-700">Código de Acceso</label>
-                      <div className="relative">
-                        <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input
-                          required
-                          type="password"
-                          placeholder="Ingresá el código para publicar"
-                          value={accessCode}
-                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                          className="w-full pl-12 pr-4 py-3 bg-amber-50 border border-amber-100 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none transition-all placeholder:text-amber-200"
-                        />
-                      </div>
-                      <p className="text-[10px] text-amber-600 font-medium">
-                        Como estás en WhatsApp, usá el código de seguridad para publicar sin cuenta de Google.
-                      </p>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-5">
-                  <div className="p-4 bg-blue-50 rounded-2xl flex items-start gap-3">
-                    <UserIcon className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <p className="text-xs text-blue-700 leading-relaxed">
-                      Ingresá tus datos de contacto para que los clientes puedan encontrarte.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">Tu Nombre Profesional</label>
-                    <input
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Tu Nombre</label>
+                    <input 
                       required
-                      type="text"
-                      placeholder="Ej: Juan Pérez"
-                      value={profName}
-                      onChange={(e) => setProfName(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                      placeholder="Nombre y Apellido"
+                      value={formData.professionalName}
+                      onChange={e => setFormData({...formData, professionalName: e.target.value})}
+                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-gray-700">Número de WhatsApp</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">+54</span>
-                      <input
-                        required
-                        type="tel"
-                        placeholder="3815551234"
-                        value={whatsapp}
-                        onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
-                        className="w-full pl-14 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">WhatsApp</label>
+                    <input 
+                      required
+                      type="tel"
+                      placeholder="381 123 4567"
+                      value={formData.whatsapp}
+                      onChange={e => setFormData({...formData, whatsapp: e.target.value})}
+                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                    />
                   </div>
-                </motion.div>
-              )}
 
-              {/* Navigation Buttons */}
-              <div className="flex gap-3 pt-4">
-                {step > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => setStep(step - 1)}
-                    className="flex-1 py-4 bg-gray-100 text-gray-700 rounded-2xl font-bold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    Atrás
-                  </button>
-                )}
-                <button
-                  type="submit"
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Descripción (Opcional)</label>
+                    <textarea 
+                      placeholder="Contanos un poco más sobre lo que hacés..."
+                      rows={3}
+                      value={formData.description}
+                      onChange={e => setFormData({...formData, description: e.target.value})}
+                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all resize-none"
+                    />
+                  </div>
+                </div>
+
+                {error && <p className="text-red-500 text-sm font-bold text-center">{error}</p>}
+
+                <button 
                   disabled={isSubmitting}
-                  className={`flex-[2] py-4 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                    isSubmitting ? 'bg-gray-400' : 'bg-brand-primary hover:bg-indigo-700'
-                  }`}
+                  type="submit"
+                  className="w-full bg-brand-primary text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-orange-200 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                   {isSubmitting ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
                     <>
-                      {step < 2 ? (
-                        <>
-                          Siguiente
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      ) : (
-                        <>
-                          <Check className="w-5 h-5" />
-                          Confirmar y Publicar
-                        </>
-                      )}
+                      Publicar Ahora
+                      <ChevronRight className="w-6 h-6" />
                     </>
                   )}
                 </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
+              </form>
+            )}
+          </div>
+        </motion.div>
+      </div>
     </AnimatePresence>
   );
 };

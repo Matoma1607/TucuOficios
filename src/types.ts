@@ -8,6 +8,7 @@ export interface Job {
   whatsapp: string;
   imageUrl: string;
   createdAt: number | string;
+  estado: 'pendiente' | 'aprobado' | 'rechazado';
 }
 
 export interface User {
