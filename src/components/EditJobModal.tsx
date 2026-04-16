@@ -153,7 +153,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                 ) : (
                   <>
                     <Check className="w-6 h-6" />
-                    Guardar Cambios
+                    <span>Guardar Cambios</span>
                   </>
                 )}
               </button>

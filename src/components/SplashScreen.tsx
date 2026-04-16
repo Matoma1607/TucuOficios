@@ -40,8 +40,8 @@ export default function SplashScreen() {
         }}
         className="flex flex-col items-center"
       >
-        <div className="text-4xl md:text-6xl font-black tracking-tighter text-brand-dark mb-4">
-          Tucu<span className="text-brand-primary">Oficios</span>
+        <div className="text-4xl md:text-6xl font-black tracking-tighter text-brand-dark mb-4" translate="no">
+          <span>Tucu</span><span className="text-brand-primary">Oficios</span>
         </div>
         <motion.div 
           initial={{ width: 0 }}
@@ -55,7 +55,7 @@ export default function SplashScreen() {
           transition={{ delay: 1 }}
           className="mt-4 text-gray-400 font-medium tracking-widest text-xs uppercase"
         >
-          San Miguel de Tucumán
+          <span>San Miguel de Tucumán</span>
         </motion.p>
       </motion.div>
     </motion.div>

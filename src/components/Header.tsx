@@ -17,8 +17,8 @@ export default function Header({ isAdmin, onLogout, onPostClick }: HeaderProps) 
           <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
             <span className="text-white font-black text-xl">T</span>
           </div>
-          <span className="text-xl font-black tracking-tighter text-brand-dark">
-            Tucu<span className="text-brand-primary">Oficios</span>
+          <span className="text-xl font-black tracking-tighter text-brand-dark" translate="no">
+            <span>Tucu</span><span className="text-brand-primary">Oficios</span>
           </span>
         </Link>
 
@@ -37,7 +37,7 @@ export default function Header({ isAdmin, onLogout, onPostClick }: HeaderProps) 
             className="flex items-center gap-2 px-5 py-2 bg-brand-primary text-white rounded-full font-black text-sm shadow-lg shadow-orange-100 active:scale-95 transition-all"
           >
             <PlusCircle className="w-4 h-4" />
-            Publicar
+            <span>Publicar</span>
           </button>
         </div>
       </div>

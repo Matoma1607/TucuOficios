@@ -259,7 +259,7 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
                     <>
-                      Publicar Ahora
+                      <span>Publicar Ahora</span>
                       <ChevronRight className="w-6 h-6" />
                     </>
                   )}

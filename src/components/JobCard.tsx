@@ -97,11 +97,11 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
           <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4">
             <div className="flex items-center text-gray-400 text-xs font-bold">
               <MapPin className="w-3 h-3 mr-1 text-brand-primary" />
-              {job.zone}
+              <span>{job.zone}</span>
             </div>
             <div className="flex items-center text-gray-400 text-xs font-bold">
               <User className="w-3 h-3 mr-1 text-brand-primary" />
-              {job.professionalName}
+              <span>{job.professionalName}</span>
             </div>
           </div>
 
@@ -112,7 +112,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             className="inline-flex items-center justify-center gap-2 bg-brand-primary text-white py-3 px-6 rounded-full font-black text-sm shadow-lg shadow-orange-100 active:scale-95 transition-all w-full sm:w-auto"
           >
             <MessageCircle className="w-4 h-4" />
-            WhatsApp
+            <span>WhatsApp</span>
             <ChevronRight className="w-4 h-4" />
           </a>
         </div>

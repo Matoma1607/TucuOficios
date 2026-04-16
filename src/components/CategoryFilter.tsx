@@ -22,7 +22,7 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory }: C
                   : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200 hover:text-gray-600'
               }`}
             >
-              {cat === 'All' ? 'Todos' : cat}
+              <span>{cat === 'All' ? 'Todos' : cat}</span>
             </button>
           );
         })}

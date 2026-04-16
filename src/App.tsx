@@ -111,8 +111,8 @@ function HomePage() {
                 <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
                   <span className="text-white font-black text-xl">T</span>
                 </div>
-                <span className="text-xl font-black tracking-tighter text-brand-dark">
-                  Tucu<span className="text-brand-primary">Oficios</span>
+                <span className="text-xl font-black tracking-tighter text-brand-dark" translate="no">
+                  <span>Tucu</span><span className="text-brand-primary">Oficios</span>
                 </span>
               </div>
               
@@ -127,7 +127,7 @@ function HomePage() {
                   className="bg-brand-primary text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-1 shadow-lg shadow-orange-200 active:scale-95 transition-all"
                 >
                   <Plus className="w-4 h-4" />
-                  Publicar
+                  <span>Publicar</span>
                 </button>
               </div>
             </div>
@@ -193,11 +193,11 @@ function HomePage() {
 
           <footer className="py-12 text-center border-t border-gray-200 mt-20">
             <div className="flex justify-center gap-6 mb-4 text-sm font-bold text-gray-400">
-              <Link to="/privacidad" className="hover:text-brand-primary">Privacidad</Link>
-              {!isAdmin && <button onClick={handleLogin} className="hover:text-brand-primary">Admin</button>}
+              <Link to="/privacidad" className="hover:text-brand-primary"><span>Privacidad</span></Link>
+              {!isAdmin && <button onClick={handleLogin} className="hover:text-brand-primary"><span>Admin</span></button>}
             </div>
             <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest">
-              © 2026 • TucuOficios
+              <span>© 2026 • TucuOficios</span>
             </p>
           </footer>
         </motion.div>
