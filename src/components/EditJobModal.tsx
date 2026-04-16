@@ -16,6 +16,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
+  const [estado, setEstado] = useState<Job['estado']>('pendiente');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       setZone(job.zone);
       setWhatsapp(job.whatsapp);
       setProfName(job.professionalName);
+      setEstado(job.estado);
     }
   }, [job]);
 
@@ -48,6 +50,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
           zone,
           whatsapp,
           professionalName: profName,
+          estado
         })
       });
       
@@ -132,14 +135,20 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">WhatsApp</label>
-                  <input
-                    required
-                    type="tel"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
-                  />
+                  <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Estado de Publicación</label>
+                  <select
+                    value={estado}
+                    onChange={(e) => setEstado(e.target.value as any)}
+                    className={`w-full border-2 rounded-2xl py-4 px-5 outline-none font-black appearance-none transition-all ${
+                      estado === 'aprobado' ? 'bg-green-50 border-green-200 text-green-700' : 
+                      estado === 'rechazado' ? 'bg-red-50 border-red-200 text-red-700' : 
+                      'bg-orange-50 border-orange-200 text-orange-700'
+                    }`}
+                  >
+                    <option value="pendiente">En Revisión (Pendiente)</option>
+                    <option value="aprobado">Aprobado (Visible)</option>
+                    <option value="rechazado">Rechazado (Oculto)</option>
+                  </select>
                 </div>
               </div>
 
