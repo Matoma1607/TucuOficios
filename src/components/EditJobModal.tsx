@@ -40,10 +40,14 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
       if (!scriptUrl) throw new Error('GAS URL missing');
 
-      await fetch(`${scriptUrl}?action=update`, {
+      const updateUrl = `${scriptUrl}${scriptUrl.includes('?') ? '&' : '?'}action=update`;
+
+      await fetch(updateUrl, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'text/plain',
+        },
         body: JSON.stringify({
           id: job.id,
           title,
@@ -54,11 +58,11 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
         })
       });
       
-      alert('Cambios guardados (pueden tardar un minuto en reflejarse)');
+      alert('Cambios enviados. Pueden tardar un momento en reflejarse.');
       onClose();
     } catch (error: any) {
       console.error('Error updating job:', error);
-      setErrorMessage('Error al actualizar el trabajo.');
+      setErrorMessage(`Error al actualizar: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

@@ -13,8 +13,8 @@ interface PostJobModalProps {
   isOpen: boolean;
   onClose: () => void;
   isAdmin: boolean;
-  isRestrictedEnv?: boolean;
-  onShowWAGuide?: () => void;
+  isRestrictedEnv: boolean;
+  onShowWAGuide: () => void;
 }
 
 const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide }: PostJobModalProps) => {
@@ -28,6 +28,7 @@ const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide
   const [accessCode, setAccessCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,36 +201,33 @@ const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide
         createdAt: new Date().toISOString()
       };
 
-      // Usamos mode: 'no-cors' si solo queremos enviar, pero para recibir confirmación
-      // Google Apps Script requiere manejar el redirect. fetch lo hace por defecto.
-      const gasRes = await fetch(scriptUrl, {
+      const createUrl = `${scriptUrl}${scriptUrl.includes('?') ? '&' : '?'}action=create`;
+
+      await fetch(createUrl, {
         method: 'POST',
-        mode: 'no-cors', // Importante para evitar bloqueos de CORS en Web Apps de Google al hacer POST
-        cache: 'no-cache',
+        mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'text/plain',
         },
         body: JSON.stringify(jobData),
       });
-
-      // Nota: Con mode: 'no-cors', no podemos leer la respuesta (gasRes.ok será false y status 0)
-      // Pero los datos llegan igual a la Google Sheet.
       
       isFinished = true;
       clearTimeout(timeoutId);
-      resetForm();
-      onClose();
-      alert('¡Excelente! Tu trabajo ha sido enviado para revisión.');
+      setSuccessMessage('¡Excelente! Tu trabajo ha sido enviado para revisión.');
+      setTimeout(() => {
+        resetForm();
+        onClose();
+        setSuccessMessage(null);
+      }, 3000);
     } catch (error: any) {
       isFinished = true;
       clearTimeout(timeoutId);
       console.error('Error al publicar:', error);
       
-      let msg = 'Error al publicar el trabajo.';
-      if (error.code === 'storage/unauthorized') {
-        msg = 'Error de permisos en Storage. Verifica las reglas de seguridad.';
-      } else if (error.message?.includes('CORS') || error.code === 'storage/retry-limit-exceeded') {
-        msg = 'Error de conexión con el servidor de fotos (CORS).';
+      let msg = `Error al publicar: ${error.message || 'Error desconocido'}`;
+      if (error.message === 'Failed to fetch') {
+        msg = 'Error de conexión (CORS). Verificá que el Script de Google esté publicado como "Cualquiera".';
       }
       setErrorMessage(msg);
     } finally {
@@ -245,6 +243,7 @@ const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide
     setProfName('');
     setImage(null);
     setAccessCode('');
+    setSuccessMessage(null);
     setStep(1);
   };
 
@@ -284,6 +283,13 @@ const PostJobModal = ({ isOpen, onClose, isAdmin, isRestrictedEnv, onShowWAGuide
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto no-scrollbar">
+              {successMessage && (
+                <div className="p-4 bg-green-50 border border-green-100 rounded-xl text-green-600 text-sm font-bold flex items-center gap-3 animate-in zoom-in-95">
+                  <Check className="w-5 h-5" />
+                  {successMessage}
+                </div>
+              )}
+
               {errorMessage && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
                   {errorMessage}

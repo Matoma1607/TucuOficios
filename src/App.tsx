@@ -88,20 +88,30 @@ function HomePage() {
       }
 
       try {
-        // Agregamos un timestamp para evitar que el navegador use una copia vieja (caché)
-        const urlWithCacheBuster = `${scriptUrl}${scriptUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
-        const response = await fetch(urlWithCacheBuster);
+        // Petición simple sin headers personalizados para evitar cualquier preflight de CORS
+        const response = await fetch(scriptUrl);
         
         if (response.ok) {
           const data = await response.json();
-          setJobs(data as Job[]);
-          setFetchError(null);
+          if (Array.isArray(data)) {
+            setJobs(data as Job[]);
+            setFetchError(null);
+          } else {
+            console.error("Data is not an array:", data);
+            setFetchError("La base de datos devolvió un formato inesperado.");
+          }
         } else {
-          throw new Error(`Error de servidor: ${response.status}`);
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
       } catch (error: any) {
         console.error("Error fetching jobs from GAS:", error);
-        setFetchError("No se pudo conectar con la base de datos. Verificá tu conexión o la configuración del script.");
+        // "Failed to fetch" es el error típico de CORS o URL caída
+        const isCorsError = error.message === 'Failed to fetch';
+        setFetchError(
+          isCorsError 
+            ? "Error de conexión. Esto ocurre si el Script de Google no está publicado como 'Cualquiera' (Anyone) o si la URL es incorrecta."
+            : `No se pudo cargar la base de datos: ${error.message}`
+        );
       } finally {
         setIsLoading(false);
       }
@@ -114,11 +124,21 @@ function HomePage() {
   }, []);
 
   const filteredJobs = useMemo(() => {
+    if (!Array.isArray(jobs)) return [];
+    
     return jobs.filter(job => {
+      if (!job) return false;
+      
+      const title = job.title || '';
+      const zone = job.zone || '';
+      const profName = job.professionalName || '';
+      const search = searchQuery.toLowerCase();
+
       const matchesCategory = selectedCategory === 'All' || job.category === selectedCategory;
-      const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          job.zone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          job.professionalName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = title.toLowerCase().includes(search) ||
+                          zone.toLowerCase().includes(search) ||
+                          profName.toLowerCase().includes(search);
+      
       return matchesCategory && matchesSearch;
     });
   }, [jobs, selectedCategory, searchQuery]);
