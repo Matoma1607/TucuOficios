@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight } from 'lucide-react';
-import { Job } from '../types';
+import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight, HelpCircle } from 'lucide-react';
+import * as Icons from 'lucide-react';
+import { Job, CATEGORIES_CONFIG } from '../types';
 import { CONFIG } from '../config';
 
 interface JobCardProps {
@@ -13,6 +14,9 @@ interface JobCardProps {
 export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
+  const IconComponent = categoryInfo ? (Icons as any)[categoryInfo.iconName] : HelpCircle;
 
   const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
     `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`
@@ -74,7 +78,8 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             referrerPolicy="no-referrer"
           />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <span className="px-1.5 py-0.5 bg-brand-primary text-white text-[9px] font-black uppercase rounded shadow-sm">
+            <span className="px-1.5 py-0.5 bg-brand-primary text-white text-[9px] font-black uppercase rounded shadow-sm flex items-center gap-1">
+              <IconComponent className="w-2.5 h-2.5" />
               {job.category}
             </span>
             {job.estado === 'pendiente' && (

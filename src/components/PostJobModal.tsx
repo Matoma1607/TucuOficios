@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Upload, Camera, Check, ChevronRight, Loader2 } from 'lucide-react';
-import { CATEGORIES, Category } from '../types';
+import { CATEGORIES_CONFIG, Category } from '../types';
 import { CONFIG } from '../config';
 
 interface PostJobModalProps {
@@ -15,13 +15,15 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
     const saved = localStorage.getItem('tucu_form_draft');
     return saved ? JSON.parse(saved) : {
       title: '',
-      category: CATEGORIES[0],
+      category: CATEGORIES_CONFIG[0].id,
       zone: '',
       professionalName: '',
       whatsapp: '',
       description: ''
     };
   });
+
+  const sections = Array.from(new Set(CATEGORIES_CONFIG.map(c => c.section)));
 
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,7 +95,7 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
         setSuccess(false);
         setFormData({
           title: '',
-          category: CATEGORIES[0],
+          category: CATEGORIES_CONFIG[0].id,
           zone: '',
           professionalName: '',
           whatsapp: '',
@@ -197,7 +199,13 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                         onChange={e => setFormData({...formData, category: e.target.value as Category})}
                         className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold appearance-none transition-all"
                       >
-                        {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        {sections.map(section => (
+                          <optgroup key={section} label={section}>
+                            {CATEGORIES_CONFIG.filter(c => c.section === section).map(cat => (
+                              <option key={cat.id} value={cat.id}>{cat.label}</option>
+                            ))}
+                          </optgroup>
+                        ))}
                       </select>
                     </div>
                     <div>

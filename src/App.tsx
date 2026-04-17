@@ -13,7 +13,7 @@ import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
 import { CONFIG } from './config';
-import { Job, Category } from './types';
+import { Job, Category, CATEGORIES_CONFIG } from './types';
 
 function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -100,10 +100,18 @@ function HomePage() {
 
   const filteredJobs = useMemo(() => {
     return jobs.filter(job => {
-      const matchesCategory = selectedCategory === 'All' || job.category === selectedCategory;
+      // Si seleccionamos "All", pasan todos.
+      // Si la categoría del trabajo coincide exactamente con lo seleccionado, pasa.
+      // Si lo seleccionado es una SECCIÓN, pasan todos los trabajos de categorías de esa sección.
+      const isSectionFilter = CATEGORIES_CONFIG.some(c => c.section === selectedCategory);
+      const matchesCategory = selectedCategory === 'All' || 
+                             job.category === selectedCategory ||
+                             (isSectionFilter && CATEGORIES_CONFIG.find(c => c.id === job.category)?.section === selectedCategory);
+
       const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           job.zone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          job.professionalName.toLowerCase().includes(searchQuery.toLowerCase());
+                          job.professionalName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          job.category.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
   }, [jobs, selectedCategory, searchQuery]);

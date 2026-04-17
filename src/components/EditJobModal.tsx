@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check, Loader2 } from 'lucide-react';
-import { Job, CATEGORIES, Category } from '../types';
+import { Job, CATEGORIES_CONFIG, Category } from '../types';
 import { CONFIG } from '../config';
 
 interface EditJobModalProps {
@@ -12,12 +12,14 @@ interface EditJobModalProps {
 
 const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<Category>(CATEGORIES[0]);
+  const [category, setCategory] = useState<Category>(CATEGORIES_CONFIG[0].id);
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const sections = Array.from(new Set(CATEGORIES_CONFIG.map(c => c.section)));
 
   useEffect(() => {
     if (job) {
@@ -108,8 +110,12 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                       onChange={(e) => setCategory(e.target.value as Category)}
                       className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold appearance-none transition-all"
                     >
-                      {CATEGORIES.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
+                      {sections.map(section => (
+                        <optgroup key={section} label={section}>
+                          {CATEGORIES_CONFIG.filter(c => c.section === section).map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.label}</option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                   </div>
