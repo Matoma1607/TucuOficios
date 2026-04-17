@@ -9,7 +9,7 @@ interface Message {
   content: string;
 }
 
-const AssistantChat = () => {
+const TucuAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '¡Hola! Soy el asistente de TucuOficios. ¿En qué te puedo ayudar hoy?' }
@@ -35,7 +35,9 @@ const AssistantChat = () => {
     try {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        throw new Error('API Key missing');
+        setMessages(prev => [...prev, { role: 'assistant', content: '¡Hola! Para que el chat funcione, asegurate de tener activa la "Gemini API Key" en el menú de Ajustes (Settings) de la plataforma.' }]);
+        setIsLoading(false);
+        return;
       }
 
       const ai = new GoogleGenAI({ apiKey });
@@ -214,4 +216,4 @@ const AssistantChat = () => {
   );
 };
 
-export default AssistantChat;
+export default TucuAssistant;

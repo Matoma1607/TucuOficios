@@ -12,7 +12,7 @@ import AuthTransition from './components/AuthTransition';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import OnboardingModal from './components/OnboardingModal';
-import AssistantChat from './components/AssistantChat';
+import TucuAssistant from './components/AssistantChat';
 import { logPageView } from './lib/analytics';
 import { CONFIG } from './config';
 import { Job, Category, CATEGORIES_CONFIG } from './types';
@@ -272,7 +272,7 @@ function HomePage() {
             onClose={handleCloseOnboarding}
           />
 
-          <AssistantChat />
+          <TucuAssistant />
 
           <footer className="py-12 text-center border-t border-gray-200 mt-20">
             <div className="flex justify-center gap-6 mb-4 text-sm font-bold text-gray-400">
