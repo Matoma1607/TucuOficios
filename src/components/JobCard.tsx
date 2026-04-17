@@ -60,9 +60,20 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
           >
             <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
             <h4 className="text-lg font-black text-brand-dark mb-4">¿Borrar publicación?</h4>
-            <div className="flex gap-2 w-full">
-              <button onClick={() => setShowConfirm(false)} className="flex-1 py-3 bg-gray-100 rounded-xl font-bold">No</button>
-              <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold">Sí, borrar</button>
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={() => setShowConfirm(false)} 
+                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-xl font-black text-sm transition-all"
+              >
+                No
+              </button>
+              <button 
+                onClick={handleDelete} 
+                disabled={isDeleting}
+                className="flex-1 py-3 bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-xl font-black text-sm transition-all shadow-lg shadow-red-100 disabled:opacity-50"
+              >
+                {isDeleting ? 'Borrando...' : 'Sí, borrar'}
+              </button>
             </div>
           </motion.div>
         )}

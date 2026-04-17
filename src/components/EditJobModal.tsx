@@ -161,7 +161,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-5 bg-brand-primary text-white rounded-2xl font-black text-lg shadow-xl shadow-orange-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full py-5 bg-brand-primary hover:bg-orange-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-orange-100 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-6 h-6 animate-spin" />

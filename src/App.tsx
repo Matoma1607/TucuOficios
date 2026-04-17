@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, X, ShieldCheck, LogOut, Camera, Upload, Check, ChevronRight } from 'lucide-react';
+import { Search, Plus, X, ShieldCheck, LogOut, Camera, Upload, Check, ChevronRight, AlertCircle } from 'lucide-react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
@@ -70,40 +70,62 @@ function HomePage() {
   useEffect(() => {
     const fetchJobs = async () => {
       const scriptUrl = CONFIG.GOOGLE_SCRIPT_URL;
-      if (!scriptUrl) return;
+      if (!scriptUrl) {
+        setIsLoading(false);
+        return;
+      }
 
       try {
-        console.log("Fetching from GAS:", scriptUrl);
-        const response = await fetch(scriptUrl);
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Data received from GAS:", data);
-          
-          if (Array.isArray(data)) {
-            // Normalizar las claves por si GAS le puso mayúsculas
-            const normalizedData = data.map((j: any) => ({
-              id: j.id || j.Id || '',
-              title: j.title || j.Title || '',
-              category: j.category || j.Category || '',
-              zone: j.zone || j.Zone || '',
-              professionalName: j.professionalName || j.ProfessionalName || '',
-              whatsapp: j.whatsapp || j.Whatsapp || '',
-              description: j.description || j.Description || '',
-              imageUrl: j.imageUrl || j.ImageUrl || '',
-              estado: j.estado || j.Estado || 'pendiente',
-              createdAt: j.createdAt || j.CreatedAt || Date.now()
-            }));
-
-            // Mostramos aprobados y pendientes al público
-            const visibleJobs = isAdmin 
-              ? normalizedData 
-              : normalizedData.filter((j: any) => j.id && (j.estado === 'aprobado' || j.estado === 'pendiente'));
-            
-            setJobs(visibleJobs as Job[]);
+        // Añadimos un parámetro de tiempo para evitar caché agresiva del navegador
+        const urlWithCacheBuster = `${scriptUrl}${scriptUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+        console.log("Fetching from GAS:", urlWithCacheBuster);
+        
+        const response = await fetch(urlWithCacheBuster, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'application/json'
           }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error de servidor: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Data received from GAS:", data);
+        
+        if (Array.isArray(data)) {
+          // Normalizar las claves por si GAS le puso mayúsculas o vienen de Google Sheets
+          const normalizedData = data.filter(j => j && (j.id || j.Id)).map((j: any) => ({
+            id: j.id || j.Id || '',
+            title: j.title || j.Title || '',
+            category: j.category || j.Category || '',
+            zone: j.zone || j.Zone || '',
+            professionalName: j.professionalName || j.ProfessionalName || '',
+            whatsapp: j.whatsapp || j.Whatsapp || '',
+            description: j.description || j.Description || '',
+            imageUrl: j.imageUrl || j.ImageUrl || '',
+            estado: j.estado || j.Estado || 'pendiente',
+            createdAt: j.createdAt || j.CreatedAt || Date.now()
+          }));
+
+          // Mostramos aprobados y pendientes al público (Admin ve todo)
+          const visibleJobs = isAdmin 
+            ? normalizedData 
+            : normalizedData.filter((j: any) => j.estado === 'aprobado' || j.estado === 'pendiente');
+          
+          setJobs(visibleJobs as Job[]);
+        } else {
+          console.warn("GAS returned data that is not an array:", data);
         }
       } catch (error) {
         console.error("Error fetching jobs:", error);
+        // Si el error es 'Failed to fetch', suele ser CORS (GAS crash) o Quota
+        const isFetchError = error instanceof TypeError && error.message.includes('fetch');
+        if (isFetchError) {
+          console.error("⚠️ Error de conexión: Es posible que la cuota de Google Apps Script se haya agotado o el script haya fallado. Verifica tus logs en script.google.com.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -244,8 +266,24 @@ function HomePage() {
             <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {isLoading ? (
                 [1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} className="bg-white h-72 rounded-2xl animate-pulse" />
+                  <div key={i} className="bg-white h-72 rounded-2xl animate-pulse bg-gray-100/50" />
                 ))
+              ) : jobs.length === 0 ? (
+                <div className="col-span-full py-20 text-center">
+                  <div className="bg-white inline-block p-8 rounded-[32px] shadow-sm border border-gray-100">
+                    <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-black text-brand-dark mb-2">No se encontraron resultados</h3>
+                    <p className="text-gray-500 font-medium">
+                      {searchQuery ? 'Intentá con otras palabras clave.' : 'Parece que hubo un problema al cargar los datos o aún no hay publicaciones.'}
+                    </p>
+                    <button 
+                      onClick={() => window.location.reload()}
+                      className="mt-6 px-6 py-3 bg-brand-primary hover:bg-orange-600 active:scale-95 text-white rounded-xl font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-100 transition-all font-sans"
+                    >
+                      Reintentar conexión
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <AnimatePresence mode="popLayout">
                   {filteredJobs.length > 0 ? (
