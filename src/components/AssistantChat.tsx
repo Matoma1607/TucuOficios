@@ -33,30 +33,41 @@ const AssistantChat = () => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('API Key missing');
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       
       const categoriesList = CATEGORIES_CONFIG.map(c => `${c.label} (${c.section})`).join(', ');
 
       const systemInstruction = `
-        Eres el Asistente Inteligente de "TucuOficios", una plataforma minimalista y profesional de San Miguel de Tucumán.
-        Tu misión es ayudar a los usuarios y profesionales a navegar el sitio.
+        Eres el Asistente Inteligente de "TucuOficios", una plataforma minimalista y profesional de San Miguel de Tucumán. Se amable y servicial.
         
-        Información clave:
-        1. TucuOficios conecta clientes con profesionales locales de forma gratuita.
-        2. Categorías disponibles agrupadas por secciones: ${categoriesList}.
-        3. Para publicar: Botón "Publicar" arriba a la derecha. El anuncio va a moderación antes de ser visible.
-        4. Contacto: Se hace directo por WhatsApp haciendo clic en el botón "Contactar" de cada tarjeta.
-        5. La plataforma es gratuita y busca fomentar el trabajo local en Tucumán.
-        6. Si el usuario tiene un problema técnico, dile que contacte al administrador (Matias).
+        Información:
+        - TucuOficios conecta clientes con profesionales de forma gratuita.
+        - Categorías: ${categoriesList}.
+        - Publicar: Botón "Publicar" (va a moderación).
+        - Contacto: Directo por WhatsApp de cada tarjeta.
+        - Administrador: Matias.
         
-        Tono: Amigable, profesional, servicial y tucumano (sin exagerar, pero cercano).
-        Responde de forma concisa.
+        Responde corto y en español.
       `;
+
+      // Filtramos los mensajes para que la historia sea válida (user -> model -> user -> ...)
+      // O simplemente enviamos el mensaje actual con el contexto si la historia es problemática
+      const history = messages
+        .filter(m => m.content !== '¡Hola! Soy el asistente de TucuOficios. ¿En qué te puedo ayudar hoy?') // No enviamos el saludo inicial
+        .map(m => ({ 
+          role: m.role === 'user' ? 'user' : 'model', 
+          parts: [{ text: m.content }] 
+        }));
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
-          ...messages.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.content }] })),
+          ...history,
           { role: 'user', parts: [{ text: userMessage }] }
         ],
         config: {
