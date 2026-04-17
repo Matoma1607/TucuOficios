@@ -64,9 +64,9 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col sm:flex-row">
+      <div className="flex flex-col h-full">
         {/* Image */}
-        <div className="w-full sm:w-40 aspect-video sm:aspect-square relative flex-shrink-0">
+        <div className="w-full aspect-video relative flex-shrink-0">
           <img
             src={job.imageUrl || 'https://picsum.photos/seed/job/400/400'}
             alt={job.title}
@@ -74,7 +74,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             referrerPolicy="no-referrer"
           />
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <span className="px-2 py-1 bg-brand-primary text-white text-[10px] font-black uppercase rounded-md">
+            <span className="px-2 py-1 bg-brand-primary text-white text-[10px] font-black uppercase rounded-md shadow-sm">
               {job.category}
             </span>
             {job.estado === 'pendiente' && (
@@ -86,40 +86,42 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
         </div>
 
         {/* Content */}
-        <div className="p-5 flex-grow flex flex-col justify-center">
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="text-lg font-black text-brand-dark leading-tight line-clamp-1">
+        <div className="p-5 flex-grow flex flex-col">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-lg font-black text-brand-dark leading-tight line-clamp-2 min-h-[3rem]">
               {job.title}
             </h3>
             {isAdmin && (
-              <div className="flex gap-2">
-                <button onClick={() => onEdit?.(job)} className="p-1 text-gray-400 hover:text-brand-primary"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => setShowConfirm(true)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+              <div className="flex gap-2 flex-shrink-0 ml-2">
+                <button onClick={() => onEdit?.(job)} className="p-1 text-gray-400 hover:text-brand-primary transition-colors"><Edit2 className="w-4 h-4" /></button>
+                <button onClick={() => setShowConfirm(true)} className="p-1 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
               </div>
             )}
           </div>
           
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4">
-            <div className="flex items-center text-gray-400 text-xs font-bold">
-              <MapPin className="w-3 h-3 mr-1 text-brand-primary" />
+          <div className="flex flex-col gap-2 mb-6">
+            <div className="flex items-center text-gray-500 text-xs font-bold">
+              <MapPin className="w-3.5 h-3.5 mr-1.5 text-brand-primary" />
               <span>{job.zone}</span>
             </div>
-            <div className="flex items-center text-gray-400 text-xs font-bold">
-              <User className="w-3 h-3 mr-1 text-brand-primary" />
+            <div className="flex items-center text-gray-500 text-xs font-bold">
+              <User className="w-3.5 h-3.5 mr-1.5 text-brand-primary" />
               <span>{job.professionalName}</span>
             </div>
           </div>
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 bg-brand-primary text-white py-3 px-6 rounded-full font-black text-sm shadow-lg shadow-orange-100 active:scale-95 transition-all w-full sm:w-auto"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>WhatsApp</span>
-            <ChevronRight className="w-4 h-4" />
-          </a>
+          <div className="mt-auto">
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-brand-primary text-white py-3 px-6 rounded-xl font-black text-sm shadow-md hover:shadow-lg hover:bg-orange-600 active:scale-95 transition-all w-full"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Contactar</span>
+              <ChevronRight className="w-4 h-4" />
+            </a>
+          </div>
         </div>
       </div>
     </motion.div>

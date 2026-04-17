@@ -8,6 +8,7 @@ import PostJobModal from './components/PostJobModal';
 import EditJobModal from './components/EditJobModal';
 import NotFound from './components/NotFound';
 import SplashScreen from './components/SplashScreen';
+import AuthTransition from './components/AuthTransition';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import { logPageView } from './lib/analytics';
@@ -23,6 +24,10 @@ function HomePage() {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [authStatus, setAuthStatus] = useState<{isOpen: boolean, type: 'login' | 'logout'}>({
+    isOpen: false,
+    type: 'login'
+  });
   const location = useLocation();
 
   useEffect(() => {
@@ -106,14 +111,22 @@ function HomePage() {
   const handleLogin = () => {
     const code = window.prompt('Código de Administrador:');
     if (code === CONFIG.ADMIN_CODE) {
-      setIsAdmin(true);
-      localStorage.setItem('tucu_admin_mode', 'true');
+      setAuthStatus({ isOpen: true, type: 'login' });
+      setTimeout(() => {
+        setIsAdmin(true);
+        localStorage.setItem('tucu_admin_mode', 'true');
+        setAuthStatus(prev => ({ ...prev, isOpen: false }));
+      }, 2000);
     }
   };
 
   const handleLogout = () => {
-    setIsAdmin(false);
-    localStorage.removeItem('tucu_admin_mode');
+    setAuthStatus({ isOpen: true, type: 'logout' });
+    setTimeout(() => {
+      setIsAdmin(false);
+      localStorage.removeItem('tucu_admin_mode');
+      setAuthStatus(prev => ({ ...prev, isOpen: false }));
+    }, 2000);
   };
 
   return (
@@ -121,6 +134,8 @@ function HomePage() {
       <AnimatePresence mode="wait">
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
+
+      <AuthTransition isOpen={authStatus.isOpen} type={authStatus.type} />
       
       {!showSplash && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -153,7 +168,7 @@ function HomePage() {
             </div>
           </header>
 
-          <main className="max-w-5xl mx-auto px-4 py-8">
+          <main className="max-w-7xl mx-auto px-4 py-8">
             {/* Search Bar */}
             <div className="mb-8">
               <div className="relative group">
@@ -174,10 +189,10 @@ function HomePage() {
             />
 
             {/* Jobs List */}
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {isLoading ? (
-                [1,2,3].map(i => (
-                  <div key={i} className="bg-white h-32 rounded-2xl animate-pulse" />
+                [1,2,3,4,5,6].map(i => (
+                  <div key={i} className="bg-white h-64 rounded-2xl animate-pulse" />
                 ))
               ) : (
                 <AnimatePresence mode="popLayout">
