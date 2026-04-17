@@ -1,83 +1,123 @@
 import { motion } from 'motion/react';
-import { Shield, Lock, Eye, UserCheck, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield, Eye, Lock, FileText, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-[#FDFDFF]">
-      {/* Header simple para volver */}
-      <header className="glass-header">
-        <div className="max-w-4xl mx-auto px-4 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-brand-dark hover:text-brand-primary transition-colors font-bold">
-            <ArrowLeft className="w-5 h-5" />
+    <div className="min-h-screen bg-white text-gray-900 selection:bg-brand-primary/10">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link 
+            to="/" 
+            className="group flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-brand-primary transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             Volver
           </Link>
-          <div className="text-xl font-extrabold tracking-tighter text-brand-dark">
-            Tucu<span className="text-brand-primary">Oficios</span>
+          <div className="flex items-center gap-1.5 grayscale opacity-80">
+            <div className="w-5 h-5 bg-brand-primary rounded flex items-center justify-center">
+              <span className="text-white font-black text-[10px]">T</span>
+            </div>
+            <span className="text-sm font-black tracking-tighter">TucuOficios</span>
           </div>
         </div>
-      </header>
+      </nav>
 
-      <main className="max-w-4xl mx-auto px-4 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+      <main className="max-w-2xl mx-auto px-6 pt-32 pb-24">
+        <motion.header 
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 md:p-12 rounded-[2.5rem]"
+          className="mb-16 space-y-4"
         >
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
-              <Shield className="w-6 h-6 text-brand-primary" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-brand-dark tracking-tight">
-              Política de Privacidad
-            </h1>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-gray-50 border border-gray-100 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <Shield className="w-3 h-3" />
+            Compromiso de Privacidad
           </div>
-
-          <p className="text-lg text-gray-600 mb-12 leading-relaxed">
-            En <strong>TucuOficios</strong>, tomamos muy en serio la privacidad de nuestros usuarios. 
-            Nos comprometemos a usar y proteger tu información personal con los más altos estándares de seguridad.
+          <h1 className="text-4xl md:text-5xl font-black text-brand-dark tracking-tight leading-none">
+            Transparencia <br />y Seguridad.
+          </h1>
+          <p className="text-lg text-gray-500 font-medium leading-relaxed max-w-lg">
+            En TucuOficios conectamos personas. No vendemos datos ni recopilamos información sensible.
           </p>
+        </motion.header>
 
-          <div className="grid gap-12">
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-brand-dark">
-                <Eye className="w-5 h-5 text-brand-primary" />
-                <h2 className="text-xl font-bold">Uso de la Información</h2>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-16"
+        >
+          {/* Simple Grid sections */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                <FileText className="w-4 h-4 text-brand-primary" />
               </div>
-              <p className="text-gray-500 leading-relaxed">
-                Utilizamos tu información para procesar pedidos, mejorar nuestros servicios, 
-                comunicarnos contigo y personalizar tu experiencia en nuestra plataforma. 
-                Esto nos permite conectarte con los mejores profesionales de Tucumán de manera eficiente.
+              <h2 className="text-lg font-black text-gray-800">¿Qué datos recopilamos?</h2>
+            </div>
+            <div className="text-gray-500 leading-relaxed font-medium">
+              <p>Al publicar un oficio, solo solicitamos la información necesaria para que tus clientes te encuentren:</p>
+              <ul className="mt-4 space-y-2 list-disc list-inside">
+                <li>Nombre o nombre profesional.</li>
+                <li>Zona de trabajo (San Miguel de Tucumán, Yerba Buena, etc).</li>
+                <li>WhatsApp de contacto.</li>
+                <li>Categoría del oficio y descripción del servicio.</li>
+                <li>Imagen referencial del trabajo.</li>
+              </ul>
+              <p className="mt-4 px-4 py-3 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-sm italic">
+                No recopilamos contraseñas, documentos de identidad ni información bancaria.
               </p>
-            </section>
+            </div>
+          </section>
 
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-brand-dark">
-                <Lock className="w-5 h-5 text-brand-primary" />
-                <h2 className="text-xl font-bold">Cookies</h2>
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                <Eye className="w-4 h-4 text-brand-primary" />
               </div>
-              <p className="text-gray-500 leading-relaxed">
-                Utilizamos cookies para mejorar tu experiencia de navegación y analizar el uso de nuestro sitio web. 
-                Las cookies nos ayudan a recordar tus preferencias y a entender cómo interactúas con TucuOficios para ofrecerte un mejor servicio.
-              </p>
-            </section>
+              <h2 className="text-lg font-black text-gray-800">Uso y Notificaciones</h2>
+            </div>
+            <p className="text-gray-500 leading-relaxed font-medium">
+              Tu anuncio será enviado a moderación antes de ser visible. El administrador del sitio recibirá una notificación por correo electrónico con los detalles del posteo para proceder a su aprobación. Una vez aprobado, cualquier usuario de la web podrá ver tu nombre y botón de contacto para contratarte.
+            </p>
+          </section>
 
-            <section className="space-y-4">
-              <div className="flex items-center gap-3 text-brand-dark">
-                <UserCheck className="w-5 h-5 text-brand-primary" />
-                <h2 className="text-xl font-bold">Tus Derechos y Términos</h2>
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-brand-primary" />
               </div>
-              <p className="text-gray-500 leading-relaxed">
-                Tienes derecho a acceder, modificar o eliminar tu información personal en cualquier momento. 
-                Al utilizar nuestra plataforma, aceptas que TucuOficios actúa como un nexo entre profesionales y clientes, 
-                y que la responsabilidad de los trabajos realizados recae sobre los profesionales contratados.
-              </p>
-            </section>
-          </div>
+              <h2 className="text-lg font-black text-gray-800">WhatsApp y Cookies</h2>
+            </div>
+            <p className="text-gray-500 leading-relaxed font-medium">
+              Al hacer clic en el botón de WhatsApp, el sitio redirige a la aplicación oficial de Meta. Utilizamos cookies mínimas para que la web cargue más rápido y para fines estadísticos anónimos.
+            </p>
+          </section>
 
-          <div className="mt-16 pt-8 border-t border-white/20 text-center text-gray-400 text-sm">
-            Última actualización: Abril 2026 • San Miguel de Tucumán
-          </div>
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                <Lock className="w-4 h-4 text-brand-primary" />
+              </div>
+              <h2 className="text-lg font-black text-gray-800">Responsabilidad</h2>
+            </div>
+            <p className="text-gray-500 leading-relaxed font-medium">
+              TucuOficios es un nexo gratuito. No intervenimos en las transacciones de pago ni en la ejecución de los trabajos. La calidad y cumplimiento del servicio es responsabilidad exclusiva del profesional.
+            </p>
+          </section>
+
+          <footer className="pt-16 border-t border-gray-100 flex flex-col items-center gap-6">
+            <Link 
+              to="/" 
+              className="bg-brand-primary text-white px-8 py-3 rounded-xl font-black text-sm shadow-md hover:shadow-lg active:scale-95 transition-all"
+            >
+              Entendido, volver al inicio
+            </Link>
+            <div className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-300">
+              Última actualización: 17 de Abril, 2026 • Tucumán, Argentina
+            </div>
+          </footer>
         </motion.div>
       </main>
     </div>
