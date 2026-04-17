@@ -37,22 +37,26 @@ const TucuAssistant = () => {
 
     // Simulamos un pequeño retraso para que parezca que está "pensando"
     setTimeout(() => {
-      let response = "Lo siento, no entendí tu pregunta. Podés intentar con palabras clave como 'publicar', 'precio', 'contacto' o 'categorías'.";
+      let response = "Lo siento, no entendí tu consulta. Podés intentar con palabras como 'publicar', 'precio', 'contacto' o simplemente el oficio que buscás (ej: 'plomero', 'profe').";
 
       if (userMessage.includes('publicar') || userMessage.includes('publico') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
-        response = "Para publicar tu oficio, hacé clic en el botón naranja 'Publicar' que está arriba a la derecha. Vas a completar un formulario con tus datos y una foto. ¡Tu anuncio se revisará y aparecerá pronto!";
+        response = "Para publicar tu oficio, hacé clic en el botón naranja 'Publicar' que está arriba a la derecha. Completás el formulario y ¡listo! Tu anuncio se revisará y aparecerá pronto.";
       } else if (userMessage.includes('gratis') || userMessage.includes('precio') || userMessage.includes('costo') || userMessage.includes('pagar')) {
-        response = "¡TucuOficios es 100% gratuito! No cobramos por publicar anuncios ni por contactar a los profesionales. Nuestra misión es fomentar el trabajo local en Tucumán.";
-      } else if (userMessage.includes('contacto') || userMessage.includes('whatsapp') || userMessage.includes('llamar')) {
-        response = "Para contactar a un profesional, simplemente buscá el oficio que necesitás y hacé clic en el botón verde 'Contactar' de su tarjeta. Eso te llevará directo a su WhatsApp.";
+        response = "¡TucuOficios es 100% gratuito! No cobramos por publicar ni por contactar profesionales. Queremos ayudar al trabajo tucumano.";
+      } else if (userMessage.includes('contacto') || userMessage.includes('whatsapp') || userMessage.includes('llamar') || userMessage.includes('hablar')) {
+        response = "Para hablar con un profesional, buscá su tarjeta y dale al botón verde 'Contactar'. Te abre directamente su WhatsApp para que acuerden el trabajo.";
       } else if (userMessage.includes('categoria') || userMessage.includes('rubro') || userMessage.includes('oficio')) {
-        response = "Tenemos muchísimas categorías: desde Construcción (Plomeros, Electricistas) hasta Salud, Mascotas y Clases Particulares. Podés ver todas usando el filtro de arriba.";
+        response = "Tenemos rubros de todo tipo: Construcción, Clases, Salud, Estética, Mascotas y más. Podés verlos todos en la lista de categorías arriba.";
       } else if (userMessage.includes('hola') || userMessage.includes('buen') || userMessage.includes('asistente') || userMessage.includes('quien')) {
-        response = "¡Hola! Soy el asistente virtual de TucuOficios. Estoy aquí para ayudarte a navegar la página. ¿Qué necesitás saber hoy?";
+        response = "¡Hola! Soy el asistente de TucuOficios. Te ayudo a encontrar lo que necesitás o a publicar tu servicio. ¿Qué duda tenés?";
       } else if (userMessage.includes('matias') || userMessage.includes('administrador') || userMessage.includes('dueño')) {
-        response = "Matias es el administrador de TucuOficios. Si tenés algún problema técnico o sugerencia, podés contactarlo a través de la sección de soporte.";
-      } else if (userMessage.includes('plomero') || userMessage.includes('electricista') || userMessage.includes('gasista')) {
-        response = "Podés encontrar especialistas en el rubro 'Mantenimiento y Construcción'. Usá la barra de búsqueda de arriba para filtrar por nombre o categoría.";
+        response = "Matias es quien administra el sitio. Podés contactarlo si tenés dudas técnicas o querés sugerir una mejora para la página.";
+      } else if (userMessage.includes('busco') || userMessage.includes('necesito') || userMessage.includes('donde hay') || userMessage.includes('alguien que')) {
+        response = "Para buscar, usá la lupa 🔍 de arriba. Escribí el nombre del oficio (ej: 'profe', 'limpieza', 'fletes') y te saldrán los profesionales disponibles en Tucumán.";
+      } else if (userMessage.includes('profe') || userMessage.includes('clase') || userMessage.includes('musica') || userMessage.includes('particular')) {
+        response = "Podés encontrar profesores en la categoría 'Educación y Capacitación'. ¡Hay de música, idiomas, apoyo escolar y más!";
+      } else if (userMessage.includes('plomero') || userMessage.includes('electricista') || userMessage.includes('gasista') || userMessage.includes('albañil')) {
+        response = "Esa especialidad está en el rubro 'Mantenimiento y Construcción'. Buscalos con la lupa para ver a los mejores de la zona.";
       }
 
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
