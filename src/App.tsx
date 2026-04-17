@@ -138,7 +138,29 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5]">
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Background Decorators */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-brand-primary/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px]" />
+        
+        {/* Subtle Grid */}
+        <svg width="100%" height="100%" className="opacity-[0.03]">
+          <pattern id="main-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="1"/>
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#main-grid)" />
+        </svg>
+
+        {/* Professional Scribbles/Shapes */}
+        <div className="absolute inset-0 opacity-[0.02]">
+          <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path d="M100,200 Q400,100 500,400 T900,200" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M200,800 Q500,700 600,900 T800,700" fill="none" stroke="currentColor" strokeWidth="2" />
+          </svg>
+        </div>
+      </div>
+
       <AnimatePresence mode="wait">
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
@@ -146,9 +168,9 @@ function HomePage() {
       <AuthTransition isOpen={authStatus.isOpen} type={authStatus.type} />
       
       {!showSplash && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10">
           {/* Strava-like Header */}
-          <header className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 shadow-sm">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-xl font-black tracking-tighter text-brand-dark" translate="no">
@@ -164,7 +186,7 @@ function HomePage() {
                 )}
                 <button 
                   onClick={() => setIsModalOpen(true)}
-                  className="bg-brand-primary text-white px-4 py-2 rounded-full font-bold text-sm flex items-center gap-1 shadow-lg shadow-orange-200 active:scale-95 transition-all"
+                  className="bg-brand-primary text-white px-5 py-2.5 rounded-full font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-brand-primary/30 hover:shadow-brand-primary/40 hover:-translate-y-0.5 active:scale-95 transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Publicar</span>
@@ -175,15 +197,16 @@ function HomePage() {
 
           <main className="max-w-7xl mx-auto px-4 py-8">
             {/* Search Bar */}
-            <div className="mb-8">
-              <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-primary transition-colors" />
+            <div className="mb-10 relative">
+              <div className="absolute inset-0 bg-brand-primary/5 blur-[40px] rounded-full scale-75 -z-10" />
+              <div className="relative group max-w-2xl mx-auto">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-primary transition-colors" />
                 <input 
                   type="text"
                   placeholder="Buscar plomero, electricista..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 pl-12 pr-4 shadow-sm outline-none transition-all font-medium"
+                  className="w-full bg-white border-2 border-gray-100 focus:border-brand-primary rounded-2xl py-5 pl-14 pr-6 shadow-xl shadow-gray-200/50 outline-none transition-all font-bold text-gray-700 placeholder:text-gray-300 placeholder:font-medium text-lg focus:shadow-brand-primary/10"
                 />
               </div>
             </div>

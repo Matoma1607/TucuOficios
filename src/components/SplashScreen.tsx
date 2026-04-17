@@ -38,9 +38,12 @@ export default function SplashScreen() {
           duration: 0.8,
           ease: [0, 0.71, 0.2, 1.01]
         }}
-        className="flex flex-col items-center"
+        className="flex flex-col items-center relative"
       >
-        <div className="text-4xl md:text-6xl font-black tracking-tighter text-brand-dark mb-4" translate="no">
+        {/* Subtle Orange Glow under Logo */}
+        <div className="absolute inset-0 bg-brand-primary/10 blur-[60px] rounded-full scale-150 -z-10" />
+        
+        <div className="text-4xl md:text-7xl font-black tracking-tighter text-brand-dark mb-4 drop-shadow-sm" translate="no">
           <span>Tucu</span><span className="text-brand-primary">Oficios</span>
         </div>
         <motion.div 
