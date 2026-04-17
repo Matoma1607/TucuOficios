@@ -23,25 +23,29 @@ const TucuAssistant = () => {
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (customMessage?: string) => {
+    const textToSend = customMessage || input;
+    if (!textToSend.trim() || isLoading) return;
 
-    const userMessage = input.trim().toLowerCase();
+    // Normalizar texto: minúsculas y quitar acentos básicos
+    const userMessage = textToSend.trim().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: input.trim() }]);
+    setMessages(prev => [...prev, { role: 'user', content: textToSend.trim() }]);
     setIsLoading(true);
 
     // Simulamos un pequeño retraso para que parezca que está "pensando"
     setTimeout(() => {
       let response = "Lo siento, no entendí tu pregunta. Podés intentar con palabras clave como 'publicar', 'precio', 'contacto' o 'categorías'.";
 
-      if (userMessage.includes('publicar') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
+      if (userMessage.includes('publicar') || userMessage.includes('publico') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
         response = "Para publicar tu oficio, hacé clic en el botón naranja 'Publicar' que está arriba a la derecha. Vas a completar un formulario con tus datos y una foto. ¡Tu anuncio se revisará y aparecerá pronto!";
       } else if (userMessage.includes('gratis') || userMessage.includes('precio') || userMessage.includes('costo') || userMessage.includes('pagar')) {
         response = "¡TucuOficios es 100% gratuito! No cobramos por publicar anuncios ni por contactar a los profesionales. Nuestra misión es fomentar el trabajo local en Tucumán.";
       } else if (userMessage.includes('contacto') || userMessage.includes('whatsapp') || userMessage.includes('llamar')) {
         response = "Para contactar a un profesional, simplemente buscá el oficio que necesitás y hacé clic en el botón verde 'Contactar' de su tarjeta. Eso te llevará directo a su WhatsApp.";
-      } else if (userMessage.includes('categoría') || userMessage.includes('rubro') || userMessage.includes('oficio')) {
+      } else if (userMessage.includes('categoria') || userMessage.includes('rubro') || userMessage.includes('oficio')) {
         response = "Tenemos muchísimas categorías: desde Construcción (Plomeros, Electricistas) hasta Salud, Mascotas y Clases Particulares. Podés ver todas usando el filtro de arriba.";
       } else if (userMessage.includes('hola') || userMessage.includes('buen') || userMessage.includes('asistente') || userMessage.includes('quien')) {
         response = "¡Hola! Soy el asistente virtual de TucuOficios. Estoy aquí para ayudarte a navegar la página. ¿Qué necesitás saber hoy?";
@@ -53,7 +57,7 @@ const TucuAssistant = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       setIsLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -143,10 +147,7 @@ const TucuAssistant = () => {
                 {['¿Cómo publico?', '¿Es gratis?', 'Busco plomero'].map((s, i) => (
                   <button
                     key={i}
-                    onClick={() => {
-                      setInput(s);
-                      // focus input if possible
-                    }}
+                    onClick={() => handleSend(s)}
                     className="flex-shrink-0 px-3 py-1.5 bg-gray-50 text-[10px] font-bold text-gray-500 rounded-full border border-gray-100 hover:border-brand-primary hover:text-brand-primary transition-all"
                   >
                     {s}
@@ -167,7 +168,7 @@ const TucuAssistant = () => {
                   className="w-full bg-gray-50 border border-transparent focus:border-brand-primary rounded-2xl py-3 pl-4 pr-12 text-xs font-bold outline-none transition-all"
                 />
                 <button
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!input.trim() || isLoading}
                   className={`absolute right-2 p-2 rounded-xl transition-all ${
                     input.trim() && !isLoading ? 'bg-brand-primary text-white' : 'text-gray-300'
