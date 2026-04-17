@@ -16,9 +16,6 @@ export default function PrivacyPolicy() {
             Volver
           </Link>
           <div className="flex items-center gap-1.5 grayscale opacity-80">
-            <div className="w-5 h-5 bg-brand-primary rounded flex items-center justify-center">
-              <span className="text-white font-black text-[10px]">T</span>
-            </div>
             <span className="text-sm font-black tracking-tighter">TucuOficios</span>
           </div>
         </div>
@@ -115,7 +112,7 @@ export default function PrivacyPolicy() {
               Entendido, volver al inicio
             </Link>
             <div className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-300">
-              Última actualización: 17 de Abril, 2026 • Tucumán, Argentina
+              Última actualización 2026 • Tucumán, Argentina
             </div>
           </footer>
         </motion.div>
