@@ -189,10 +189,10 @@ function HomePage() {
             />
 
             {/* Jobs List */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
               {isLoading ? (
-                [1,2,3,4,5,6].map(i => (
-                  <div key={i} className="bg-white h-64 rounded-2xl animate-pulse" />
+                [1,2,3,4,5,6,7,8,9,10].map(i => (
+                  <div key={i} className="bg-white h-72 rounded-2xl animate-pulse" />
                 ))
               ) : (
                 <AnimatePresence mode="popLayout">
