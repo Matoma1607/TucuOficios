@@ -166,7 +166,7 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                   />
                   <label 
                     htmlFor="image-upload"
-                    className="block aspect-square w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl overflow-hidden cursor-pointer hover:border-brand-primary transition-colors relative group"
+                    className="block h-72 w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl overflow-hidden cursor-pointer hover:border-brand-primary transition-colors relative group"
                   >
                     {image ? (
                       <img src={image} alt="Preview" className="w-full h-full object-cover" />
