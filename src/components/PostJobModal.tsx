@@ -71,17 +71,16 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
       }
 
       const payload = {
+        id: Math.random().toString(36).substr(2, 9),
         ...formData,
         imageUrl,
         estado: 'pendiente',
         createdAt: new Date().toISOString(),
-        id: Math.random().toString(36).substr(2, 9)
       };
 
-      const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+      await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?action=insert`, {
         method: 'POST',
-        mode: 'no-cors', // GAS requires no-cors for simple POST
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors',
         body: JSON.stringify(payload)
       });
 
