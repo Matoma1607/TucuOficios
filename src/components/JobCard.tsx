@@ -70,7 +70,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
 
       <div className="flex flex-col h-full">
         {/* Image */}
-        <div className="w-full aspect-[3/2] relative flex-shrink-0">
+        <div className="w-full aspect-square relative flex-shrink-0 bg-gray-50 border-b border-gray-50">
           <img
             src={job.imageUrl || 'https://picsum.photos/seed/job/400/400'}
             alt={job.title}
