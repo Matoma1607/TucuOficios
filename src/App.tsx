@@ -11,6 +11,7 @@ import SplashScreen from './components/SplashScreen';
 import AuthTransition from './components/AuthTransition';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import OnboardingModal from './components/OnboardingModal';
 import { logPageView } from './lib/analytics';
 import { CONFIG } from './config';
 import { Job, Category, CATEGORIES_CONFIG } from './types';
@@ -24,6 +25,7 @@ function HomePage() {
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [authStatus, setAuthStatus] = useState<{isOpen: boolean, type: 'login' | 'logout'}>({
     isOpen: false,
     type: 'login'
@@ -47,9 +49,19 @@ function HomePage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
+      // Una vez terminado el splash, verificamos onboarding
+      const hasSeenOnboarding = localStorage.getItem('tucu_onboarding_seen');
+      if (!hasSeenOnboarding) {
+        setShowOnboarding(true);
+      }
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleCloseOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('tucu_onboarding_seen', 'true');
+  };
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -252,6 +264,11 @@ function HomePage() {
             isOpen={!!editingJob}
             onClose={() => setEditingJob(null)}
             job={editingJob}
+          />
+
+          <OnboardingModal 
+            isOpen={showOnboarding}
+            onClose={handleCloseOnboarding}
           />
 
           <footer className="py-12 text-center border-t border-gray-200 mt-20">
