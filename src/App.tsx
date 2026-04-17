@@ -12,6 +12,7 @@ import AuthTransition from './components/AuthTransition';
 import CookieBanner from './components/CookieBanner';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import OnboardingModal from './components/OnboardingModal';
+import AdminLoginModal from './components/AdminLoginModal';
 import TucuAssistant from './components/AssistantChat';
 import { logPageView } from './lib/analytics';
 import { CONFIG } from './config';
@@ -27,6 +28,8 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isAdminLoginError, setIsAdminLoginError] = useState(false);
   const [authStatus, setAuthStatus] = useState<{isOpen: boolean, type: 'login' | 'logout'}>({
     isOpen: false,
     type: 'login'
@@ -130,14 +133,22 @@ function HomePage() {
   }, [jobs, selectedCategory, searchQuery]);
 
   const handleLogin = () => {
-    const code = window.prompt('Código de Administrador:');
+    setIsAdminLoginOpen(true);
+  };
+
+  const handleAdminVerify = (code: string) => {
     if (code === CONFIG.ADMIN_CODE) {
+      setIsAdminLoginOpen(false);
+      setIsAdminLoginError(false);
       setAuthStatus({ isOpen: true, type: 'login' });
       setTimeout(() => {
         setIsAdmin(true);
         localStorage.setItem('tucu_admin_mode', 'true');
         setAuthStatus(prev => ({ ...prev, isOpen: false }));
       }, 2000);
+    } else {
+      setIsAdminLoginError(true);
+      setTimeout(() => setIsAdminLoginError(false), 500);
     }
   };
 
@@ -270,6 +281,13 @@ function HomePage() {
           <OnboardingModal 
             isOpen={showOnboarding}
             onClose={handleCloseOnboarding}
+          />
+
+          <AdminLoginModal 
+            isOpen={isAdminLoginOpen}
+            onClose={() => setIsAdminLoginOpen(false)}
+            onLogin={handleAdminVerify}
+            error={isAdminLoginError}
           />
 
           <TucuAssistant />
