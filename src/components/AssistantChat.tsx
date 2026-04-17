@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, X, Send, Bot, User, Loader2, Sparkles, Phone } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import { CATEGORIES_CONFIG } from '../types';
 
 interface Message {
@@ -27,65 +26,34 @@ const TucuAssistant = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
-    const userMessage = input.trim();
+    const userMessage = input.trim().toLowerCase();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setMessages(prev => [...prev, { role: 'user', content: input.trim() }]);
     setIsLoading(true);
 
-    try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        setMessages(prev => [...prev, { role: 'assistant', content: '¡Hola! Para que el chat funcione, asegurate de tener activa la "Gemini API Key" en el menú de Ajustes (Settings) de la plataforma.' }]);
-        setIsLoading(false);
-        return;
+    // Simulamos un pequeño retraso para que parezca que está "pensando"
+    setTimeout(() => {
+      let response = "Lo siento, no entendí tu pregunta. Podés intentar con palabras clave como 'publicar', 'precio', 'contacto' o 'categorías'.";
+
+      if (userMessage.includes('publicar') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
+        response = "Para publicar tu oficio, hacé clic en el botón naranja 'Publicar' que está arriba a la derecha. Vas a completar un formulario con tus datos y una foto. ¡Tu anuncio se revisará y aparecerá pronto!";
+      } else if (userMessage.includes('gratis') || userMessage.includes('precio') || userMessage.includes('costo') || userMessage.includes('pagar')) {
+        response = "¡TucuOficios es 100% gratuito! No cobramos por publicar anuncios ni por contactar a los profesionales. Nuestra misión es fomentar el trabajo local en Tucumán.";
+      } else if (userMessage.includes('contacto') || userMessage.includes('whatsapp') || userMessage.includes('llamar')) {
+        response = "Para contactar a un profesional, simplemente buscá el oficio que necesitás y hacé clic en el botón verde 'Contactar' de su tarjeta. Eso te llevará directo a su WhatsApp.";
+      } else if (userMessage.includes('categoría') || userMessage.includes('rubro') || userMessage.includes('oficio')) {
+        response = "Tenemos muchísimas categorías: desde Construcción (Plomeros, Electricistas) hasta Salud, Mascotas y Clases Particulares. Podés ver todas usando el filtro de arriba.";
+      } else if (userMessage.includes('hola') || userMessage.includes('buen') || userMessage.includes('asistente') || userMessage.includes('quien')) {
+        response = "¡Hola! Soy el asistente virtual de TucuOficios. Estoy aquí para ayudarte a navegar la página. ¿Qué necesitás saber hoy?";
+      } else if (userMessage.includes('matias') || userMessage.includes('administrador') || userMessage.includes('dueño')) {
+        response = "Matias es el administrador de TucuOficios. Si tenés algún problema técnico o sugerencia, podés contactarlo a través de la sección de soporte.";
+      } else if (userMessage.includes('plomero') || userMessage.includes('electricista') || userMessage.includes('gasista')) {
+        response = "Podés encontrar especialistas en el rubro 'Mantenimiento y Construcción'. Usá la barra de búsqueda de arriba para filtrar por nombre o categoría.";
       }
 
-      const ai = new GoogleGenAI({ apiKey });
-      
-      const categoriesList = CATEGORIES_CONFIG.map(c => `${c.label} (${c.section})`).join(', ');
-
-      const systemInstruction = `
-        Eres el Asistente Inteligente de "TucuOficios", una plataforma minimalista y profesional de San Miguel de Tucumán. Se amable y servicial.
-        
-        Información:
-        - TucuOficios conecta clientes con profesionales de forma gratuita.
-        - Categorías: ${categoriesList}.
-        - Publicar: Botón "Publicar" (va a moderación).
-        - Contacto: Directo por WhatsApp de cada tarjeta.
-        - Administrador: Matias.
-        
-        Responde corto y en español.
-      `;
-
-      // Filtramos los mensajes para que la historia sea válida (user -> model -> user -> ...)
-      // O simplemente enviamos el mensaje actual con el contexto si la historia es problemática
-      const history = messages
-        .filter(m => m.content !== '¡Hola! Soy el asistente de TucuOficios. ¿En qué te puedo ayudar hoy?') // No enviamos el saludo inicial
-        .map(m => ({ 
-          role: m.role === 'user' ? 'user' : 'model', 
-          parts: [{ text: m.content }] 
-        }));
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-          ...history,
-          { role: 'user', parts: [{ text: userMessage }] }
-        ],
-        config: {
-          systemInstruction,
-          temperature: 0.7,
-        },
-      });
-
-      const assistantContent = response.text || 'Lo siento, tuve un problema al procesar tu mensaje. ¿Podrías intentar de nuevo?';
-      setMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
-    } catch (error) {
-      console.error('Error in Assistant Chat:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Ups, parece que hubo un error de conexión. Por favor, reintentá en un momento.' }]);
-    } finally {
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
