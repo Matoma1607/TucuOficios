@@ -9,6 +9,7 @@ export interface Job {
   imageUrl: string;
   createdAt: number | string;
   estado: 'pendiente' | 'aprobado' | 'rechazado';
+  description?: string;
 }
 
 export interface User {

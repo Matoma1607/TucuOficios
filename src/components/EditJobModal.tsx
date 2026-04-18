@@ -16,6 +16,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
+  const [description, setDescription] = useState('');
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -29,6 +30,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       setZone(job.zone);
       setWhatsapp(job.whatsapp);
       setProfName(job.professionalName);
+      setDescription(job.description || '');
       setEstado(job.estado);
       setErrors({});
     }
@@ -58,6 +60,9 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       await fetch(`${scriptUrl}?action=update`, {
         method: 'POST',
         mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           id: job.id,
           title,
@@ -65,11 +70,16 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
           zone,
           whatsapp,
           professionalName: profName,
+          description,
           estado
         })
       });
       
-      onClose();
+      // Simular un pequeño delay para que GAS procese antes de cerrar
+      setTimeout(() => {
+        onClose();
+        window.location.reload(); // Recargar para ver cambios
+      }, 1000);
     } catch (error) {
       console.error(error);
       setErrors({ submit: 'Error al guardar.' });
@@ -199,6 +209,17 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                     <option value="aprobado">Aprobado (Visible)</option>
                     <option value="rechazado">Rechazado (Oculto)</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Descripción</label>
+                  <textarea
+                    placeholder="Descripción del oficio..."
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all resize-none"
+                  />
                 </div>
               </div>
 
