@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight, HelpCircle, Share2, ShieldCheck, Check } from 'lucide-react';
+import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight, HelpCircle, Share2, ShieldCheck, Check, Maximize2, X } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
 import { CONFIG } from '../config';
@@ -15,6 +15,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
 
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
   const IconComponent = categoryInfo ? (Icons as any)[categoryInfo.iconName] : HelpCircle;
@@ -99,19 +100,60 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             </div>
           </motion.div>
         )}
+
+        {/* Image Full Screen Modal */}
+        {showFullImage && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 md:p-10"
+            onClick={() => setShowFullImage(false)}
+          >
+            <button 
+              onClick={() => setShowFullImage(false)}
+              className="absolute top-6 right-6 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-[210]"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <motion.img 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              src={job.imageUrl || 'https://picsum.photos/seed/job/800/800'}
+              alt={job.title}
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="mt-6 text-center">
+              <h3 className="text-white text-xl font-black mb-1">{job.title}</h3>
+              <p className="text-gray-400 font-medium">Oficio de {job.professionalName}</p>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className="flex flex-col h-full">
-        {/* Image */}
-        <div className="w-full h-72 relative flex-none bg-gray-50 overflow-hidden">
+        {/* Image Container */}
+        <div 
+          className="w-full h-72 relative flex-none bg-gray-50 overflow-hidden cursor-zoom-in group/img"
+          onClick={() => setShowFullImage(true)}
+        >
           <img
             src={job.imageUrl || 'https://picsum.photos/seed/job/400/400'}
             alt={job.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
             referrerPolicy="no-referrer"
           />
+
+          {/* Hover Overlay */}
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 text-brand-dark font-black text-xs shadow-xl translate-y-4 group-hover/img:translate-y-0 transition-transform">
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span>Ver foto completa</span>
+            </div>
+          </div>
           
-          <div className="absolute top-4 left-4 flex flex-col gap-2">
+          <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
             <span className="px-3 py-1.5 bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg flex items-center gap-1.5">
               <IconComponent className="w-3 h-3" />
               {job.category}
