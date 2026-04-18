@@ -168,11 +168,13 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 bg-brand-primary text-white py-4 px-6 rounded-2xl font-black text-sm shadow-xl shadow-orange-100 hover:bg-orange-600 active:scale-[0.98] transition-all w-full group/btn"
+              className="inline-flex items-center gap-4 bg-brand-primary text-white py-4 px-6 rounded-2xl font-black text-sm shadow-xl shadow-orange-200/50 hover:bg-orange-600 active:scale-[0.98] transition-all w-full group/btn"
             >
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-base">Contáctame</span>
-              <ChevronRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all ml-auto" />
+              <div className="bg-white/20 p-2 rounded-xl group-hover/btn:bg-white/30 transition-colors shadow-inner">
+                <MessageCircle className="w-6 h-6 stroke-[3]" />
+              </div>
+              <span className="text-lg md:text-xl tracking-tight">Contáctame</span>
+              <ChevronRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all ml-auto" />
             </a>
           </div>
         </div>
