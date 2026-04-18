@@ -43,6 +43,18 @@ export default function SplashScreen() {
         {/* Subtle Orange Glow under Logo */}
         <div className="absolute inset-0 bg-brand-primary/10 blur-[60px] rounded-full scale-150 -z-10" />
         
+        {/* Subtle Watermark - Casa Histórica de Tucumán */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
+          <img 
+            src="https://www.tucumanturismo.gob.ar/logo.png" 
+            alt="Logo Tucumán" 
+            className="w-[80%] max-w-[500px] grayscale"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/tucuman/800';
+            }}
+          />
+        </div>
+
         <div className="text-4xl md:text-7xl font-black tracking-tighter text-brand-dark mb-4 drop-shadow-sm" translate="no">
           <span>Tucu</span><span className="text-brand-primary">Oficios</span>
         </div>

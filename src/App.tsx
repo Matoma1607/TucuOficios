@@ -190,6 +190,18 @@ function HomePage() {
         <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-brand-primary/5 rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px]" />
         
+        {/* Subtle Watermark Logo */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none">
+          <img 
+            src="https://www.tucumanturismo.gob.ar/logo.png" 
+            alt="Watermark Tucumán" 
+            className="w-[90%] max-w-[800px] grayscale"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/tucuman/800';
+            }}
+          />
+        </div>
+
         {/* Subtle Grid */}
         <svg width="100%" height="100%" className="opacity-[0.03]">
           <pattern id="main-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -218,8 +230,11 @@ function HomePage() {
           {/* Strava-like Header */}
           <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 shadow-sm">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-black tracking-tighter text-brand-dark" translate="no">
+              <div className="flex items-center gap-2 relative">
+                <div className="absolute -inset-2 opacity-[0.05] pointer-events-none flex items-center justify-center translate-y-[-2px]">
+                  <img src="https://www.tucumanturismo.gob.ar/logo.png" alt="" className="w-10 h-10 grayscale object-contain" />
+                </div>
+                <span className="text-xl font-black tracking-tighter text-brand-dark relative z-10" translate="no">
                   <span>Tucu</span><span className="text-brand-primary">Oficios</span>
                 </span>
               </div>
