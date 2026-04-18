@@ -207,6 +207,14 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             </div>
           </div>
 
+          {job.description && (
+            <div className="mb-6">
+              <p className="text-gray-500 text-xs font-medium leading-relaxed line-clamp-3">
+                {job.description}
+              </p>
+            </div>
+          )}
+
           <div className="mt-auto">
             <a
               href={whatsappUrl}

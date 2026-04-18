@@ -40,6 +40,9 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
     if (!formData.title.trim() || formData.title.length < 5) {
       newErrors.title = 'El título debe tener al menos 5 caracteres.';
     }
+    if (!formData.description.trim() || formData.description.length < 10) {
+      newErrors.description = 'La descripción debe tener al menos 10 caracteres.';
+    }
     if (!formData.zone.trim()) {
       newErrors.zone = 'La zona es obligatoria.';
     }
@@ -300,13 +303,19 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Descripción (Opcional)</label>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Descripción *</label>
+                      {errors.description && <span className="text-[9px] font-black text-red-500 uppercase">{errors.description}</span>}
+                    </div>
                     <textarea 
-                      placeholder="Contanos un poco más sobre lo que hacés..."
+                      required
+                      placeholder="Contanos un poco más sobre lo que hacés (mínimo 10 caracteres)"
                       rows={3}
                       value={formData.description}
                       onChange={e => setFormData({...formData, description: e.target.value})}
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all resize-none"
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all resize-none ${
+                        errors.description ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
                     />
                   </div>
                 </div>
