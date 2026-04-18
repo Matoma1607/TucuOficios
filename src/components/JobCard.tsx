@@ -25,12 +25,14 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   )}`;
 
   const handleShare = async () => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?jobId=${job.id}`;
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: `TucuOficios - ${job.title}`,
           text: `Mirá el trabajo de ${job.professionalName} en TucuOficios: ${job.title}`,
-          url: window.location.href,
+          url: shareUrl,
         });
       } catch (err) {
         console.error('Error sharing:', err);
@@ -38,7 +40,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
     } else {
       // Fallback: Copy to clipboard
       try {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(shareUrl);
         setIsSharing(true);
         setTimeout(() => setIsSharing(false), 2000);
       } catch (err) {

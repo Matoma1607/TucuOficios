@@ -30,6 +30,7 @@ function HomePage() {
   const [showSplash, setShowSplash] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [sharedJobId, setSharedJobId] = useState<string | null>(null);
   const [isAdminLoginError, setIsAdminLoginError] = useState(false);
   const [authStatus, setAuthStatus] = useState<{isOpen: boolean, type: 'login' | 'logout'}>({
     isOpen: false,
@@ -52,6 +53,13 @@ function HomePage() {
   }, []);
 
   useEffect(() => {
+    // Check for shared job ID in URL
+    const params = new URLSearchParams(location.search);
+    const jobId = params.get('jobId');
+    if (jobId) {
+      setSharedJobId(jobId);
+    }
+
     const timer = setTimeout(() => {
       setShowSplash(false);
       // Una vez terminado el splash, verificamos onboarding
@@ -138,7 +146,21 @@ function HomePage() {
   }, [isAdmin]);
 
   const filteredJobs = useMemo(() => {
-    return jobs.filter(job => {
+    let list = jobs;
+    
+    // If we have a shared job ID, show it first or filter for it
+    if (sharedJobId) {
+      const sharedJob = jobs.find(j => j.id === sharedJobId);
+      if (sharedJob) {
+        // If searching or filtering by category, we might want to still show it
+        // but for deep linking, showing just that job is usually expected
+        if (selectedCategory === 'All' && !searchQuery) {
+          return [sharedJob];
+        }
+      }
+    }
+
+    return list.filter(job => {
       // Si seleccionamos "All", pasan todos.
       // Si la categoría del trabajo coincide exactamente con lo seleccionado, pasa.
       // Si lo seleccionado es una SECCIÓN, pasan todos los trabajos de categorías de esa sección.
@@ -245,6 +267,31 @@ function HomePage() {
           <main className="max-w-7xl mx-auto px-4 py-8">
             {/* Search Bar */}
             <div className="mb-10 relative">
+              {sharedJobId && (
+                <div className="max-w-2xl mx-auto mb-6 flex flex-col items-center">
+                  <div className="bg-brand-primary/10 border border-brand-primary/20 px-6 py-4 rounded-3xl flex items-center justify-between gap-6 w-full shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-brand-primary p-2 rounded-xl">
+                        <Check className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-brand-dark font-black text-sm">Viendo un trabajo compartido</p>
+                        <p className="text-gray-500 text-xs font-medium">Estás visualizando una publicación específica.</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setSharedJobId(null);
+                        window.history.replaceState({}, '', window.location.pathname);
+                      }}
+                      className="bg-white text-brand-dark px-4 py-2 rounded-xl font-black text-xs border border-gray-100 shadow-sm hover:bg-gray-50 transition-all whitespace-nowrap"
+                    >
+                      Ver todos
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="absolute inset-0 bg-brand-primary/5 blur-[40px] rounded-full scale-75 -z-10" />
               <div className="relative group max-w-2xl mx-auto">
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-brand-primary transition-colors" />
