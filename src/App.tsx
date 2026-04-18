@@ -175,7 +175,7 @@ function HomePage() {
                           job.category.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [jobs, selectedCategory, searchQuery]);
+  }, [jobs, selectedCategory, searchQuery, sharedJobId]);
 
   const handleLogin = () => {
     setIsAdminLoginOpen(true);
