@@ -170,8 +170,8 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-3 bg-brand-primary text-white py-4 px-6 rounded-2xl font-black text-sm shadow-xl shadow-orange-100 hover:bg-orange-600 active:scale-[0.98] transition-all w-full group/btn"
             >
-              <MessageCircle className="w-4 h-4" />
-              <span>Contactar vía WhatsApp</span>
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-base">Contáctame</span>
               <ChevronRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all ml-auto" />
             </a>
           </div>
