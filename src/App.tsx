@@ -217,10 +217,10 @@ function HomePage() {
       {!showSplash && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10">
           {/* Strava-like Header */}
-          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 shadow-sm">
+          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-4 md:py-5 shadow-sm">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-xl font-black tracking-tighter text-brand-dark" translate="no">
+                <span className="text-2xl md:text-3xl font-black tracking-tighter text-brand-dark" translate="no">
                   <span>Tucu</span><span className="text-brand-primary">Oficios</span>
                 </span>
               </div>
