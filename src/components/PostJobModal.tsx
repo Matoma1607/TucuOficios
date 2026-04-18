@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Upload, Camera, Check, ChevronRight, Loader2 } from 'lucide-react';
+import { X, Upload, Camera, Check, ChevronRight, Loader2, ImagePlus } from 'lucide-react';
 import { CATEGORIES_CONFIG, Category } from '../types';
 import { CONFIG } from '../config';
 
@@ -25,7 +25,9 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
 
   const sections = Array.from(new Set(CATEGORIES_CONFIG.map(c => c.section)));
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [image, setImage] = useState<string | null>(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
@@ -50,7 +52,8 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
       newErrors.professionalName = 'Tu nombre es obligatorio.';
     }
     // WhatsApp validation: numbers only (basic)
-    const phoneClean = formData.whatsapp.replace(/\D/g, '');
+    const phoneStr = String(formData.whatsapp || '');
+    const phoneClean = phoneStr.replace(/\D/g, '');
     if (phoneClean.length < 6) {
       newErrors.whatsapp = 'Ingresá un WhatsApp o teléfono válido.';
     }
@@ -70,12 +73,22 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
       return;
     }
 
+    setIsProcessingImage(true);
     const reader = new FileReader();
     reader.onload = (event) => {
       setImage(event.target?.result as string);
       setErrors(prev => ({ ...prev, image: '' }));
+      setIsProcessingImage(false);
+    };
+    reader.onerror = () => {
+      setErrors(prev => ({ ...prev, image: 'Error al procesar la imagen.' }));
+      setIsProcessingImage(false);
     };
     reader.readAsDataURL(file);
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   const uploadToCloudinary = async (base64Image: string) => {
@@ -190,30 +203,46 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Image Upload */}
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Foto del Trabajo *</label>
+                  <div className="flex justify-between items-center ml-1">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400">Foto del Trabajo *</label>
+                    {isProcessingImage && <div className="flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin text-brand-primary" /><span className="text-[9px] font-black text-brand-primary uppercase">Procesando...</span></div>}
+                  </div>
                   <div className="relative">
                     <input 
                       type="file" 
+                      ref={fileInputRef}
                       accept="image/*" 
                       onChange={handleImageChange}
                       className="hidden" 
-                      id="image-upload" 
                     />
-                    <label 
-                      htmlFor="image-upload"
+                    <div 
+                      onClick={triggerFileInput}
                       className={`block h-72 w-full bg-gray-50 border-2 border-dashed rounded-3xl overflow-hidden cursor-pointer hover:border-brand-primary transition-colors relative group ${
                         errors.image ? 'border-red-500 bg-red-50' : 'border-gray-200'
                       }`}
                     >
                       {image ? (
-                        <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="w-full h-full relative">
+                          <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="bg-white px-4 py-2 rounded-full text-[10px] font-bold text-brand-dark flex items-center gap-2">
+                              <ImagePlus className="w-3.5 h-3.5" />
+                              <span>Cambiar foto</span>
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                          <Camera className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform" />
-                          <span className="text-sm font-bold">Subí una foto</span>
+                          {isProcessingImage ? (
+                            <Loader2 className="w-10 h-10 animate-spin text-brand-primary mb-2" />
+                          ) : (
+                            <Camera className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform" />
+                          )}
+                          <span className="text-sm font-bold">{isProcessingImage ? 'Procesando...' : 'Subí una foto de tu trabajo'}</span>
+                          <span className="text-[10px] mt-1 text-gray-300">Tocá acá para elegir</span>
                         </div>
                       )}
-                    </label>
+                    </div>
                   </div>
                   {errors.image && <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">{errors.image}</p>}
                 </div>

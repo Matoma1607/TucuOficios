@@ -14,7 +14,7 @@ export const CONFIG = {
   ACCESS_CODE: 'TUCU2026',
 
   // Código para entrar como Administrador (para borrar o editar trabajos)
-  ADMIN_CODE: 'ADMIN2026',
+  ADMIN_CODE: '$Sica20w_',
 
   // Google Analytics (Opcional)
   GA_MEASUREMENT_ID: ''
