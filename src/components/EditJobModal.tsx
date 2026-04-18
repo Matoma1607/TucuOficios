@@ -28,7 +28,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       setTitle(job.title);
       setCategory(job.category as Category);
       setZone(job.zone);
-      setWhatsapp(job.whatsapp);
+      setWhatsapp(String(job.whatsapp || ''));
       setProfName(job.professionalName);
       setDescription(job.description || '');
       setEstado(job.estado);
@@ -41,8 +41,10 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
     if (!title.trim() || title.length < 5) newErrors.title = 'Requerido (min 5)';
     if (!zone.trim()) newErrors.zone = 'Requerido';
     if (!profName.trim()) newErrors.profName = 'Requerido';
-    const phoneClean = whatsapp.replace(/\D/g, '');
-    if (phoneClean.length < 8) newErrors.whatsapp = 'Inválido';
+    // Asegurarse de que whatsapp sea string antes de usar replace
+    const phoneStr = String(whatsapp || '');
+    const phoneClean = phoneStr.replace(/\D/g, '');
+    if (phoneClean.length < 6) newErrors.whatsapp = 'Mínimo 6 dígitos';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

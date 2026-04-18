@@ -48,8 +48,8 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
     }
     // WhatsApp validation: numbers only (basic)
     const phoneClean = formData.whatsapp.replace(/\D/g, '');
-    if (phoneClean.length < 8) {
-      newErrors.whatsapp = 'Ingresá un WhatsApp válido (ej: 381 123 4567).';
+    if (phoneClean.length < 6) {
+      newErrors.whatsapp = 'Ingresá un WhatsApp o teléfono válido.';
     }
     if (!image) {
       newErrors.image = 'Es obligatorio subir una foto de tu trabajo.';
