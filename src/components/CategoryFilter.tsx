@@ -56,9 +56,11 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory }: C
 
           {sections.map(section => {
             const isActive = currentSection === section && !isSearching;
-            const SectionIcon = section === 'Salud y Cuidado Personal' ? Icons.HeartPulse :
-                               section === 'Educación y Clases' ? Icons.BookOpen :
-                               section === 'Servicios Técnicos y Digitales' ? Icons.Cpu :
+            const SectionIcon = section === 'Salud y Cuidado' ? Icons.HeartPulse :
+                               section === 'Educación' ? Icons.BookOpen :
+                               section === 'Tecnología' ? Icons.Cpu :
+                               section === 'Gastronomía' ? Icons.Utensils :
+                               section === 'Mascotas' ? Icons.Dog :
                                Icons.Home;
 
             return (

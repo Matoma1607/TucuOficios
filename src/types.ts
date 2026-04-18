@@ -29,35 +29,41 @@ export interface CategoryInfo {
 }
 
 export const CATEGORIES_CONFIG: CategoryInfo[] = [
-  // Salud y Cuidado Personal
-  { id: 'Enfermería', label: 'Enfermería', section: 'Salud y Cuidado Personal', iconName: 'Stethoscope' },
-  { id: 'Cuidado de Personas', label: 'Cuidado de Personas', section: 'Salud y Cuidado Personal', iconName: 'Heart' },
-  { id: 'Estética a domicilio', label: 'Estética a domicilio', section: 'Salud y Cuidado Personal', iconName: 'Scissors' },
-  { id: 'Veterinaria / Paseadores', label: 'Veterinaria', section: 'Salud y Cuidado Personal', iconName: 'Dog' },
+  // Gastronomía
+  { id: 'Comidas', label: 'Comidas / Viandas', section: 'Gastronomía', iconName: 'Utensils' },
+  { id: 'Repostería', label: 'Repostería', section: 'Gastronomía', iconName: 'CakeSlice' },
+
+  // Salud y Mascotas
+  { id: 'Enfermería', label: 'Enfermería', section: 'Salud y Cuidado', iconName: 'Stethoscope' },
+  { id: 'Cuidado de Personas', label: 'Cuidado de Personas', section: 'Salud y Cuidado', iconName: 'Heart' },
+  { id: 'Estética', label: 'Estética / Peluquería', section: 'Salud y Cuidado', iconName: 'Scissors' },
+  { id: 'Peluquería Canina', label: 'Peluquería Canina', section: 'Mascotas', iconName: 'Dog' },
+  { id: 'Veterinaria / Paseadores', label: 'Veterinaria / Paseos', section: 'Mascotas', iconName: 'PawPrint' },
   
-  // Educación y Clases
-  { id: 'Apoyo Escolar', label: 'Apoyo Escolar', section: 'Educación y Clases', iconName: 'GraduationCap' },
-  { id: 'Idiomas', label: 'Idiomas', section: 'Educación y Clases', iconName: 'Languages' },
-  { id: 'Música', label: 'Música', section: 'Educación y Clases', iconName: 'Music' },
-  { id: 'Entrenamiento Personal', label: 'Entrenamiento', section: 'Educación y Clases', iconName: 'Dumbbell' },
+  // Educación
+  { id: 'Apoyo Escolar', label: 'Apoyo Escolar', section: 'Educación', iconName: 'GraduationCap' },
+  { id: 'Idiomas', label: 'Idiomas', section: 'Educación', iconName: 'Languages' },
+  { id: 'Música', label: 'Clases de Música', section: 'Educación', iconName: 'Music' },
+  { id: 'Entrenamiento Personal', label: 'Entrenamiento', section: 'Educación', iconName: 'Dumbbell' },
   
-  // Servicios Técnicos y Digitales
-  { id: 'Soporte Técnico', label: 'Soporte Técnico', section: 'Servicios Técnicos y Digitales', iconName: 'Monitor' },
-  { id: 'Servicio de Celulares', label: 'Servicio de Celulares', section: 'Servicios Técnicos y Digitales', iconName: 'Smartphone' },
-  { id: 'Diseño y Marketing', label: 'Diseño y Marketing', section: 'Servicios Técnicos y Digitales', iconName: 'Palette' },
+  // Servicios Técnicos
+  { id: 'Soporte Técnico', label: 'Soporte Técnico', section: 'Tecnología', iconName: 'Monitor' },
+  { id: 'Servicio de Celulares', label: 'Reparación Celulares', section: 'Tecnología', iconName: 'Smartphone' },
+  { id: 'Diseño y Marketing', label: 'Diseño y Marketing', section: 'Tecnología', iconName: 'Palette' },
   
-  // Mantenimiento de Hogar
-  { id: 'Jardinería', label: 'Jardinería', section: 'Mantenimiento de Hogar', iconName: 'Leaf' },
-  { id: 'Limpieza', label: 'Limpieza', section: 'Mantenimiento de Hogar', iconName: 'Sparkles' },
-  { id: 'Gasista Matriculado', label: 'Gasista', section: 'Mantenimiento de Hogar', iconName: 'Flame' },
-  { id: 'Herrería', label: 'Herrería', section: 'Mantenimiento de Hogar', iconName: 'Hammer' },
-  { id: 'Mudanzas', label: 'Mudanzas', section: 'Mantenimiento de Hogar', iconName: 'Truck' },
-  { id: 'Plomería', label: 'Plomería', section: 'Mantenimiento de Hogar', iconName: 'Droplets' },
-  { id: 'Electricidad', label: 'Electricidad', section: 'Mantenimiento de Hogar', iconName: 'Zap' },
-  { id: 'Pintura', label: 'Pintura', section: 'Mantenimiento de Hogar', iconName: 'Paintbrush' },
-  { id: 'Cerrajería', label: 'Cerrajería', section: 'Mantenimiento de Hogar', iconName: 'Key' },
-  { id: 'Aires', label: 'Aire Acondicionado', section: 'Mantenimiento de Hogar', iconName: 'Wind' },
-  { id: 'Otros', label: 'Otros', section: 'Mantenimiento de Hogar', iconName: 'MoreHorizontal' },
+  // Hogar
+  { id: 'Gasista Matriculado', label: 'Gasista', section: 'Hogar', iconName: 'Flame' },
+  { id: 'Electricidad', label: 'Electricidad', section: 'Hogar', iconName: 'Zap' },
+  { id: 'Plomería', label: 'Plomería', section: 'Hogar', iconName: 'Droplets' },
+  { id: 'Jardinería', label: 'Jardinería', section: 'Hogar', iconName: 'Leaf' },
+  { id: 'Limpieza', label: 'Limpieza', section: 'Hogar', iconName: 'Sparkles' },
+  { id: 'Herrería', label: 'Herrería', section: 'Hogar', iconName: 'Hammer' },
+  { id: 'Cerrajería', label: 'Cerrajería', section: 'Hogar', iconName: 'Key' },
+  { id: 'Pintura', label: 'Pintura', section: 'Hogar', iconName: 'Paintbrush' },
+  { id: 'Aires', label: 'Aire Acondicionado', section: 'Hogar', iconName: 'Wind' },
+  { id: 'Fletes y Mudanzas', label: 'Fletes y Mudanzas', section: 'Hogar', iconName: 'Truck' },
+  { id: 'Costura', label: 'Costura y Arreglos', section: 'Varios', iconName: 'Shirt' },
+  { id: 'Otros', label: 'Otros Servicios', section: 'Varios', iconName: 'MoreHorizontal' },
 ];
 
 export const CATEGORIES = CATEGORIES_CONFIG.map(c => c.id);
