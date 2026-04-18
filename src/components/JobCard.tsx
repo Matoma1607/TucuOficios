@@ -69,9 +69,9 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.95 }}
+      initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-500 relative group"
+      className="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 relative group"
     >
       <AnimatePresence>
         {showConfirm && (
@@ -168,13 +168,11 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-4 bg-brand-primary text-white py-4 px-6 rounded-2xl font-black text-sm shadow-xl shadow-orange-200/50 hover:bg-orange-600 active:scale-[0.98] transition-all w-full group/btn"
+              className="inline-flex items-center justify-center gap-2.5 bg-brand-primary text-white py-3.5 px-6 rounded-xl font-black text-sm shadow-lg shadow-orange-100/50 hover:bg-orange-600 active:scale-[0.98] transition-all w-full group/btn"
             >
-              <div className="bg-white/20 p-2 rounded-xl group-hover/btn:bg-white/30 transition-colors shadow-inner">
-                <MessageCircle className="w-6 h-6 stroke-[3]" />
-              </div>
-              <span className="text-lg md:text-xl tracking-tight">Contáctame</span>
-              <ChevronRight className="w-5 h-5 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all ml-auto" />
+              <MessageCircle className="w-5 h-5 stroke-[2.5]" />
+              <span className="tracking-tight">Contáctame</span>
+              <ChevronRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all ml-1" />
             </a>
           </div>
         </div>
