@@ -4,6 +4,7 @@ import { Search, Plus, X, ShieldCheck, LogOut, Camera, Upload, Check, ChevronRig
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
+import JobCardSkeleton from './components/JobCardSkeleton';
 import PostJobModal from './components/PostJobModal';
 import EditJobModal from './components/EditJobModal';
 import NotFound from './components/NotFound';
@@ -127,7 +128,7 @@ function HomePage() {
           console.error("⚠️ Error de conexión: Es posible que la cuota de Google Apps Script se haya agotado o el script haya fallado. Verifica tus logs en script.google.com.");
         }
       } finally {
-        setIsLoading(false);
+        setTimeout(() => setIsLoading(false), 800);
       }
     };
 
@@ -263,43 +264,47 @@ function HomePage() {
             />
 
             {/* Jobs List */}
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
               {isLoading ? (
-                [1,2,3,4,5,6,7,8,9,10].map(i => (
-                  <div key={i} className="bg-white h-72 rounded-2xl animate-pulse bg-gray-100/50" />
-                ))
-              ) : jobs.length === 0 ? (
-                <div className="col-span-full py-20 text-center">
-                  <div className="bg-white inline-block p-8 rounded-[32px] shadow-sm border border-gray-100">
-                    <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-black text-brand-dark mb-2">No se encontraron resultados</h3>
-                    <p className="text-gray-500 font-medium">
-                      {searchQuery ? 'Intentá con otras palabras clave.' : 'Parece que hubo un problema al cargar los datos o aún no hay publicaciones.'}
+                Array.from({ length: 10 }).map((_, i) => <JobCardSkeleton key={i} />)
+              ) : filteredJobs.length === 0 ? (
+                <div className="col-span-full py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <div className="bg-white inline-block p-10 rounded-[48px] shadow-2xl shadow-gray-100 border border-gray-50 max-w-md">
+                    <div className="w-20 h-20 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-6 scale-110">
+                      <Search className="w-10 h-10 text-brand-primary" />
+                    </div>
+                    <h3 className="text-2xl font-black text-brand-dark mb-3">¡Ufa! No lo encontramos</h3>
+                    <p className="text-gray-500 font-medium leading-relaxed mb-8">
+                      {searchQuery 
+                        ? `No hay resultados para "${searchQuery}". Probá con términos más simples o buscá otra categoría.` 
+                        : 'Parece que todavía no hay publicaciones en esta categoría. ¡Sé el primero en publicar el tuyo!'}
                     </p>
-                    <button 
-                      onClick={() => window.location.reload()}
-                      className="mt-6 px-6 py-3 bg-brand-primary hover:bg-orange-600 active:scale-95 text-white rounded-xl font-black text-sm uppercase tracking-wider shadow-lg shadow-orange-100 transition-all font-sans"
-                    >
-                      Reintentar conexión
-                    </button>
+                    <div className="flex flex-col gap-3">
+                      <button 
+                        onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+                        className="px-6 py-4 bg-gray-50 hover:bg-gray-200 text-gray-600 rounded-2xl font-black text-xs uppercase tracking-wider transition-all"
+                      >
+                        Limpiar búsqueda
+                      </button>
+                      <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="px-6 py-4 bg-brand-primary hover:bg-orange-600 text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-xl shadow-orange-200/50 transition-all active:scale-95"
+                      >
+                        Publicar Oficio
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
-                  {filteredJobs.length > 0 ? (
-                    filteredJobs.map((job) => (
-                      <JobCard 
-                        key={job.id} 
-                        job={job} 
-                        isAdmin={isAdmin} 
-                        onEdit={(j) => setEditingJob(j)}
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-20">
-                      <p className="text-gray-400 font-medium">No se encontraron resultados</p>
-                    </div>
-                  )}
+                  {filteredJobs.map((job) => (
+                    <JobCard 
+                      key={job.id} 
+                      job={job} 
+                      isAdmin={isAdmin} 
+                      onEdit={(j) => setEditingJob(j)}
+                    />
+                  ))}
                 </AnimatePresence>
               )}
             </div>
