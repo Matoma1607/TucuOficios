@@ -18,6 +18,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
   const [profName, setProfName] = useState('');
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const sections = Array.from(new Set(CATEGORIES_CONFIG.map(c => c.section)));
 
@@ -29,12 +30,24 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       setWhatsapp(job.whatsapp);
       setProfName(job.professionalName);
       setEstado(job.estado);
+      setErrors({});
     }
   }, [job]);
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!title.trim() || title.length < 5) newErrors.title = 'Requerido (min 5)';
+    if (!zone.trim()) newErrors.zone = 'Requerido';
+    if (!profName.trim()) newErrors.profName = 'Requerido';
+    const phoneClean = whatsapp.replace(/\D/g, '');
+    if (phoneClean.length < 8) newErrors.whatsapp = 'Inválido';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!job) return;
+    if (!job || !validate()) return;
 
     setIsSubmitting(true);
 
@@ -56,10 +69,10 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
         })
       });
       
-      alert('Solicitud enviada.');
       onClose();
     } catch (error) {
       console.error(error);
+      setErrors({ submit: 'Error al guardar.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -84,7 +97,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
             className="relative w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-xl font-black text-brand-dark">Editar Publicación</h2>
+              <h2 className="text-xl font-black text-brand-dark transition-all">Editar Publicación</h2>
               <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <X className="w-6 h-6 text-gray-400" />
               </button>
@@ -93,18 +106,23 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
             <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Título</label>
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Título</label>
+                    {errors.title && <span className="text-[9px] font-black text-red-500 uppercase">{errors.title}</span>}
+                  </div>
                   <input
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                    className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                      errors.title ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                    }`}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Categoría</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Categoría</label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value as Category)}
@@ -120,28 +138,54 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Zona</label>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Zona</label>
+                      {errors.zone && <span className="text-[9px] font-black text-red-500 uppercase">{errors.zone}</span>}
+                    </div>
                     <input
                       required
                       value={zone}
                       onChange={(e) => setZone(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.zone ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nombre</label>
+                      {errors.profName && <span className="text-[9px] font-black text-red-500 uppercase">{errors.profName}</span>}
+                    </div>
+                    <input
+                      required
+                      value={profName}
+                      onChange={(e) => setProfName(e.target.value)}
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.profName ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">WhatsApp</label>
+                      {errors.whatsapp && <span className="text-[9px] font-black text-red-500 uppercase">{errors.whatsapp}</span>}
+                    </div>
+                    <input
+                      required
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.whatsapp ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Nombre</label>
-                  <input
-                    required
-                    value={profName}
-                    onChange={(e) => setProfName(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Estado de Publicación</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Estado de Publicación</label>
                   <select
                     value={estado}
                     onChange={(e) => setEstado(e.target.value as any)}
@@ -158,10 +202,12 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                 </div>
               </div>
 
+              {errors.submit && <p className="text-red-500 text-xs font-bold text-center">{errors.submit}</p>}
+
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-5 bg-brand-primary hover:bg-orange-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-orange-100 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-5 bg-brand-primary hover:bg-orange-600 text-white rounded-3xl font-black text-lg shadow-xl shadow-orange-100 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <Loader2 className="w-6 h-6 animate-spin" />

@@ -27,7 +27,7 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
 
   const [image, setImage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
   // Save to localStorage on change
@@ -35,13 +35,42 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
     localStorage.setItem('tucu_form_draft', JSON.stringify(formData));
   }, [formData]);
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.title.trim() || formData.title.length < 5) {
+      newErrors.title = 'El título debe tener al menos 5 caracteres.';
+    }
+    if (!formData.zone.trim()) {
+      newErrors.zone = 'La zona es obligatoria.';
+    }
+    if (!formData.professionalName.trim()) {
+      newErrors.professionalName = 'Tu nombre es obligatorio.';
+    }
+    // WhatsApp validation: numbers only (basic)
+    const phoneClean = formData.whatsapp.replace(/\D/g, '');
+    if (phoneClean.length < 8) {
+      newErrors.whatsapp = 'Ingresá un WhatsApp válido (ej: 381 123 4567).';
+    }
+    if (!image) {
+      newErrors.image = 'Es obligatorio subir una foto de tu trabajo.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      setErrors(prev => ({ ...prev, image: 'La imagen es demasiado pesada (máx 5MB).' }));
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       setImage(event.target?.result as string);
+      setErrors(prev => ({ ...prev, image: '' }));
     };
     reader.readAsDataURL(file);
   };
@@ -63,8 +92,10 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setIsSubmitting(true);
-    setError(null);
+    setErrors({});
 
     try {
       let imageUrl = '';
@@ -86,8 +117,6 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
         body: JSON.stringify(payload)
       });
 
-      // Since mode is no-cors, we won't get a proper response object, 
-      // but we assume success if no exception is thrown.
       setSuccess(true);
       localStorage.removeItem('tucu_form_draft');
       setTimeout(() => {
@@ -102,10 +131,11 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
           description: ''
         });
         setImage(null);
+        setErrors({});
       }, 2000);
 
     } catch (err) {
-      setError('Hubo un problema al enviar los datos. Reintentá.');
+      setErrors({ submit: 'Hubo un problema al enviar los datos. Reintentá.' });
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -151,49 +181,60 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                   <Check className="w-10 h-10 text-green-600" />
                 </div>
                 <h3 className="text-2xl font-black text-brand-dark mb-2">¡Enviado con éxito!</h3>
-                <p className="text-gray-500">Tu oficio está en revisión y aparecerá pronto.</p>
+                <p className="text-gray-500 font-medium">Tu oficio está en revisión y aparecerá pronto.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Image Upload */}
-                <div className="relative">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageChange}
-                    className="hidden" 
-                    id="image-upload" 
-                  />
-                  <label 
-                    htmlFor="image-upload"
-                    className="block h-72 w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl overflow-hidden cursor-pointer hover:border-brand-primary transition-colors relative group"
-                  >
-                    {image ? (
-                      <img src={image} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                        <Camera className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform" />
-                        <span className="text-sm font-bold">Subir Foto de tu Trabajo</span>
-                      </div>
-                    )}
-                  </label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Foto del Trabajo *</label>
+                  <div className="relative">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageChange}
+                      className="hidden" 
+                      id="image-upload" 
+                    />
+                    <label 
+                      htmlFor="image-upload"
+                      className={`block h-72 w-full bg-gray-50 border-2 border-dashed rounded-3xl overflow-hidden cursor-pointer hover:border-brand-primary transition-colors relative group ${
+                        errors.image ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                      }`}
+                    >
+                      {image ? (
+                        <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                          <Camera className="w-10 h-10 mb-2 group-hover:scale-110 transition-transform" />
+                          <span className="text-sm font-bold">Subí una foto</span>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                  {errors.image && <p className="text-[10px] text-red-500 font-bold ml-1 uppercase">{errors.image}</p>}
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">¿Qué hacés?</label>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">¿Qué hacés? *</label>
+                      {errors.title && <span className="text-[9px] font-black text-red-500 uppercase">{errors.title}</span>}
+                    </div>
                     <input 
                       required
                       placeholder="Ej: Plomero Matriculado"
                       value={formData.title}
                       onChange={e => setFormData({...formData, title: e.target.value})}
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.title ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Categoría</label>
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Categoría *</label>
                       <select 
                         value={formData.category}
                         onChange={e => setFormData({...formData, category: e.target.value as Category})}
@@ -209,42 +250,57 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Zona</label>
+                      <div className="flex justify-between items-center mb-2 ml-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Zona *</label>
+                        {errors.zone && <span className="text-[9px] font-black text-red-500 uppercase">Requerido</span>}
+                      </div>
                       <input 
                         required
                         placeholder="Ej: Yerba Buena"
                         value={formData.zone}
                         onChange={e => setFormData({...formData, zone: e.target.value})}
-                        className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                        className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                          errors.zone ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                        }`}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Tu Nombre</label>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tu Nombre *</label>
+                      {errors.professionalName && <span className="text-[9px] font-black text-red-500 uppercase">Requerido</span>}
+                    </div>
                     <input 
                       required
                       placeholder="Nombre y Apellido"
                       value={formData.professionalName}
                       onChange={e => setFormData({...formData, professionalName: e.target.value})}
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.professionalName ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">WhatsApp</label>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">WhatsApp *</label>
+                      {errors.whatsapp && <span className="text-[9px] font-black text-red-500 uppercase">Inválido</span>}
+                    </div>
                     <input 
                       required
                       type="tel"
                       placeholder="381 123 4567"
                       value={formData.whatsapp}
                       onChange={e => setFormData({...formData, whatsapp: e.target.value})}
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-brand-primary rounded-2xl py-4 px-5 outline-none font-bold transition-all"
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.whatsapp ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Descripción (Opcional)</label>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-1">Descripción (Opcional)</label>
                     <textarea 
                       placeholder="Contanos un poco más sobre lo que hacés..."
                       rows={3}
@@ -255,18 +311,18 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                   </div>
                 </div>
 
-                {error && <p className="text-red-500 text-sm font-bold text-center">{error}</p>}
+                {errors.submit && <p className="text-red-500 text-sm font-bold text-center bg-red-50 py-3 rounded-xl">{errors.submit}</p>}
 
                 <button 
                   disabled={isSubmitting}
                   type="submit"
-                  className="w-full bg-brand-primary text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-orange-200 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  className="w-full bg-brand-primary text-white py-5 rounded-3xl font-black text-lg shadow-xl shadow-orange-200 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
                     <>
-                      <span>Publicar Ahora</span>
+                      <span>Publicar Oficio</span>
                       <ChevronRight className="w-6 h-6" />
                     </>
                   )}
