@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight, HelpCircle, Share2, ShieldCheck, Check, Maximize2, X } from 'lucide-react';
+import { MessageCircle, MapPin, User, Trash2, AlertCircle, Edit2, ChevronRight, HelpCircle, Share2, ShieldCheck, Check, Maximize2, X, Megaphone } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
 import { CONFIG } from '../config';
@@ -15,17 +15,29 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isCopyingChannel, setIsCopyingChannel] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
 
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
   const IconComponent = categoryInfo ? (Icons as any)[categoryInfo.iconName] : HelpCircle;
 
-  const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
-    `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`
-  )}`;
+  const getShareUrl = () => `${window.location.origin}${window.location.pathname}?jobId=${job.id}`;
+
+  const handleCopyForChannel = async () => {
+    const text = `🚀 *NUEVO OFICIO DISPONIBLE*\n\n🛠️ *${job.title.toUpperCase()}*\n📍 *Zona*: ${job.zone}\n👤 *Profesional*: ${job.professionalName}\n\n📝 *Descripción*:\n${job.description || 'Sin descripción'}\n\n👉 *Mirá el perfil completo y contactalo acá*:\n${getShareUrl()}\n\n#TucuOficios #SanMiguelDeTucuman #Oficios`;
+    
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopyingChannel(true);
+      setShowFullImage(true); // Mostrar imagen para que el admin la guarde/copie
+      setTimeout(() => setIsCopyingChannel(false), 3000);
+    } catch (err) {
+      console.error('Error copying:', err);
+    }
+  };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?jobId=${job.id}`;
+    const shareUrl = getShareUrl();
     
     if (navigator.share) {
       try {
@@ -48,6 +60,10 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
       }
     }
   };
+
+  const whatsappUrl = `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
+    `Hola ${job.professionalName}, vi tu trabajo "${job.title}" en TucuOficios y me gustaría consultarte.`
+  )}`;
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -126,9 +142,15 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
-            <div className="mt-6 text-center">
-              <h3 className="text-white text-xl font-black mb-1">{job.title}</h3>
-              <p className="text-gray-400 font-medium">Oficio de {job.professionalName}</p>
+            <div className="mt-6 text-center max-w-lg">
+              <h3 className="text-white text-xl font-black mb-2">{job.title}</h3>
+              {isCopyingChannel ? (
+                <div className="bg-brand-primary text-white px-6 py-3 rounded-2xl font-black text-sm animate-bounce shadow-xl">
+                  📋 ¡TEXTO COPIADO! Pegalo como descripción de esta foto en tu canal.
+                </div>
+              ) : (
+                <p className="text-gray-400 font-medium">Oficio de {job.professionalName}</p>
+              )}
             </div>
           </motion.div>
         )}
@@ -182,7 +204,14 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               {job.title}
             </h3>
             {isAdmin && (
-              <div className="flex gap-2 flex-shrink-0 ml-3">
+              <div className="flex gap-1.5 flex-shrink-0 ml-3">
+                <button 
+                  onClick={handleCopyForChannel} 
+                  title="Copiar para Canal"
+                  className={`p-2 transition-all rounded-full ${isCopyingChannel ? 'bg-brand-primary text-white scale-110' : 'text-gray-400 hover:text-brand-primary hover:bg-orange-50'}`}
+                >
+                  <Megaphone className="w-4 h-4" />
+                </button>
                 <button onClick={() => onEdit?.(job)} className="p-2 text-gray-400 hover:text-brand-primary transition-colors hover:bg-gray-50 rounded-full"><Edit2 className="w-4 h-4" /></button>
                 <button onClick={() => setShowConfirm(true)} className="p-2 text-gray-400 hover:text-red-500 transition-colors hover:bg-gray-50 rounded-full"><Trash2 className="w-4 h-4" /></button>
               </div>
