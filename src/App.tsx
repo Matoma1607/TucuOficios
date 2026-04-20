@@ -115,7 +115,7 @@ function HomePage() {
             whatsapp: j.whatsapp || j.Whatsapp || '',
             email: j.email || j.Email || '',
             description: j.description || j.Description || '',
-            imageUrl: j.imageUrl || j.imageurl || j.ImageUrl || '',
+            imageUrl: (j.imageUrl || j.imageurl || j.ImageUrl || '').startsWith('http') ? (j.imageUrl || j.imageurl || j.ImageUrl) : '',
             estado: j.estado || j.Estado || 'pendiente',
             createdAt: j.createdAt || j.CreatedAt || j.createdat || Date.now()
           }));

@@ -17,6 +17,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [isCopyingChannel, setIsCopyingChannel] = useState(false);
   const [showFullImage, setShowFullImage] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
   const IconComponent = categoryInfo ? (Icons as any)[categoryInfo.iconName] : HelpCircle;
@@ -137,10 +138,11 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             <motion.img 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              src={job.imageUrl || `https://picsum.photos/seed/${job.id}/1200/800`}
+              src={(!imgError && job.imageUrl) ? job.imageUrl : `https://picsum.photos/seed/${job.id}/1200/800`}
               alt={job.title}
               className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
               onClick={(e) => e.stopPropagation()}
+              onError={() => setImgError(true)}
             />
             <div className="mt-6 text-center max-w-lg">
               <h3 className="text-white text-xl font-black mb-2">{job.title}</h3>
@@ -163,10 +165,11 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
           onClick={() => setShowFullImage(true)}
         >
           <img
-            src={job.imageUrl || `https://picsum.photos/seed/${job.id}/600/600`}
+            src={(!imgError && job.imageUrl) ? job.imageUrl : `https://picsum.photos/seed/${job.id}/600/600`}
             alt={job.title}
             className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
             referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
           />
 
           {/* Hover Overlay */}
@@ -243,6 +246,13 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               </p>
             </div>
           )}
+
+          <div className="mb-6 flex items-center gap-1.5 text-gray-400 text-[10px] font-black uppercase tracking-widest bg-gray-50/50 w-fit px-2 py-1 rounded-md">
+            <span>Publicado:</span>
+            <span className="text-gray-500">
+              {new Date(job.createdAt).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </span>
+          </div>
 
           <div className="mt-auto">
             <a
