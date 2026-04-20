@@ -10,6 +10,7 @@ export interface Job {
   createdAt: number | string;
   estado: 'pendiente' | 'aprobado' | 'rechazado';
   description?: string;
+  email: string;
 }
 
 export interface User {

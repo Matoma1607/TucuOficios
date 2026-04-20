@@ -113,6 +113,7 @@ function HomePage() {
             zone: j.zone || j.Zone || '',
             professionalName: j.professionalName || j.ProfessionalName || '',
             whatsapp: j.whatsapp || j.Whatsapp || '',
+            email: j.email || j.Email || '',
             description: j.description || j.Description || '',
             imageUrl: j.imageUrl || j.ImageUrl || '',
             estado: j.estado || j.Estado || 'pendiente',

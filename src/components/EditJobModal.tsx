@@ -16,6 +16,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [profName, setProfName] = useState('');
+  const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +31,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
       setZone(job.zone);
       setWhatsapp(String(job.whatsapp || ''));
       setProfName(job.professionalName);
+      setEmail(job.email || '');
       setDescription(job.description || '');
       setEstado(job.estado);
       setErrors({});
@@ -41,6 +43,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
     if (!title.trim() || title.length < 5) newErrors.title = 'Requerido (min 5)';
     if (!zone.trim()) newErrors.zone = 'Requerido';
     if (!profName.trim()) newErrors.profName = 'Requerido';
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Email inválido';
     // Asegurarse de que whatsapp sea string antes de usar replace
     const phoneStr = String(whatsapp || '');
     const phoneClean = phoneStr.replace(/\D/g, '');
@@ -71,6 +74,7 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
           category,
           zone,
           whatsapp,
+          email,
           professionalName: profName,
           description,
           estado
@@ -165,21 +169,22 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2 ml-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nombre</label>
-                      {errors.profName && <span className="text-[9px] font-black text-red-500 uppercase">{errors.profName}</span>}
-                    </div>
-                    <input
-                      required
-                      value={profName}
-                      onChange={(e) => setProfName(e.target.value)}
-                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
-                        errors.profName ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
-                      }`}
-                    />
+                <div>
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nombre</label>
+                    {errors.profName && <span className="text-[9px] font-black text-red-500 uppercase">{errors.profName}</span>}
                   </div>
+                  <input
+                    required
+                    value={profName}
+                    onChange={(e) => setProfName(e.target.value)}
+                    className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                      errors.profName ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                    }`}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">WhatsApp</label>
@@ -191,6 +196,21 @@ const EditJobModal = ({ isOpen, onClose, job }: EditJobModalProps) => {
                       onChange={(e) => setWhatsapp(e.target.value)}
                       className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
                         errors.whatsapp ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email</label>
+                      {errors.email && <span className="text-[9px] font-black text-red-500 uppercase">{errors.email}</span>}
+                    </div>
+                    <input
+                      required
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.email ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
                       }`}
                     />
                   </div>

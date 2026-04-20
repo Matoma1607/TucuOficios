@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Upload, Camera, Check, ChevronRight, Loader2, ImagePlus } from 'lucide-react';
+import { X, Upload, Camera, Check, ChevronRight, Loader2, ImagePlus, PartyPopper } from 'lucide-react';
 import { CATEGORIES_CONFIG, Category } from '../types';
 import { CONFIG } from '../config';
+import { generateWelcomeNote } from '../services/geminiService';
 
+// Servicio de bienvenida con IA
 interface PostJobModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,7 +21,8 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
       zone: '',
       professionalName: '',
       whatsapp: '',
-      description: ''
+      description: '',
+      email: ''
     };
   });
 
@@ -29,6 +32,7 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
   const [image, setImage] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [welcomeNote, setWelcomeNote] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
 
@@ -56,6 +60,9 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
     const phoneClean = phoneStr.replace(/\D/g, '');
     if (phoneClean.length < 6) {
       newErrors.whatsapp = 'Ingresá un WhatsApp o teléfono válido.';
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Ingresá un correo electrónico válido.';
     }
     if (!image) {
       newErrors.image = 'Es obligatorio subir una foto de tu trabajo.';
@@ -133,22 +140,28 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
         body: JSON.stringify(payload)
       });
 
+      // Generar nota de bienvenida con Gemini
+      const note = await generateWelcomeNote(formData.professionalName, formData.title);
+      setWelcomeNote(note);
+
       setSuccess(true);
       localStorage.removeItem('tucu_form_draft');
       setTimeout(() => {
         onClose();
         setSuccess(false);
+        setWelcomeNote(null);
         setFormData({
           title: '',
           category: CATEGORIES_CONFIG[0].id,
           zone: '',
           professionalName: '',
           whatsapp: '',
-          description: ''
+          description: '',
+          email: ''
         });
         setImage(null);
         setErrors({});
-      }, 2000);
+      }, 8000); // Dar más tiempo para leer la nota
 
     } catch (err) {
       setErrors({ submit: 'Hubo un problema al enviar los datos. Reintentá.' });
@@ -191,13 +204,27 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="py-12 text-center"
+                className="py-8 px-2 text-center"
               >
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Check className="w-10 h-10 text-green-600" />
+                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <PartyPopper className="w-10 h-10 text-brand-primary" />
                 </div>
-                <h3 className="text-2xl font-black text-brand-dark mb-2">¡Enviado con éxito!</h3>
-                <p className="text-gray-500 font-medium">Tu oficio está en revisión y aparecerá pronto.</p>
+                <h3 className="text-2xl font-black text-brand-dark mb-4">¡Publicación recibida!</h3>
+                
+                {welcomeNote && (
+                  <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="bg-gray-50 p-6 rounded-3xl mb-6 relative italic text-gray-700 font-medium leading-relaxed"
+                  >
+                    <div className="absolute -top-3 left-6 bg-brand-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                      Nota de Bienvenida
+                    </div>
+                    "{welcomeNote}"
+                  </motion.div>
+                )}
+                
+                <p className="text-gray-500 font-medium text-sm">Pronto revisaremos tu oficio y te enviaremos una notificación a <span className="text-brand-primary font-bold">{formData.email}</span>.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -327,6 +354,23 @@ const PostJobModal = ({ isOpen, onClose }: PostJobModalProps) => {
                       onChange={e => setFormData({...formData, whatsapp: e.target.value})}
                       className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
                         errors.whatsapp ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Correo Electrónico *</label>
+                      {errors.email && <span className="text-[9px] font-black text-red-500 uppercase">Inválido</span>}
+                    </div>
+                    <input 
+                      required
+                      type="email"
+                      placeholder="tu@email.com"
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
+                      className={`w-full bg-gray-50 border-2 rounded-2xl py-4 px-5 outline-none font-bold transition-all ${
+                        errors.email ? 'border-red-200 focus:border-red-500' : 'border-transparent focus:border-brand-primary'
                       }`}
                     />
                   </div>
