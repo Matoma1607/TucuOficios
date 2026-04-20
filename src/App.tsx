@@ -389,7 +389,7 @@ function HomePage() {
               {!isAdmin && <button onClick={handleLogin} className="hover:text-brand-primary"><span>Admin</span></button>}
             </div>
             <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest">
-              <span>© 2026 • TucuOficios</span>
+              <span>© 2026 • TucuOficios • V2.2 - REFRESH</span>
             </p>
           </footer>
         </motion.div>
