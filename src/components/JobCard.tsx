@@ -137,7 +137,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             <motion.img 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              src={job.imageUrl || 'https://picsum.photos/seed/job/800/800'}
+              src={job.imageUrl || `https://picsum.photos/seed/${job.id}/1200/800`}
               alt={job.title}
               className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
               onClick={(e) => e.stopPropagation()}
@@ -163,7 +163,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
           onClick={() => setShowFullImage(true)}
         >
           <img
-            src={job.imageUrl || 'https://picsum.photos/seed/job/400/400'}
+            src={job.imageUrl || `https://picsum.photos/seed/${job.id}/600/600`}
             alt={job.title}
             className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
             referrerPolicy="no-referrer"

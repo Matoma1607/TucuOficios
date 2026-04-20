@@ -106,18 +106,18 @@ function HomePage() {
         
         if (Array.isArray(data)) {
           // Normalizar las claves por si GAS le puso mayúsculas o vienen de Google Sheets
-          const normalizedData = data.filter(j => j && (j.id || j.Id)).map((j: any) => ({
-            id: j.id || j.Id || '',
+          const normalizedData = data.filter(j => j && (j.id || j.Id || j.ID)).map((j: any) => ({
+            id: j.id || j.Id || j.ID || '',
             title: j.title || j.Title || '',
             category: j.category || j.Category || '',
             zone: j.zone || j.Zone || '',
-            professionalName: j.professionalName || j.ProfessionalName || '',
+            professionalName: j.professionalName || j.professionalname || j.ProfessionalName || '',
             whatsapp: j.whatsapp || j.Whatsapp || '',
             email: j.email || j.Email || '',
             description: j.description || j.Description || '',
-            imageUrl: j.imageUrl || j.ImageUrl || '',
+            imageUrl: j.imageUrl || j.imageurl || j.ImageUrl || '',
             estado: j.estado || j.Estado || 'pendiente',
-            createdAt: j.createdAt || j.CreatedAt || Date.now()
+            createdAt: j.createdAt || j.CreatedAt || j.createdat || Date.now()
           }));
 
           // Mostramos aprobados y pendientes al público (Admin ve todo)
