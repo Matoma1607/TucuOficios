@@ -418,7 +418,7 @@ function HomePage() {
               <Link to="/privacidad" className="hover:text-brand-primary"><span>Privacidad</span></Link>
             </div>
             <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest mt-2">
-              <span>© 2026 • TucuOficios • V2.4 - CARD_DETAILS</span>
+              <span>© 2026 • TucuOficios • V2.5 - MODAL_FIX</span>
             </p>
           </footer>
         </motion.div>

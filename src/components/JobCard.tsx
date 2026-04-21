@@ -17,7 +17,6 @@ export default function JobCard({ job, isAdmin, onEdit, onClick }: JobCardProps)
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isCopyingChannel, setIsCopyingChannel] = useState(false);
-  const [showFullImage, setShowFullImage] = useState(false);
   const [imgError, setImgError] = useState(false);
 
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
@@ -31,7 +30,6 @@ export default function JobCard({ job, isAdmin, onEdit, onClick }: JobCardProps)
     try {
       await navigator.clipboard.writeText(text);
       setIsCopyingChannel(true);
-      setShowFullImage(true); // Mostrar imagen para que el admin la guarde/copie
       setTimeout(() => setIsCopyingChannel(false), 3000);
     } catch (err) {
       console.error('Error copying:', err);
@@ -107,13 +105,13 @@ export default function JobCard({ job, isAdmin, onEdit, onClick }: JobCardProps)
             <h4 className="text-xl font-black text-brand-dark mb-4">¿Borrar publicación?</h4>
             <div className="flex gap-4 w-full">
               <button 
-                onClick={() => setShowConfirm(false)} 
+                onClick={(e) => { e.stopPropagation(); setShowConfirm(false); }} 
                 className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 active:scale-95 rounded-2xl font-black text-sm transition-all"
               >
                 No
               </button>
               <button 
-                onClick={handleDelete} 
+                onClick={(e) => { e.stopPropagation(); handleDelete(); }} 
                 className="flex-1 py-4 bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-2xl font-black text-sm transition-all shadow-lg shadow-red-100 disabled:opacity-50"
               >
                 {isDeleting ? 'Borrando...' : 'Sí, borrar'}
@@ -121,57 +119,11 @@ export default function JobCard({ job, isAdmin, onEdit, onClick }: JobCardProps)
             </div>
           </motion.div>
         )}
-
-        {/* Image Full Screen Modal */}
-        {showFullImage && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 md:p-10"
-            onClick={() => setShowFullImage(false)}
-          >
-            <button 
-              onClick={() => setShowFullImage(false)}
-              className="absolute top-6 right-6 p-4 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors z-[210]"
-            >
-              <X className="w-8 h-8" />
-            </button>
-            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-2 text-gray-400">
-                <Icons.Image className="w-10 h-10 opacity-20" />
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Cargando foto...</span>
-              </div>
-            </div>
-            <motion.img 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              src={job.imageUrl || ''}
-              alt={job.title}
-              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl relative z-10"
-              onClick={(e) => e.stopPropagation()}
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
-            <div className="mt-6 text-center max-w-lg">
-              <h3 className="text-white text-xl font-black mb-2">{job.title}</h3>
-              {isCopyingChannel ? (
-                <div className="bg-brand-primary text-white px-6 py-3 rounded-2xl font-black text-sm animate-bounce shadow-xl">
-                  📋 ¡TEXTO COPIADO! Pegalo como descripción de esta foto en tu canal.
-                </div>
-              ) : (
-                <p className="text-gray-400 font-medium">Oficio de {job.professionalName}</p>
-              )}
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
       <div className="flex flex-col h-full">
         {/* Image Container */}
-        <div 
-          className="w-full h-72 relative flex-none bg-gray-50 overflow-hidden cursor-zoom-in group/img"
-          onClick={() => setShowFullImage(true)}
-        >
+        <div className="w-full h-72 relative flex-none bg-gray-50 overflow-hidden group/img">
           <div className="absolute inset-0 bg-gray-50 flex items-center justify-center">
             <div className="flex flex-col items-center gap-3 text-gray-400">
               <Icons.Image className="w-12 h-12 opacity-10" />
