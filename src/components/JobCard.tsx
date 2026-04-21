@@ -9,9 +9,10 @@ interface JobCardProps {
   job: Job;
   isAdmin: boolean;
   onEdit?: (job: Job) => void;
+  onClick?: () => void;
 }
 
-export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
+export default function JobCard({ job, isAdmin, onEdit, onClick }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -91,7 +92,8 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
       layout
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 relative group"
+      onClick={onClick}
+      className="bg-white rounded-[24px] overflow-hidden border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative group cursor-pointer"
     >
       <AnimatePresence>
         {showConfirm && (
@@ -135,14 +137,20 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             >
               <X className="w-8 h-8" />
             </button>
+            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-2 text-gray-400">
+                <Icons.Image className="w-10 h-10 opacity-20" />
+                <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Cargando foto...</span>
+              </div>
+            </div>
             <motion.img 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              src={(!imgError && job.imageUrl) ? job.imageUrl : `https://picsum.photos/seed/${job.id}/1200/800`}
+              src={job.imageUrl || ''}
               alt={job.title}
-              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl relative z-10"
               onClick={(e) => e.stopPropagation()}
-              onError={() => setImgError(true)}
+              onError={(e) => (e.currentTarget.style.display = 'none')}
             />
             <div className="mt-6 text-center max-w-lg">
               <h3 className="text-white text-xl font-black mb-2">{job.title}</h3>
@@ -164,13 +172,22 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
           className="w-full h-72 relative flex-none bg-gray-50 overflow-hidden cursor-zoom-in group/img"
           onClick={() => setShowFullImage(true)}
         >
-          <img
-            src={(!imgError && job.imageUrl) ? job.imageUrl : `https://picsum.photos/seed/${job.id}/600/600`}
-            alt={job.title}
-            className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700"
-            referrerPolicy="no-referrer"
-            onError={() => setImgError(true)}
-          />
+          <div className="absolute inset-0 bg-gray-50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3 text-gray-400">
+              <Icons.Image className="w-12 h-12 opacity-10" />
+              <span className="text-[9px] font-black uppercase tracking-widest opacity-20">Foto no disponible</span>
+            </div>
+          </div>
+          {job.imageUrl && (
+            <img
+              src={job.imageUrl}
+              alt={job.title}
+              className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-700 relative z-10"
+              referrerPolicy="no-referrer"
+              onLoad={(e) => (e.currentTarget.style.opacity = '1')}
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+            />
+          )}
 
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
@@ -193,7 +210,10 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
           </div>
 
           <button 
-            onClick={handleShare}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleShare();
+            }}
             className="absolute top-4 right-4 p-3 bg-white/90 backdrop-blur-md rounded-full text-gray-600 hover:bg-white hover:text-brand-primary active:scale-90 transition-all shadow-md z-10"
           >
             {isSharing ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
@@ -209,14 +229,33 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
             {isAdmin && (
               <div className="flex gap-1.5 flex-shrink-0 ml-3">
                 <button 
-                  onClick={handleCopyForChannel} 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyForChannel();
+                  }}
                   title="Copiar para Canal"
                   className={`p-2 transition-all rounded-full ${isCopyingChannel ? 'bg-brand-primary text-white scale-110' : 'text-gray-400 hover:text-brand-primary hover:bg-orange-50'}`}
                 >
                   <Megaphone className="w-4 h-4" />
                 </button>
-                <button onClick={() => onEdit?.(job)} className="p-2 text-gray-400 hover:text-brand-primary transition-colors hover:bg-gray-50 rounded-full"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => setShowConfirm(true)} className="p-2 text-gray-400 hover:text-red-500 transition-colors hover:bg-gray-50 rounded-full"><Trash2 className="w-4 h-4" /></button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(job);
+                  }} 
+                  className="p-2 text-gray-400 hover:text-brand-primary transition-colors hover:bg-gray-50 rounded-full"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowConfirm(true);
+                  }} 
+                  className="p-2 text-gray-400 hover:text-red-500 transition-colors hover:bg-gray-50 rounded-full"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             )}
           </div>
@@ -259,6 +298,7 @@ export default function JobCard({ job, isAdmin, onEdit }: JobCardProps) {
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center justify-center gap-2.5 bg-brand-primary text-white py-3.5 px-6 rounded-xl font-black text-sm shadow-lg shadow-orange-100/50 hover:bg-orange-600 active:scale-[0.98] transition-all w-full group/btn"
             >
               <MessageCircle className="w-5 h-5 stroke-[2.5]" />

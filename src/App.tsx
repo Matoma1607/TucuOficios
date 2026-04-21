@@ -7,6 +7,7 @@ import JobCard from './components/JobCard';
 import JobCardSkeleton from './components/JobCardSkeleton';
 import PostJobModal from './components/PostJobModal';
 import EditJobModal from './components/EditJobModal';
+import JobDetailModal from './components/JobDetailModal';
 import NotFound from './components/NotFound';
 import SplashScreen from './components/SplashScreen';
 import AuthTransition from './components/AuthTransition';
@@ -26,6 +27,7 @@ function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [selectedJobDetail, setSelectedJobDetail] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -372,6 +374,7 @@ function HomePage() {
                       job={job} 
                       isAdmin={isAdmin} 
                       onEdit={(j) => setEditingJob(j)}
+                      onClick={() => setSelectedJobDetail(job)}
                     />
                   ))}
                 </AnimatePresence>
@@ -404,12 +407,18 @@ function HomePage() {
 
           <TucuAssistant />
 
+          <JobDetailModal 
+            job={selectedJobDetail}
+            isOpen={!!selectedJobDetail}
+            onClose={() => setSelectedJobDetail(null)}
+          />
+
           <footer className="py-12 text-center border-t border-gray-200 mt-20">
             <div className="flex justify-center gap-6 mb-4 text-sm font-bold text-gray-400">
               <Link to="/privacidad" className="hover:text-brand-primary"><span>Privacidad</span></Link>
             </div>
             <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest mt-2">
-              <span>© 2026 • TucuOficios • V2.3 - NAV_UPDATE</span>
+              <span>© 2026 • TucuOficios • V2.4 - CARD_DETAILS</span>
             </p>
           </footer>
         </motion.div>
