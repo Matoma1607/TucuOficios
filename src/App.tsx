@@ -105,20 +105,31 @@ function HomePage() {
         console.log("Data received from GAS:", data);
         
         if (Array.isArray(data)) {
-          // Normalizar las claves por si GAS le puso mayúsculas o vienen de Google Sheets
-          const normalizedData = data.filter(j => j && (j.id || j.Id || j.ID)).map((j: any) => ({
-            id: j.id || j.Id || j.ID || '',
-            title: j.title || j.Title || '',
-            category: j.category || j.Category || '',
-            zone: j.zone || j.Zone || '',
-            professionalName: j.professionalName || j.professionalname || j.ProfessionalName || '',
-            whatsapp: j.whatsapp || j.Whatsapp || '',
-            email: j.email || j.Email || '',
-            description: j.description || j.Description || '',
-            imageUrl: (j.imageUrl || j.imageurl || j.ImageUrl || '').startsWith('http') ? (j.imageUrl || j.imageurl || j.ImageUrl) : '',
-            estado: j.estado || j.Estado || 'pendiente',
-            createdAt: j.createdAt || j.CreatedAt || j.createdat || Date.now()
-          }));
+          const normalizedData = data.filter(j => j && (j.id || j.Id || j.ID)).map((j: any) => {
+            // Buscador inteligente de claves (por si el usuario cambió el nombre de la columna en el Sheet)
+            const findKey = (keywords: string[]) => {
+              const keys = Object.keys(j);
+              return keys.find(k => keywords.some(word => k.toLowerCase().includes(word.toLowerCase())));
+            };
+
+            const imgKey = findKey(['imageUrl', 'imageurl', 'foto', 'imagen', 'picture']);
+            const nameKey = findKey(['professionalName', 'professionalname', 'nombre', 'profesional']);
+            const dateKey = findKey(['createdAt', 'createdat', 'fecha', 'creado']);
+
+            return {
+              id: j.id || j.Id || j.ID || '',
+              title: j.title || j.Title || j.titulo || '',
+              category: j.category || j.Category || j.categoria || '',
+              zone: j.zone || j.Zone || j.zona || '',
+              professionalName: j[nameKey || ''] || j.professionalName || '',
+              whatsapp: j.whatsapp || j.Whatsapp || '',
+              email: j.email || j.Email || '',
+              description: j.description || j.Description || j.descripcion || '',
+              imageUrl: String(j[imgKey || ''] || '').startsWith('http') ? j[imgKey || ''] : '',
+              estado: j.estado || j.Estado || 'pendiente',
+              createdAt: j[dateKey || ''] || j.createdAt || Date.now()
+            };
+          });
 
           // Mostramos aprobados y pendientes al público (Admin ve todo)
           const visibleJobs = isAdmin 
@@ -249,8 +260,18 @@ function HomePage() {
               </div>
               
               <div className="flex items-center gap-3">
+                {!isAdmin && (
+                  <button 
+                    onClick={handleLogin} 
+                    className="p-2 text-gray-300 hover:text-brand-primary transition-colors flex items-center gap-2 group"
+                    title="Acceso Admin"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Entrar</span>
+                  </button>
+                )}
                 {isAdmin && (
-                  <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-brand-primary">
+                  <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-brand-primary transition-colors">
                     <LogOut className="w-5 h-5" />
                   </button>
                 )}
@@ -386,10 +407,9 @@ function HomePage() {
           <footer className="py-12 text-center border-t border-gray-200 mt-20">
             <div className="flex justify-center gap-6 mb-4 text-sm font-bold text-gray-400">
               <Link to="/privacidad" className="hover:text-brand-primary"><span>Privacidad</span></Link>
-              {!isAdmin && <button onClick={handleLogin} className="hover:text-brand-primary"><span>Admin</span></button>}
             </div>
-            <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest">
-              <span>© 2026 • TucuOficios • V2.2 - REFRESH</span>
+            <p className="text-gray-300 text-[10px] font-black uppercase tracking-widest mt-2">
+              <span>© 2026 • TucuOficios • V2.3 - NAV_UPDATE</span>
             </p>
           </footer>
         </motion.div>
@@ -408,4 +428,3 @@ export default function App() {
     </Routes>
   );
 }
-// force update 1
