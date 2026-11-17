@@ -1,5 +1,8 @@
 # Cabeceras de seguridad para todo el sitio (Netlify)
+# CSP: solo scripts propios y recursos de los servicios que usa el sitio. Si sumás
+# Google Analytics u otro servicio, agregá su dominio (script-src / connect-src / img-src).
 /*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com https://cexofafeqalojhlqzapv.supabase.co https://*.googleusercontent.com; connect-src 'self' https://cexofafeqalojhlqzapv.supabase.co wss://cexofafeqalojhlqzapv.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
