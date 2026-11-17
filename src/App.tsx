@@ -19,6 +19,19 @@ const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
 
+/** Para no montar (ni descargar) el asistente en celulares. */
+function useIsDesktop() {
+  const query = '(min-width: 640px)';
+  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mql = window.matchMedia(query);
+    const onChange = () => setMatches(mql.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return matches;
+}
+
 /** true desde la primera vez que `flag` fue true (para montar un modal recién al abrirlo y conservar su animación de cierre). */
 function useOnceTrue(flag: boolean) {
   const [seen, setSeen] = useState(flag);
@@ -100,6 +113,7 @@ function HomePage() {
   }, []);
 
   const anyModalOpen = isModalOpen || !!editingJob || !!selectedJobDetail || showOnboarding;
+  const isDesktop = useIsDesktop();
   const mountPost = useOnceTrue(isModalOpen);
   const mountEdit = useOnceTrue(!!editingJob);
   const mountDetail = useOnceTrue(!!selectedJobDetail);
@@ -424,11 +438,11 @@ function HomePage() {
           )}
 
           {/* En celular la burbuja tapaba contenido y competía con "Publicar oficio" */}
-          <div className="hidden sm:block">
+          {isDesktop && (
             <Suspense fallback={null}>
               <TucuAssistant hidden={anyModalOpen} />
             </Suspense>
-          </div>
+          )}
 
           {mountDetail && (
             <Suspense fallback={null}>
