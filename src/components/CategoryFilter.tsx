@@ -13,17 +13,23 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory, cou
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const sectionCount = (section: string) =>
     CATEGORIES_CONFIG.filter(c => c.section === section).reduce((sum, c) => sum + (counts[c.id] ?? 0), 0);
-  const sections = SECTIONS.map(s => s.id);
+  // Solo secciones con avisos (más la activa), ordenadas por cantidad.
+  const allSections = SECTIONS.map(s => s.id);
   
   const [catSearch, setCatSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   // Encontrar la sección de la categoría seleccionada
   const activeCategoryInfo = CATEGORIES_CONFIG.find(c => c.id === selectedCategory);
-  const currentSection = activeCategoryInfo?.section || (sections.includes(selectedCategory) ? selectedCategory : null);
+  const currentSection = activeCategoryInfo?.section || (allSections.includes(selectedCategory) ? selectedCategory : null);
+  const sections = allSections
+    .filter(s => sectionCount(s) > 0 || s === currentSection)
+    .sort((a, b) => sectionCount(b) - sectionCount(a));
 
   const filteredSubCats = CATEGORIES_CONFIG.filter(c => {
     const matchesSection = isSearching ? true : (currentSection ? c.section === currentSection : false);
+    // Fuera del buscador, ocultar subcategorías sin avisos (salvo la seleccionada).
+    if (!isSearching && (counts[c.id] ?? 0) === 0 && c.id !== selectedCategory) return false;
     const matchesSearch = c.label.toLowerCase().includes(catSearch.toLowerCase()) || 
                           c.section.toLowerCase().includes(catSearch.toLowerCase());
     return matchesSection && matchesSearch;

@@ -36,6 +36,7 @@ export const SECTIONS: { id: string; iconName: string }[] = [
   { id: 'Eventos', iconName: 'PartyPopper' },
   { id: 'Mascotas', iconName: 'Dog' },
   { id: 'Servicios Profesionales', iconName: 'Briefcase' },
+  { id: 'Emprendimientos', iconName: 'Store' },
   { id: 'Varios', iconName: 'Shapes' },
 ];
 
@@ -110,6 +111,13 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
   // Servicios profesionales
   { id: 'Contabilidad', label: 'Contabilidad', section: 'Servicios Profesionales', iconName: 'Calculator' },
   { id: 'Gestoría', label: 'Gestoría y trámites', section: 'Servicios Profesionales', iconName: 'FileText' },
+
+  // Emprendimientos (venta de productos)
+  { id: 'Ropa y Accesorios', label: 'Ropa y accesorios', section: 'Emprendimientos', iconName: 'Shirt' },
+  { id: 'Cocina y Hogar', label: 'Cocina y hogar', section: 'Emprendimientos', iconName: 'CookingPot' },
+  { id: 'Celulares y Electrónica', label: 'Celulares y electrónica', section: 'Emprendimientos', iconName: 'Smartphone' },
+  { id: 'Belleza y Cosmética', label: 'Belleza y cosmética', section: 'Emprendimientos', iconName: 'Sparkles' },
+  { id: 'Otros Productos', label: 'Otros productos', section: 'Emprendimientos', iconName: 'ShoppingBag' },
 
   // Varios
   { id: 'Costura', label: 'Costura y arreglos', section: 'Varios', iconName: 'Shirt' },

@@ -445,7 +445,7 @@ function HomePage() {
           </footer>
         </motion.div>
       )}
-      <CookieBanner />
+      <CookieBanner paused={showOnboarding} />
     </div>
   );
 }

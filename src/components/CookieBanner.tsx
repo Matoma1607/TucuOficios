@@ -1,12 +1,19 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { initGA } from '../lib/analytics';
+import { initGA, hasAnalytics } from '../lib/analytics';
 
-export default function CookieBanner() {
+interface CookieBannerProps {
+  /** Mientras haya otra ventana abierta (ej. la bienvenida) el aviso espera. */
+  paused?: boolean;
+}
+
+export default function CookieBanner({ paused = false }: CookieBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // Sin Google Analytics configurado no hay cookies que consentir.
+    if (!hasAnalytics || paused) return;
     const consent = localStorage.getItem('cookie-consent');
     if (!consent) {
       const timer = setTimeout(() => setIsVisible(true), 2500);
@@ -14,7 +21,7 @@ export default function CookieBanner() {
     } else if (consent === 'accepted') {
       initGA();
     }
-  }, []);
+  }, [paused]);
 
   const decide = (accepted: boolean) => {
     localStorage.setItem('cookie-consent', accepted ? 'accepted' : 'rejected');
