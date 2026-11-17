@@ -221,20 +221,21 @@ function HomePage() {
 
           <main className="max-w-6xl mx-auto px-4 pb-16">
             {/* Bienvenida + buscador */}
-            <section className="pt-6 pb-5 md:pt-14 md:pb-10 text-center">
-              <h1 className="text-[26px] leading-tight sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 text-balance">
-                Profesionales de confianza en Tucumán
+            <section className="pt-4 pb-3 sm:pt-6 sm:pb-5 md:pt-14 md:pb-10 sm:text-center">
+              <h1 className="text-xl leading-tight sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 text-balance">
+                <span className="sm:hidden">¿Qué profesional necesitás?</span>
+                <span className="hidden sm:inline">Profesionales de confianza en Tucumán</span>
               </h1>
-              <p className="mt-2 md:mt-4 text-sm sm:text-base md:text-lg text-gray-500 max-w-xl mx-auto">
-                Plomeros, electricistas, profes y más.<span className="hidden sm:inline"> Escribiles directo por WhatsApp, sin intermediarios.</span>
+              <p className="hidden sm:block mt-2 md:mt-4 text-base md:text-lg text-gray-500 max-w-xl mx-auto">
+                Plomeros, electricistas, profes y más. Escribiles directo por WhatsApp, sin intermediarios.
               </p>
 
-              <div className="relative max-w-2xl mx-auto mt-5 md:mt-8">
+              <div className="relative max-w-2xl mx-auto mt-3 sm:mt-5 md:mt-8">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
                 <input
                   type="search"
                   aria-label="Buscar profesionales"
-                  placeholder="¿Qué necesitás? Ej: plomero"
+                  placeholder="Plomero, electricista, clases…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-white border border-gray-300 focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5 rounded-xl py-3 md:py-3.5 pl-12 pr-4 outline-none transition text-gray-900 placeholder:text-gray-400"
@@ -242,7 +243,7 @@ function HomePage() {
               </div>
 
               {/* Sellos de confianza */}
-              <ul className="mt-4 md:mt-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-xs sm:text-sm text-gray-500">
+              <ul className="hidden sm:flex mt-4 md:mt-5 flex-wrap justify-center gap-x-5 gap-y-1.5 text-xs sm:text-sm text-gray-500">
                 <li className="inline-flex items-center gap-1.5"><BadgeCheck className="w-4 h-4 text-emerald-600" aria-hidden="true" />Cada aviso es revisado</li>
                 <li className="inline-flex items-center gap-1.5"><MessageCircle className="w-4 h-4 text-emerald-600" aria-hidden="true" />Contacto directo</li>
                 <li className="inline-flex items-center gap-1.5"><Heart className="w-4 h-4 text-emerald-600" aria-hidden="true" />Gratis para todos</li>
@@ -292,7 +293,7 @@ function HomePage() {
             )}
 
             {!isLoading && (
-              <div className="mt-6 flex items-center justify-between gap-3">
+              <div className="mt-4 sm:mt-6 flex items-center justify-between gap-3">
                 <p className="text-sm text-gray-500">
                   {view === 'pending'
                     ? (filteredJobs.length === 1 ? '1 publicación para revisar' : `${filteredJobs.length} publicaciones para revisar`)
@@ -319,7 +320,7 @@ function HomePage() {
             )}
 
             {/* Listado */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => <JobCardSkeleton key={i} />)
               ) : filteredJobs.length === 0 ? (
@@ -397,7 +398,10 @@ function HomePage() {
             onClose={handleCloseOnboarding}
           />
 
-          <TucuAssistant hidden={anyModalOpen} />
+          {/* En celular la burbuja tapaba contenido y competía con "Publicar oficio" */}
+          <div className="hidden sm:block">
+            <TucuAssistant hidden={anyModalOpen} />
+          </div>
 
           <JobDetailModal 
             job={selectedJobDetail}

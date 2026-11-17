@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, MapPin, Calendar, Link as LinkIcon, Check, MessageCircle, ExternalLink } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
+import { prettyTitle } from '../lib/text';
 import { Icons } from '../lib/icons';
 import Avatar from './Avatar';
 import Gallery from './Gallery';
@@ -136,7 +137,7 @@ export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
       </div>
 
       <h2 id={titleId} className="mt-6 text-2xl font-bold text-gray-900 leading-tight">
-        {job.title}
+        {prettyTitle(job.title)}
       </h2>
 
       <div className="mt-4 flex flex-wrap gap-2 text-sm">

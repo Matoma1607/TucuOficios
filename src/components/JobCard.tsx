@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, ImageOff, X, Loader2 } from 'lucide-react';
+import { MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
 import { Icons } from '../lib/icons';
 import { deleteJob, setJobStatus } from '../services/jobs';
@@ -56,6 +56,18 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
   const CategoryIcon = (categoryInfo && Icons[categoryInfo.iconName]) || Icons.HelpCircle;
+  // En el listado se muestra el oficio (siempre prolijo); el título libre va en el perfil.
+  const categoryLabel = categoryInfo?.label ?? job.category;
+  const hasImage = !!job.imageUrl && !imgError;
+  const statusBadge = job.estado !== 'aprobado' ? (
+    <span
+      className={`ml-1 flex-none text-[11px] font-medium px-2 py-0.5 rounded-full ${
+        job.estado === 'pendiente' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+      }`}
+    >
+      {job.estado === 'pendiente' ? 'En revisión' : 'Rechazada'}
+    </span>
+  ) : null;
 
   const stop = (e: React.MouseEvent) => e.stopPropagation();
 
@@ -116,7 +128,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       onClick={onClick}
-      className="group relative flex flex-col bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer transition-colors hover:border-gray-300"
+      className="group relative flex flex-col bg-white rounded-xl sm:rounded-2xl border border-gray-200 p-3 sm:p-4 cursor-pointer transition-colors hover:border-gray-300"
     >
       {/* Confirmación de borrado */}
       <AnimatePresence>
@@ -151,88 +163,109 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         )}
       </AnimatePresence>
 
-      {/* Profesional */}
-      <div className="flex items-start gap-3">
-        <Avatar name={job.professionalName} />
+      {/* Celular: fila compacta (varios profesionales por pantalla) */}
+      <div className="flex items-center gap-3 sm:hidden">
+        <div className="relative w-16 h-16 flex-none rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+          {hasImage ? (
+            <img
+              src={job.imageUrl}
+              alt=""
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <CategoryIcon className="w-6 h-6 text-gray-400" aria-hidden="true" />
+          )}
+        </div>
         <div className="min-w-0 flex-1">
           <p className="font-semibold text-gray-900 truncate">{job.professionalName}</p>
-          <h3 className="text-sm text-gray-600 leading-snug line-clamp-2">{job.title}</h3>
+          <p className="text-sm text-gray-600 truncate">{categoryLabel}</p>
+          <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 min-w-0">
+            <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
+            <span className="truncate">{job.zone}</span>
+            {statusBadge}
+          </p>
         </div>
-      </div>
-
-      {/* Datos */}
-      <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 min-w-0">
-        <span className="inline-flex items-center gap-1 min-w-0 flex-none max-w-[55%]">
-          <CategoryIcon className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
-          <span className="truncate">{categoryInfo?.label ?? job.category}</span>
-        </span>
-        <span className="inline-flex items-center gap-1 min-w-0">
-          <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
-          <span className="truncate">{job.zone}</span>
-        </span>
-      </div>
-
-      {/* Foto del trabajo: completa, sin recortar (muchas son flyers con texto) */}
-      <div className="relative mt-3 aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
-        {job.estado !== 'aprobado' && (
-          <span
-            className={`absolute top-2 left-2 z-10 text-[11px] font-medium px-2 py-0.5 rounded-full ${
-              job.estado === 'pendiente' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
-            }`}
-          >
-            {job.estado === 'pendiente' ? 'En revisión' : 'Rechazada'}
-          </span>
-        )}
-        {job.imageUrl && !imgError && (
-          /* Misma foto desenfocada de fondo, en vez de bandas grises */
-          <img
-            src={job.imageUrl}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-50"
-          />
-        )}
-        {job.imageUrl && !imgError ? (
-          <img
-            src={job.imageUrl}
-            alt={`Trabajo de ${job.professionalName}: ${job.title}`}
-            loading="lazy"
-            onError={() => setImgError(true)}
-            className="relative w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-        ) : (
-          <ImageOff className="w-8 h-8 text-gray-300" aria-label="Sin foto" />
-        )}
-        {job.photoUrls.length > 1 && (
-          <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-900/75 text-white">
-            +{job.photoUrls.length - 1} {job.photoUrls.length === 2 ? 'foto' : 'fotos'}
-          </span>
-        )}
-      </div>
-
-      <p className="mt-3 text-sm text-gray-500 leading-relaxed line-clamp-2 min-h-[2.75rem]">{job.description}</p>
-
-      {/* Acciones */}
-      <div className="mt-auto pt-4 flex gap-2">
         <a
           href={whatsappLink(job)}
           target="_blank"
           rel="noopener noreferrer"
           onClick={stop}
           aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
-          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 transition-colors"
+          className="w-11 h-11 flex-none inline-flex items-center justify-center rounded-full bg-emerald-50 text-emerald-700 active:bg-emerald-100"
         >
-          <MessageCircle className="w-4 h-4" aria-hidden="true" />
-          WhatsApp
+          <MessageCircle className="w-5 h-5" aria-hidden="true" />
         </a>
-        <button
-          onClick={handleShare}
-          aria-label="Compartir"
-          className="w-11 flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
-        >
-          {shared ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-        </button>
+      </div>
+
+      {/* Compu y tablet: tarjeta */}
+      <div className="hidden sm:flex flex-col flex-1">
+        <div className="flex items-start gap-3">
+          <Avatar name={job.professionalName} />
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-gray-900 truncate">{job.professionalName}</p>
+            <h3 className="text-sm text-gray-600 truncate">{categoryLabel}</h3>
+          </div>
+        </div>
+
+        <p className="mt-3 flex items-center gap-1 text-xs text-gray-500 min-w-0">
+          <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
+          <span className="truncate">{job.zone}</span>
+        </p>
+
+        {/* Foto: completa, sin recortar (muchas son flyers con texto) */}
+        <div className="relative mt-3 aspect-[16/10] rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
+          {statusBadge && <span className="absolute top-2 left-2 z-10">{statusBadge}</span>}
+          {hasImage && (
+            <img
+              src={job.imageUrl}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-50"
+            />
+          )}
+          {hasImage ? (
+            <img
+              src={job.imageUrl}
+              alt={`Trabajo de ${job.professionalName}: ${categoryLabel}`}
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="relative w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          ) : (
+            <CategoryIcon className="w-8 h-8 text-gray-300" aria-label="Sin foto" />
+          )}
+          {job.photoUrls.length > 1 && (
+            <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-900/75 text-white">
+              +{job.photoUrls.length - 1} {job.photoUrls.length === 2 ? 'foto' : 'fotos'}
+            </span>
+          )}
+        </div>
+
+        <p className="mt-3 text-sm text-gray-500 leading-relaxed line-clamp-2 min-h-[2.75rem]">{job.description}</p>
+
+        <div className="mt-auto pt-4 flex gap-2">
+          <a
+            href={whatsappLink(job)}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={stop}
+            aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-medium py-2.5 transition-colors"
+          >
+            <MessageCircle className="w-4 h-4" aria-hidden="true" />
+            WhatsApp
+          </a>
+          <button
+            onClick={handleShare}
+            aria-label="Compartir"
+            className="w-11 flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+          >
+            {shared ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Moderación rápida (admin) */}
