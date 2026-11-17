@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Job } from '../types';
+import { compressImage } from '../lib/image';
 
 const BUCKET = 'job-images';
 export const MAX_PHOTOS = 4; // portada + 3 de galería
@@ -16,6 +17,7 @@ interface JobRow {
   image_path: string | null;
   gallery: string[] | null;
   estado: Job['estado'];
+  verificado: boolean | null;
   created_at: string;
 }
 
@@ -36,6 +38,23 @@ export const publicImageUrl = (path: string | null) => {
   return isExternal(path) ? path : supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 };
 
+/**
+ * Miniatura para el listado (la foto completa pesa hasta ~400 KB).
+ * - Cloudinary (avisos migrados): se pide recortada por URL.
+ * - Supabase: al subir guardamos "<foto>_thumb.webp" al lado de la original.
+ */
+export const thumbPathFor = (path: string) => path.replace(/\.webp$/, '_thumb.webp');
+
+export const thumbImageUrl = (path: string | null) => {
+  if (!path) return '';
+  if (isExternal(path)) {
+    return path.includes('res.cloudinary.com') && path.includes('/upload/')
+      ? path.replace('/upload/', '/upload/c_fill,w_240,h_240,f_auto,q_auto/')
+      : path;
+  }
+  return publicImageUrl(thumbPathFor(path));
+};
+
 const toJob = (r: JobRow): Job => {
   const paths = [r.image_path, ...(r.gallery ?? [])].filter((p): p is string => Boolean(p));
   return {
@@ -49,9 +68,11 @@ const toJob = (r: JobRow): Job => {
     description: r.description,
     imagePath: r.image_path,
     imageUrl: publicImageUrl(r.image_path),
+    thumbUrl: thumbImageUrl(r.image_path),
     photoPaths: paths,
     photoUrls: paths.map(publicImageUrl),
     estado: r.estado,
+    verificado: r.verificado === true,
     createdAt: r.created_at,
   };
 };
@@ -75,36 +96,7 @@ function friendlyError(error: { message: string; code?: string }): Error {
   return new Error('Hubo un problema de conexión. Probá de nuevo.');
 }
 
-/**
- * Convierte cualquier formato argentino al que usa WhatsApp: 549 + área + número.
- * Acepta: "381 412-3456", "0381 15 412 3456", "+54 9 381 4123456", etc.
- * Devuelve null si no es un número válido.
- */
-export function normalizeWhatsapp(raw: string): string | null {
-  let d = String(raw || '').replace(/\D/g, '');
-  if (d.startsWith('00')) d = d.slice(2);
-  if (d.startsWith('54')) d = d.slice(2);
-  if (d.startsWith('9') && d.length === 11) d = d.slice(1);
-  if (d.startsWith('0')) d = d.slice(1);
-
-  // Quita el "15" que va después del código de área (2, 3 o 4 dígitos)
-  if (d.length === 12) {
-    for (const areaLen of [3, 2, 4]) {
-      if (d.slice(areaLen, areaLen + 2) === '15') {
-        d = d.slice(0, areaLen) + d.slice(areaLen + 2);
-        break;
-      }
-    }
-  }
-
-  return d.length === 10 ? `549${d}` : null;
-}
-
-/** Muestra 5493814123456 como "381 412-3456" para editar. */
-export function formatWhatsappForInput(stored: string): string {
-  const d = stored.startsWith('549') ? stored.slice(3) : stored;
-  return d.length === 10 ? `${d.slice(0, 3)} ${d.slice(3, 6)}-${d.slice(6)}` : d;
-}
+export { normalizeWhatsapp, formatWhatsappForInput } from '../lib/whatsapp';
 
 export async function fetchJobs(): Promise<Job[]> {
   // RLS ya filtra: aprobadas para todos + las propias + todo si sos admin.
@@ -125,20 +117,24 @@ export async function fetchJob(id: string): Promise<Job | null> {
   return data ? toJob(data as JobRow) : null;
 }
 
-export async function uploadJobImage(userId: string, image: Blob): Promise<string> {
+/** Comprime la foto, sube la versión grande y una miniatura. Devuelve la ruta de la grande. */
+export async function uploadJobImage(userId: string, file: File): Promise<string> {
+  const [full, thumb] = await Promise.all([compressImage(file), compressImage(file, 320, 0.75)]);
   const path = `${userId}/${crypto.randomUUID()}.webp`;
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, image, { contentType: 'image/webp', upsert: false });
+  const opts = { contentType: 'image/webp', upsert: false };
 
+  const { error } = await supabase.storage.from(BUCKET).upload(path, full, opts);
   if (error) throw new Error('No se pudo subir una de las fotos. Probá con otra.');
+
+  // Si falla la miniatura no pasa nada: el listado usa la foto grande.
+  await supabase.storage.from(BUCKET).upload(thumbPathFor(path), thumb, opts);
   return path;
 }
 
 /** Borra fotos del storage (ignora las externas de Cloudinary). */
 export async function removeImages(paths: string[]): Promise<void> {
   const own = paths.filter(p => p && !isExternal(p));
-  if (own.length) await supabase.storage.from(BUCKET).remove(own);
+  if (own.length) await supabase.storage.from(BUCKET).remove([...own, ...own.map(thumbPathFor)]);
 }
 
 /** photoPaths: la primera es la portada, el resto la galería. */
@@ -162,12 +158,12 @@ export async function updateJob(
   id: string,
   input: JobInput,
   photoPaths: string[],
-  estado?: Job['estado'] // solo lo respeta la base si sos admin
+  admin?: { estado: Job['estado']; verificado: boolean } // solo lo respeta la base si sos admin
 ): Promise<void> {
   const [cover, ...gallery] = photoPaths;
   const { error } = await supabase
     .from('jobs')
-    .update({ ...toRow(input), image_path: cover ?? null, gallery, ...(estado ? { estado } : {}) })
+    .update({ ...toRow(input), image_path: cover ?? null, gallery, ...(admin ?? {}) })
     .eq('id', id);
 
   if (error) throw friendlyError(error);

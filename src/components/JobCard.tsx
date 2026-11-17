@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
+import { BadgeCheck, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
 import { Icons } from '../lib/icons';
 import { deleteJob, setJobStatus } from '../services/jobs';
@@ -35,6 +35,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
   const [shared, setShared] = useState(false);
   const [copiedChannel, setCopiedChannel] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [thumbFailed, setThumbFailed] = useState(false);
   const toast = useToast();
   const [statusBusy, setStatusBusy] = useState<Job['estado'] | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -168,10 +169,12 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         <div className="relative w-16 h-16 flex-none rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
           {hasImage ? (
             <img
-              src={job.imageUrl}
+              src={thumbFailed ? job.imageUrl : job.thumbUrl || job.imageUrl}
               alt=""
               loading="lazy"
-              onError={() => setImgError(true)}
+              width={64}
+              height={64}
+              onError={() => (thumbFailed ? setImgError(true) : setThumbFailed(true))}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -179,7 +182,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-gray-900 truncate">{job.professionalName}</p>
+          <p className="font-semibold text-gray-900 truncate">{job.professionalName}{job.verificado && <BadgeCheck className="inline w-4 h-4 ml-1 -mt-0.5 text-sky-600" aria-label="Verificado" />}</p>
           <p className="text-sm text-gray-600 truncate">{categoryLabel}</p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 min-w-0">
             <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
@@ -204,7 +207,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         <div className="flex items-start gap-3">
           <Avatar name={job.professionalName} />
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900 truncate">{job.professionalName}</p>
+            <p className="font-semibold text-gray-900 truncate">{job.professionalName}{job.verificado && <BadgeCheck className="inline w-4 h-4 ml-1 -mt-0.5 text-sky-600" aria-label="Verificado" />}</p>
             <h3 className="text-sm text-gray-600 truncate">{categoryLabel}</h3>
           </div>
         </div>

@@ -7,11 +7,13 @@ export interface Job {
   professionalName: string;
   whatsapp: string; // formato 549XXXXXXXXXX
   imageUrl: string;          // portada
+  thumbUrl: string;          // portada en miniatura (listado)
   imagePath: string | null;
   photoUrls: string[];       // todas las fotos, la portada primero
   photoPaths: string[];
   createdAt: string;
   estado: 'pendiente' | 'aprobado' | 'rechazado';
+  verificado: boolean;       // lo marca el admin después de comprobar los datos
   description: string;
 }
 

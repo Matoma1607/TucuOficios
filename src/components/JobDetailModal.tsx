@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, MapPin, Calendar, Link as LinkIcon, Check, MessageCircle, ExternalLink } from 'lucide-react';
+import { X, BadgeCheck, MapPin, Calendar, Link as LinkIcon, Check, MessageCircle, ExternalLink } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
-import { prettyTitle } from '../lib/text';
+import { prettyTitle, timeAgo } from '../lib/text';
 import { Icons } from '../lib/icons';
 import Avatar from './Avatar';
 import Gallery from './Gallery';
@@ -149,8 +149,16 @@ export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
         </span>
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700">
           <Calendar className="w-4 h-4" aria-hidden="true" />
-          Desde {new Date(job.createdAt).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
+          Publicado {timeAgo(job.createdAt)}
         </span>
+        {job.verificado && (
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-800"
+            title="TucuOficios comprobó que el número y el trabajo son reales"
+          >
+            <BadgeCheck className="w-4 h-4" aria-hidden="true" /> Verificado
+          </span>
+        )}
         {job.estado !== 'aprobado' && (
           <span
             className={`px-3 py-1 rounded-full font-medium ${

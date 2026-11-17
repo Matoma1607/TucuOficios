@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import { updateJob, uploadJobImage, removeImages, normalizeWhatsapp, formatWhatsappForInput } from '../services/jobs';
-import { compressImage } from '../lib/image';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 import { useToast } from './Toast';
 
@@ -24,6 +23,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
   const [profName, setProfName] = useState('');
   const [description, setDescription] = useState('');
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
+  const [verificado, setVerificado] = useState(false);
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +40,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
       setProfName(job.professionalName);
       setDescription(job.description || '');
       setEstado(job.estado);
+      setVerificado(job.verificado);
       setPhotos(job.photoPaths.map((path, i) => ({ key: path, path, url: job.photoUrls[i] })));
       setErrors({});
     }
@@ -72,7 +73,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
         if (photo.path) {
           finalPaths.push(photo.path);
         } else if (photo.file) {
-          const path = await uploadJobImage(userId, await compressImage(photo.file));
+          const path = await uploadJobImage(userId, photo.file);
           uploaded.push(path);
           finalPaths.push(path);
         }
@@ -89,7 +90,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
           description,
         },
         finalPaths,
-        isAdmin ? estado : undefined
+        isAdmin ? { estado, verificado } : undefined
       );
       saved = true;
 
@@ -243,6 +244,18 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                       <option value="aprobado">Aprobada (visible)</option>
                       <option value="rechazado">Rechazada (oculta)</option>
                     </select>
+                    <label className="mt-3 flex items-start gap-3 rounded-lg border border-gray-200 px-4 py-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={verificado}
+                        onChange={(e) => setVerificado(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 accent-gray-900"
+                      />
+                      <span className="text-sm">
+                        <span className="font-medium text-gray-900">Profesional verificado</span>
+                        <span className="block text-gray-500">Marcalo solo si comprobaste que el número y el trabajo son reales.</span>
+                      </span>
+                    </label>
                   </div>
                 ) : (
                   <p className="text-sm text-amber-800 bg-amber-50 rounded-lg px-4 py-3">

@@ -1,21 +1,30 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ArrowRight } from 'lucide-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import JobCardSkeleton from './components/JobCardSkeleton';
-import PostJobModal from './components/PostJobModal';
-import EditJobModal from './components/EditJobModal';
-import JobDetailModal from './components/JobDetailModal';
-import NotFound from './components/NotFound';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import ProfilePage from './components/ProfilePage';
-import OnboardingModal from './components/OnboardingModal';
-import TucuAssistant from './components/AssistantChat';
 import { logPageView } from './lib/analytics';
+
+// Se descargan recién cuando hacen falta: la página inicial carga menos código.
+const PostJobModal = lazy(() => import('./components/PostJobModal'));
+const EditJobModal = lazy(() => import('./components/EditJobModal'));
+const JobDetailModal = lazy(() => import('./components/JobDetailModal'));
+const OnboardingModal = lazy(() => import('./components/OnboardingModal'));
+const TucuAssistant = lazy(() => import('./components/AssistantChat'));
+const ProfilePage = lazy(() => import('./components/ProfilePage'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const NotFound = lazy(() => import('./components/NotFound'));
+
+/** true desde la primera vez que `flag` fue true (para montar un modal recién al abrirlo y conservar su animación de cierre). */
+function useOnceTrue(flag: boolean) {
+  const [seen, setSeen] = useState(flag);
+  useEffect(() => { if (flag) setSeen(true); }, [flag]);
+  return seen || flag;
+}
 import { Job, Category, CATEGORIES_CONFIG, ZONES } from './types';
 import { useAuth } from './hooks/useAuth';
 import { fetchJobs } from './services/jobs';
@@ -91,6 +100,10 @@ function HomePage() {
   }, []);
 
   const anyModalOpen = isModalOpen || !!editingJob || !!selectedJobDetail || showOnboarding;
+  const mountPost = useOnceTrue(isModalOpen);
+  const mountEdit = useOnceTrue(!!editingJob);
+  const mountDetail = useOnceTrue(!!selectedJobDetail);
+  const mountOnboarding = useOnceTrue(showOnboarding);
 
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
@@ -376,38 +389,56 @@ function HomePage() {
             </div>
           </main>
 
-          <PostJobModal 
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            user={user}
-            onSignIn={signInWithGoogle}
-            onCreated={loadJobs}
-          />
+          {mountPost && (
+            <Suspense fallback={null}>
+            <PostJobModal 
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              user={user}
+              onSignIn={signInWithGoogle}
+              onCreated={loadJobs}
+            />
+            </Suspense>
+          )}
 
-          <EditJobModal 
-            isOpen={!!editingJob}
-            onClose={() => setEditingJob(null)}
-            job={editingJob}
-            isAdmin={isAdmin}
-            userId={user?.id}
-            onSaved={loadJobs}
-          />
+          {mountEdit && (
+            <Suspense fallback={null}>
+            <EditJobModal 
+              isOpen={!!editingJob}
+              onClose={() => setEditingJob(null)}
+              job={editingJob}
+              isAdmin={isAdmin}
+              userId={user?.id}
+              onSaved={loadJobs}
+            />
+            </Suspense>
+          )}
 
-          <OnboardingModal 
-            isOpen={showOnboarding}
-            onClose={handleCloseOnboarding}
-          />
+          {mountOnboarding && (
+            <Suspense fallback={null}>
+            <OnboardingModal 
+              isOpen={showOnboarding}
+              onClose={handleCloseOnboarding}
+            />
+            </Suspense>
+          )}
 
           {/* En celular la burbuja tapaba contenido y competía con "Publicar oficio" */}
           <div className="hidden sm:block">
-            <TucuAssistant hidden={anyModalOpen} />
+            <Suspense fallback={null}>
+              <TucuAssistant hidden={anyModalOpen} />
+            </Suspense>
           </div>
 
-          <JobDetailModal 
-            job={selectedJobDetail}
-            isOpen={!!selectedJobDetail}
-            onClose={() => setSelectedJobDetail(null)}
-          />
+          {mountDetail && (
+            <Suspense fallback={null}>
+            <JobDetailModal 
+              job={selectedJobDetail}
+              isOpen={!!selectedJobDetail}
+              onClose={() => setSelectedJobDetail(null)}
+            />
+            </Suspense>
+          )}
 
           {/* Invitación a publicar antes del pie */}
           {view === 'all' && (
@@ -456,11 +487,13 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/p/:id/:slug?" element={<ProfilePage />} />
-      <Route path="/privacidad" element={<PrivacyPolicy />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/p/:id/:slug?" element={<ProfilePage />} />
+        <Route path="/privacidad" element={<PrivacyPolicy />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }

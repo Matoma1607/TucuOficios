@@ -1,6 +1,9 @@
 -- =====================================================================
 -- TucuOficios · Esquema Supabase
 -- Pegar completo en: Supabase → SQL Editor → New query → Run
+--
+-- Es el esquema inicial. Los cambios posteriores están en
+-- supabase/migrations/ (en orden por fecha): aplicalos después de este.
 -- =====================================================================
 
 create extension if not exists pgcrypto;

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ChevronRight, Loader2, PartyPopper, LogIn } from 'lucide-react';
+import { X, ChevronRight, Loader2, PartyPopper, LogIn, Lightbulb, MapPin, MessageCircle } from 'lucide-react';
+import { isGenericTitle } from '../lib/text';
+import { Icons } from '../lib/icons';
 import type { User } from '@supabase/supabase-js';
 import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
-import { compressImage } from '../lib/image';
 import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 
@@ -67,6 +68,8 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
     const newErrors: Record<string, string> = {};
     if (formData.title.trim().length < 5) {
       newErrors.title = 'Mínimo 5 caracteres';
+    } else if (isGenericTitle(formData.title)) {
+      newErrors.title = 'Contá qué hacés (ej: Venta de ropa)';
     }
     if (formData.description.trim().length < 10) {
       newErrors.description = 'Mínimo 10 caracteres';
@@ -116,8 +119,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
     try {
       for (const photo of photos) {
         if (!photo.file) continue;
-        const compressed = await compressImage(photo.file);
-        uploaded.push(await uploadJobImage(user.id, compressed));
+        uploaded.push(await uploadJobImage(user.id, photo.file));
       }
 
       step = 'datos';
@@ -218,6 +220,17 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                  <p className="flex items-center gap-1.5 font-semibold">
+                    <Lightbulb className="w-4 h-4" aria-hidden="true" /> Para que te escriban más
+                  </p>
+                  <ul className="mt-1.5 space-y-1 text-orange-900/80 list-disc pl-5">
+                    <li>Subí fotos de <strong>trabajos terminados</strong>, mejor que un logo o un flyer.</li>
+                    <li>En el título, decí <strong>qué hacés</strong>: “Instalación de aires split”, no “Servicios”.</li>
+                    <li>En la descripción contá experiencia, horarios y si tenés matrícula.</li>
+                  </ul>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Fotos de tu trabajo *</label>
                   <PhotoPicker
@@ -237,7 +250,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                     <input 
                       required
                       maxLength={80}
-                      placeholder="Ej: Plomero matriculado, urgencias 24 h"
+                      placeholder="Ej: Instalación y service de aires split"
                       value={formData.title}
                       onChange={e => setFormData({...formData, title: e.target.value})}
                       className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
@@ -328,8 +341,8 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                     </div>
                     <textarea 
                       required
-                      placeholder="Contanos un poco más sobre lo que hacés (mínimo 10 caracteres)"
-                      rows={3}
+                      placeholder="Ej: 10 años de experiencia, matriculado. Atiendo de lunes a sábado, presupuesto sin cargo."
+                      rows={4}
                       maxLength={600}
                       value={formData.description}
                       onChange={e => setFormData({...formData, description: e.target.value})}
@@ -339,6 +352,36 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                     />
                   </div>
                 </div>
+
+                {/* Vista previa: así aparece en el listado */}
+                {(photos.length > 0 || formData.professionalName || formData.category) && (() => {
+                  const cat = CATEGORIES_CONFIG.find(c => c.id === formData.category);
+                  const CatIcon = (cat && Icons[cat.iconName]) || Icons.HelpCircle;
+                  return (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-2 ml-1">Así se va a ver en el listado</p>
+                      <div className="flex items-center gap-3 rounded-xl border border-gray-200 p-3">
+                        <div className="w-14 h-14 flex-none rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+                          {photos[0] ? (
+                            <img src={photos[0].url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <CatIcon className="w-5 h-5 text-gray-400" aria-hidden="true" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-gray-900 truncate">{formData.professionalName || 'Tu nombre'}</p>
+                          <p className="text-sm text-gray-600 truncate">{cat?.label ?? 'Tu oficio'}</p>
+                          <p className="flex items-center gap-1 text-xs text-gray-500">
+                            <MapPin className="w-3.5 h-3.5" aria-hidden="true" /> {formData.zone || 'Tu zona'}
+                          </p>
+                        </div>
+                        <span className="w-10 h-10 flex-none inline-flex items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                          <MessageCircle className="w-5 h-5" aria-hidden="true" />
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {errors.submit && <p className="text-red-700 text-sm font-medium text-center bg-red-50 py-3 rounded-lg">{errors.submit}</p>}
 

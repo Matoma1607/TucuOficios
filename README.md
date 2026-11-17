@@ -59,3 +59,14 @@ Dominio `tucuoficios.net.ar` registrado en NIC Argentina (vence cada 17/11), del
 3. Si está todo bien, uní `dev` en `main` (en GitHub Desktop: rama `main` → *Branch → Merge into current branch* → `dev`) y hacé push.
 
 El build corre `tsc --noEmit` antes de compilar: si hay errores de TypeScript, Netlify no publica.
+
+## Base de datos
+
+- `supabase/schema.sql`: esquema inicial (tablas, permisos RLS, triggers, storage).
+- `supabase/migrations/`: cada cambio posterior, un archivo por cambio, con fecha en el nombre.
+
+Para cambiar la base: creá un archivo nuevo en `supabase/migrations/` (ej. `20261201120000_algo.sql`), ejecutalo en Supabase → SQL Editor y commitealo junto con el código que lo usa. Nunca edites una migración ya aplicada: hacé una nueva.
+
+## Tests
+
+`npm test` corre los tests (`src/__tests__/`). También corren en cada build de Netlify: si alguno falla, no se publica.
