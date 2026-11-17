@@ -196,6 +196,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           rel="noopener noreferrer"
           onClick={stop}
           aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
+          data-tour="contacto"
           className="w-11 h-11 flex-none inline-flex items-center justify-center rounded-full bg-emerald-50 text-emerald-700 active:bg-emerald-100"
         >
           <MessageCircle className="w-5 h-5" aria-hidden="true" />
@@ -256,6 +257,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             rel="noopener noreferrer"
             onClick={stop}
             aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
+          data-tour="contacto"
             className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-medium py-2.5 transition-colors"
           >
             <MessageCircle className="w-4 h-4" aria-hidden="true" />

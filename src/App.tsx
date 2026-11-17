@@ -13,7 +13,7 @@ import { logPageView } from './lib/analytics';
 const PostJobModal = lazy(() => import('./components/PostJobModal'));
 const EditJobModal = lazy(() => import('./components/EditJobModal'));
 const JobDetailModal = lazy(() => import('./components/JobDetailModal'));
-const OnboardingModal = lazy(() => import('./components/OnboardingModal'));
+const GuidedTour = lazy(() => import('./components/GuidedTour'));
 const TucuAssistant = lazy(() => import('./components/AssistantChat'));
 const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
@@ -113,6 +113,8 @@ function HomePage() {
   }, []);
 
   const anyModalOpen = isModalOpen || !!editingJob || !!selectedJobDetail || showOnboarding;
+  // Durante el recorrido el botón de publicar del celular tiene que verse (es uno de los pasos)
+  const hideFab = (anyModalOpen && !showOnboarding) || (!fabVisible && !showOnboarding);
   const isDesktop = useIsDesktop();
   const mountPost = useOnceTrue(isModalOpen);
   const mountEdit = useOnceTrue(!!editingJob);
@@ -237,6 +239,7 @@ function HomePage() {
                 )}
                 <button
                   onClick={() => setIsModalOpen(true)}
+                  data-tour="publicar"
                   className="hidden sm:inline-flex items-center gap-1.5 bg-brand-strong hover:bg-brand-strong-hover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   <Plus className="w-4 h-4" />
@@ -260,7 +263,7 @@ function HomePage() {
                 Plomeros, electricistas, profes y más. Escribiles directo por WhatsApp, sin intermediarios.
               </p>
 
-              <div className="relative max-w-2xl mx-auto mt-3 sm:mt-5 md:mt-8">
+              <div data-tour="buscar" className="relative max-w-2xl mx-auto mt-3 sm:mt-5 md:mt-8">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
                 <input
                   type="search"
@@ -309,11 +312,13 @@ function HomePage() {
               </div>
             )}
 
-            <CategoryFilter 
-              selectedCategory={selectedCategory} 
-              onSelectCategory={setSelectedCategory} 
-              counts={categoryCounts}
-            />
+            <div data-tour="categorias">
+              <CategoryFilter 
+                selectedCategory={selectedCategory} 
+                onSelectCategory={setSelectedCategory} 
+                counts={categoryCounts}
+              />
+            </div>
             </div>
             </div>
 
@@ -438,7 +443,7 @@ function HomePage() {
 
           {mountOnboarding && (
             <Suspense fallback={null}>
-            <OnboardingModal 
+            <GuidedTour
               isOpen={showOnboarding}
               onClose={handleCloseOnboarding}
             />
@@ -484,10 +489,11 @@ function HomePage() {
           {/* Botón fijo para publicar en el celular */}
           <button
             onClick={() => setIsModalOpen(true)}
-            aria-hidden={anyModalOpen || !fabVisible}
-            tabIndex={anyModalOpen || !fabVisible ? -1 : 0}
+            data-tour="publicar"
+            aria-hidden={hideFab}
+            tabIndex={hideFab ? -1 : 0}
             className={`sm:hidden fixed bottom-4 left-1/2 z-[90] inline-flex transition-all duration-300 ${
-              anyModalOpen || !fabVisible ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'
+              hideFab ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'
             } -translate-x-1/2 items-center gap-2 bg-brand-strong active:bg-brand-strong-hover text-white pl-4 pr-5 py-3 rounded-full text-sm font-semibold shadow-lg`}
           >
             <Plus className="w-4 h-4" />
@@ -497,7 +503,16 @@ function HomePage() {
           <footer className="border-t border-gray-200 bg-white">
             <div className="max-w-6xl mx-auto px-4 pt-8 pb-24 sm:pb-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
               <p>© {new Date().getFullYear()} TucuOficios · Hecho en Tucumán</p>
-              <Link to="/privacidad" className="hover:text-gray-900">Política de privacidad</Link>
+              <div className="flex items-center gap-5">
+                <button
+                  type="button"
+                  onClick={() => { window.scrollTo({ top: 0 }); setShowOnboarding(true); }}
+                  className="hover:text-gray-900"
+                >
+                  ¿Cómo funciona?
+                </button>
+                <Link to="/privacidad" className="hover:text-gray-900">Política de privacidad</Link>
+              </div>
             </div>
           </footer>
         </motion.div>
