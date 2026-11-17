@@ -66,6 +66,7 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
   { id: 'Soldadura', label: 'Soldadura', section: 'Construcción', iconName: 'Flame' },
   { id: 'Techos', label: 'Techos e impermeabilización', section: 'Construcción', iconName: 'House' },
   { id: 'Durlock', label: 'Durlock y yesería', section: 'Construcción', iconName: 'PanelsTopLeft' },
+  { id: 'Ferretería y Materiales', label: 'Ferretería y materiales', section: 'Construcción', iconName: 'Wrench' },
 
   // Tecnología
   { id: 'Soporte Técnico', label: 'Soporte técnico', section: 'Tecnología', iconName: 'Monitor' },
