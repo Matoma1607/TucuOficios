@@ -1,0 +1,368 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { X, ChevronRight, Loader2, PartyPopper, LogIn } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
+import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
+import { compressImage } from '../lib/image';
+import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
+import PhotoPicker, { PhotoItem } from './PhotoPicker';
+
+interface PostJobModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: User | null;
+  onSignIn: () => void;
+  onCreated: () => void;
+}
+
+const DRAFT_KEY = 'tucu_form_draft';
+
+const emptyForm = () => ({
+  title: '',
+  category: '',
+  zone: '',
+  professionalName: '',
+  whatsapp: '',
+  description: '',
+});
+
+const loadDraft = () => {
+  try {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    return saved ? { ...emptyForm(), ...JSON.parse(saved) } : emptyForm();
+  } catch {
+    return emptyForm();
+  }
+};
+
+const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobModalProps) => {
+  // El borrador se guarda en el navegador, así no se pierde al ir a loguearse con Google
+  const [formData, setFormData] = useState(loadDraft);
+
+  const sections = Array.from(new Set(CATEGORIES_CONFIG.map(c => c.section)));
+
+  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+    } catch {
+      /* almacenamiento no disponible: no pasa nada */
+    }
+  }, [formData]);
+
+  // Completa el nombre con el de la cuenta de Google si todavía está vacío
+  useEffect(() => {
+    const googleName = user?.user_metadata?.full_name as string | undefined;
+    if (googleName && !formData.professionalName) {
+      setFormData((prev: ReturnType<typeof emptyForm>) => ({ ...prev, professionalName: googleName }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (formData.title.trim().length < 5) {
+      newErrors.title = 'Mínimo 5 caracteres';
+    }
+    if (formData.description.trim().length < 10) {
+      newErrors.description = 'Mínimo 10 caracteres';
+    }
+    if (!CATEGORIES_CONFIG.some(c => c.id === formData.category)) {
+      newErrors.category = 'Elegí una';
+    }
+    if (!formData.zone) {
+      newErrors.zone = 'Elegí una';
+    }
+    if (formData.professionalName.trim().length < 2) {
+      newErrors.professionalName = 'Requerido';
+    }
+    if (!normalizeWhatsapp(formData.whatsapp)) {
+      newErrors.whatsapp = 'Ej: 381 412-3456';
+    }
+    if (photos.length === 0) {
+      newErrors.image = 'Subí al menos una foto de tu trabajo.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignIn = () => {
+    // Al volver de Google, App reabre este formulario
+    sessionStorage.setItem('tucu_open_post', '1');
+    onSignIn();
+  };
+
+  const resetAndClose = () => {
+    onClose();
+    setSuccess(false);
+    setFormData(emptyForm());
+    setPhotos([]);
+    setErrors({});
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !validate()) return;
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    let step = 'foto';
+    const uploaded: string[] = [];
+    try {
+      for (const photo of photos) {
+        if (!photo.file) continue;
+        const compressed = await compressImage(photo.file);
+        uploaded.push(await uploadJobImage(user.id, compressed));
+      }
+
+      step = 'datos';
+      await createJob(
+        { ...formData, whatsapp: normalizeWhatsapp(formData.whatsapp)! },
+        uploaded
+      );
+
+      localStorage.removeItem(DRAFT_KEY);
+      setSuccess(true);
+      onCreated();
+    } catch (err) {
+      // Si falló al subir fotos, borramos las que sí se subieron
+      if (step === 'foto') await removeImages(uploaded);
+      const msg = err instanceof Error ? err.message : '';
+      setErrors({
+        submit: msg || (step === 'foto'
+          ? 'No pudimos procesar la foto. Probá con otra.'
+          : 'Hubo un problema al enviar los datos. Reintentá.'),
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={success ? resetAndClose : onClose}
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        />
+        
+        <motion.div 
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="relative w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl"
+        >
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+            <h2 className="text-lg font-semibold text-gray-900">Publicar oficio</h2>
+            <button onClick={success ? resetAndClose : onClose} aria-label="Cerrar" className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+              <X className="w-6 h-6 text-gray-400" />
+            </button>
+          </div>
+
+          <div className="p-6 max-h-[85vh] overflow-y-auto no-scrollbar">
+            {!user ? (
+              <div className="py-10 px-2 text-center">
+                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <LogIn className="w-9 h-9 text-brand-primary" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Entrá para publicar</h3>
+                <p className="text-gray-500 font-medium text-sm mb-8 leading-relaxed">
+                  Usamos tu cuenta de Google para que solo vos puedas editar o borrar tus publicaciones.
+                  Tu email <strong>no</strong> se muestra en la página.
+                </p>
+                <button
+                  onClick={handleSignIn}
+                  className="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-900 py-3 rounded-lg font-medium flex items-center justify-center gap-3 transition-colors"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
+                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+                    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.4-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+                  </svg>
+                  <span>Continuar con Google</span>
+                </button>
+              </div>
+            ) : success ? (
+              <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="py-8 px-2 text-center"
+              >
+                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <PartyPopper className="w-10 h-10 text-brand-primary" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">¡Publicación recibida!</h3>
+                <p className="text-gray-500 font-medium text-sm mb-8 leading-relaxed">
+                  La vamos a revisar y en cuanto se apruebe aparece en TucuOficios.
+                  Mientras tanto la vas a ver en la página marcada como <strong>"En revisión"</strong>.
+                </p>
+                <button
+                  onClick={resetAndClose}
+                  className="w-full bg-brand-primary hover:bg-orange-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                >
+                  Listo
+                </button>
+              </motion.div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Fotos de tu trabajo *</label>
+                  <PhotoPicker
+                    items={photos}
+                    onChange={(items) => { setPhotos(items); setErrors(prev => ({ ...prev, image: '' })); }}
+                    error={errors.image}
+                    onError={(message) => setErrors(prev => ({ ...prev, image: message }))}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-sm font-medium text-gray-700">¿Qué ofrecés? *</label>
+                      {errors.title && <span className="text-xs font-medium text-red-600">{errors.title}</span>}
+                    </div>
+                    <input 
+                      required
+                      maxLength={80}
+                      placeholder="Ej: Plomero matriculado, urgencias 24 h"
+                      value={formData.title}
+                      onChange={e => setFormData({...formData, title: e.target.value})}
+                      className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
+                        errors.title ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex justify-between items-center mb-2 ml-1">
+                        <label className="text-sm font-medium text-gray-700">Categoría *</label>
+                        {errors.category && <span className="text-xs font-medium text-red-600">{errors.category}</span>}
+                      </div>
+                      <select 
+                        value={formData.category}
+                        onChange={e => setFormData({...formData, category: e.target.value as Category})}
+                        className={`w-full bg-white border rounded-lg py-3 px-3 outline-none transition-colors ${
+                          errors.category ? 'border-red-300' : 'border-gray-300 focus:border-gray-900'
+                        } ${formData.category ? 'text-gray-900' : 'text-gray-400'}`}
+                      >
+                        <option value="" disabled>Elegí una…</option>
+                        {sections.map(section => (
+                          <optgroup key={section} label={section}>
+                            {CATEGORIES_CONFIG.filter(c => c.section === section).map(cat => (
+                              <option key={cat.id} value={cat.id}>{cat.label}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-2 ml-1">
+                        <label className="text-sm font-medium text-gray-700">Zona *</label>
+                        {errors.zone && <span className="text-xs font-medium text-red-600">{errors.zone}</span>}
+                      </div>
+                      <select
+                        value={formData.zone}
+                        onChange={e => setFormData({...formData, zone: e.target.value})}
+                        className={`w-full bg-white border rounded-lg py-3 px-3 outline-none transition-colors ${
+                          errors.zone ? 'border-red-300' : 'border-gray-300 focus:border-gray-900'
+                        } ${formData.zone ? 'text-gray-900' : 'text-gray-400'}`}
+                      >
+                        <option value="" disabled>Elegí una…</option>
+                        {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-sm font-medium text-gray-700">Tu nombre *</label>
+                      {errors.professionalName && <span className="text-xs font-medium text-red-600">{errors.professionalName}</span>}
+                    </div>
+                    <input 
+                      required
+                      maxLength={60}
+                      placeholder="Nombre y Apellido"
+                      value={formData.professionalName}
+                      onChange={e => setFormData({...formData, professionalName: e.target.value})}
+                      className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
+                        errors.professionalName ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-sm font-medium text-gray-700">WhatsApp *</label>
+                      {errors.whatsapp && <span className="text-xs font-medium text-red-600">{errors.whatsapp}</span>}
+                    </div>
+                    <input 
+                      required
+                      type="tel"
+                      placeholder="381 412-3456"
+                      value={formData.whatsapp}
+                      onChange={e => setFormData({...formData, whatsapp: e.target.value})}
+                      className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
+                        errors.whatsapp ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label className="text-sm font-medium text-gray-700">Descripción *</label>
+                      {errors.description && <span className="text-xs font-medium text-red-600">{errors.description}</span>}
+                    </div>
+                    <textarea 
+                      required
+                      placeholder="Contanos un poco más sobre lo que hacés (mínimo 10 caracteres)"
+                      rows={3}
+                      maxLength={600}
+                      value={formData.description}
+                      onChange={e => setFormData({...formData, description: e.target.value})}
+                      className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors resize-none ${
+                        errors.description ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {errors.submit && <p className="text-red-700 text-sm font-medium text-center bg-red-50 py-3 rounded-lg">{errors.submit}</p>}
+
+                <button 
+                  disabled={isSubmitting}
+                  type="submit"
+                  className="w-full bg-brand-primary hover:bg-orange-600 text-white py-3.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Publicar oficio</span>
+                      <ChevronRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+};
+
+export default PostJobModal;

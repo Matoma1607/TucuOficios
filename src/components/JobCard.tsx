@@ -1,0 +1,294 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, ImageOff, X, Loader2 } from 'lucide-react';
+import { Job, CATEGORIES_CONFIG } from '../types';
+import { Icons } from '../lib/icons';
+import { deleteJob, setJobStatus } from '../services/jobs';
+import Avatar from './Avatar';
+import { useToast } from './Toast';
+import { jobPath } from '../lib/slug';
+
+interface JobCardProps {
+  job: Job;
+  isAdmin: boolean;      // muestra herramientas de admin (copiar para canal)
+  canManage: boolean;    // dueño o admin: editar / borrar
+  onEdit?: (job: Job) => void;
+  onDeleted?: (id: string) => void;
+  onStatusChanged?: (id: string, estado: Job['estado']) => void;
+  onClick?: () => void;
+}
+
+export function whatsappLink(job: Job) {
+  return `https://wa.me/${job.whatsapp}?text=${encodeURIComponent(
+    `Hola ${job.professionalName}, vi tu publicación "${job.title}" en TucuOficios y me gustaría consultarte.`
+  )}`;
+}
+
+export function shareUrl(job: Job) {
+  return `${window.location.origin}${jobPath(job)}`;
+}
+
+export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, onStatusChanged, onClick }: JobCardProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [shared, setShared] = useState(false);
+  const [copiedChannel, setCopiedChannel] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const toast = useToast();
+  const [statusBusy, setStatusBusy] = useState<Job['estado'] | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+
+  const changeStatus = async (e: React.MouseEvent, estado: Job['estado']) => {
+    e.stopPropagation();
+    setStatusBusy(estado);
+    setStatusError(null);
+    try {
+      await setJobStatus(job.id, estado);
+      onStatusChanged?.(job.id, estado);
+      toast(estado === 'aprobado' ? 'Publicación aprobada' : 'Publicación rechazada');
+    } catch (err) {
+      setStatusError(err instanceof Error ? err.message : 'No se pudo actualizar.');
+    } finally {
+      setStatusBusy(null);
+    }
+  };
+
+  const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
+  const CategoryIcon = (categoryInfo && Icons[categoryInfo.iconName]) || Icons.HelpCircle;
+
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = shareUrl(job);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `${job.title} · TucuOficios`, url });
+      } catch {
+        /* el usuario canceló */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Link copiado');
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch {
+      /* sin permiso de portapapeles */
+    }
+  };
+
+  const handleCopyForChannel = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const text = `🛠️ *${job.title}*\n👤 ${job.professionalName}\n📍 ${job.zone}\n\n${job.description}\n\n👉 Contactalo acá: ${shareUrl(job)}\n\n#TucuOficios #Tucumán`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast('Texto para el canal copiado');
+      setCopiedChannel(true);
+      setTimeout(() => setCopiedChannel(false), 2500);
+    } catch {
+      /* sin permiso de portapapeles */
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteJob(job);
+      setShowConfirm(false);
+      onDeleted?.(job.id);
+      toast('Publicación borrada');
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'No se pudo borrar.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      onClick={onClick}
+      className="group relative flex flex-col bg-white rounded-2xl border border-gray-200 p-4 cursor-pointer transition-colors hover:border-gray-300"
+    >
+      {/* Confirmación de borrado */}
+      <AnimatePresence>
+        {showConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={stop}
+            className="absolute inset-0 z-20 bg-white/95 rounded-2xl flex flex-col items-center justify-center p-6 text-center"
+          >
+            <AlertCircle className="w-9 h-9 text-red-500 mb-3" />
+            <h4 className="text-base font-semibold text-gray-900 mb-1">¿Borrar esta publicación?</h4>
+            <p className="text-sm text-gray-500 mb-4">No se puede deshacer.</p>
+            {deleteError && <p className="text-xs font-medium text-red-600 mb-3">{deleteError}</p>}
+            <div className="flex gap-2 w-full">
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowConfirm(false); }}
+                className="flex-1 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-60"
+              >
+                {isDeleting ? 'Borrando…' : 'Borrar'}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Profesional */}
+      <div className="flex items-start gap-3">
+        <Avatar name={job.professionalName} />
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-gray-900 truncate">{job.professionalName}</p>
+          <h3 className="text-sm text-gray-600 leading-snug line-clamp-2">{job.title}</h3>
+        </div>
+      </div>
+
+      {/* Datos */}
+      <div className="mt-3 flex items-center gap-3 text-xs text-gray-500 min-w-0">
+        <span className="inline-flex items-center gap-1 min-w-0 flex-none max-w-[55%]">
+          <CategoryIcon className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
+          <span className="truncate">{categoryInfo?.label ?? job.category}</span>
+        </span>
+        <span className="inline-flex items-center gap-1 min-w-0">
+          <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
+          <span className="truncate">{job.zone}</span>
+        </span>
+      </div>
+
+      {/* Foto del trabajo: completa, sin recortar (muchas son flyers con texto) */}
+      <div className="relative mt-3 aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
+        {job.estado !== 'aprobado' && (
+          <span
+            className={`absolute top-2 left-2 z-10 text-[11px] font-medium px-2 py-0.5 rounded-full ${
+              job.estado === 'pendiente' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {job.estado === 'pendiente' ? 'En revisión' : 'Rechazada'}
+          </span>
+        )}
+        {job.imageUrl && !imgError && (
+          /* Misma foto desenfocada de fondo, en vez de bandas grises */
+          <img
+            src={job.imageUrl}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-50"
+          />
+        )}
+        {job.imageUrl && !imgError ? (
+          <img
+            src={job.imageUrl}
+            alt={`Trabajo de ${job.professionalName}: ${job.title}`}
+            loading="lazy"
+            onError={() => setImgError(true)}
+            className="relative w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+        ) : (
+          <ImageOff className="w-8 h-8 text-gray-300" aria-label="Sin foto" />
+        )}
+        {job.photoUrls.length > 1 && (
+          <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-900/75 text-white">
+            +{job.photoUrls.length - 1} {job.photoUrls.length === 2 ? 'foto' : 'fotos'}
+          </span>
+        )}
+      </div>
+
+      <p className="mt-3 text-sm text-gray-500 leading-relaxed line-clamp-2 min-h-[2.75rem]">{job.description}</p>
+
+      {/* Acciones */}
+      <div className="mt-auto pt-4 flex gap-2">
+        <a
+          href={whatsappLink(job)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={stop}
+          aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 transition-colors"
+        >
+          <MessageCircle className="w-4 h-4" aria-hidden="true" />
+          WhatsApp
+        </a>
+        <button
+          onClick={handleShare}
+          aria-label="Compartir"
+          className="w-11 flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+        >
+          {shared ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* Moderación rápida (admin) */}
+      {isAdmin && job.estado !== 'aprobado' && (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            onClick={(e) => changeStatus(e, 'aprobado')}
+            disabled={!!statusBusy}
+            className="inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium disabled:opacity-60"
+          >
+            {statusBusy === 'aprobado' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Aprobar
+          </button>
+          {job.estado !== 'rechazado' ? (
+            <button
+              onClick={(e) => changeStatus(e, 'rechazado')}
+              disabled={!!statusBusy}
+              className="inline-flex items-center justify-center gap-1.5 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-red-50 hover:border-red-200 hover:text-red-700 text-sm font-medium disabled:opacity-60"
+            >
+              {statusBusy === 'rechazado' ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+              Rechazar
+            </button>
+          ) : (
+            <span className="inline-flex items-center justify-center text-xs text-red-700">Rechazada</span>
+          )}
+          {statusError && <p className="col-span-2 text-xs text-red-600">{statusError}</p>}
+        </div>
+      )}
+
+      {/* Herramientas del dueño / admin */}
+      {canManage && (
+        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1 text-xs">
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit?.(job); }}
+            className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+          >
+            <Pencil className="w-3.5 h-3.5" /> Editar
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
+            className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-red-50 hover:text-red-700"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> Borrar
+          </button>
+          {isAdmin && (
+            <button
+              onClick={handleCopyForChannel}
+              title="Copiar texto para el canal de WhatsApp"
+              className="ml-auto inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+            >
+              {copiedChannel ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Megaphone className="w-3.5 h-3.5" />}
+              {copiedChannel ? 'Copiado' : 'Canal'}
+            </button>
+          )}
+        </div>
+      )}
+    </motion.article>
+  );
+}
