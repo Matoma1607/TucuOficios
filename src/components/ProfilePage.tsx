@@ -58,7 +58,7 @@ export default function ProfilePage() {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-extrabold tracking-tight text-gray-900" translate="no">
-            Tucu<span className="text-brand-primary">Oficios</span>
+            Tucu<span className="text-brand-strong">Oficios</span>
           </Link>
           <Link to="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900">
             <ArrowLeft className="w-4 h-4" /> Ver todos

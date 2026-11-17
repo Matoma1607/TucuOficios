@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 text-center">
       <Link to="/" className="text-2xl font-extrabold tracking-tight text-gray-900 mb-10" translate="no">
-        Tucu<span className="text-brand-primary">Oficios</span>
+        Tucu<span className="text-brand-strong">Oficios</span>
       </Link>
       <p className="text-sm font-semibold text-brand-strong">Error 404</p>
       <h1 className="mt-2 text-3xl font-bold text-gray-900">No encontramos esta página</h1>

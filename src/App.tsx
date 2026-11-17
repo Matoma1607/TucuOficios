@@ -200,7 +200,7 @@ function HomePage() {
           <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200">
             <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
               <a href="/" className="text-xl md:text-2xl font-extrabold tracking-tight text-gray-900" translate="no">
-                Tucu<span className="text-brand-primary">Oficios</span>
+                Tucu<span className="text-brand-strong">Oficios</span>
               </a>
 
               <div className="flex items-center gap-2 sm:gap-3">
@@ -246,12 +246,15 @@ function HomePage() {
             </div>
           </header>
 
-          <main className="max-w-6xl mx-auto px-4 pb-16">
+          <main className="pb-16">
+            {/* Zona de búsqueda en blanco; los resultados van sobre el fondo cálido */}
+            <div className="bg-white border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 pb-4">
             {/* Bienvenida + buscador */}
             <section className="pt-4 pb-3 sm:pt-6 sm:pb-5 md:pt-14 md:pb-10 sm:text-center">
               <h1 className="text-xl leading-tight sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 text-balance">
                 <span className="sm:hidden">¿Qué profesional necesitás?</span>
-                <span className="hidden sm:inline">Profesionales de confianza en Tucumán</span>
+                <span className="hidden sm:inline">Profesionales de confianza en <span className="text-brand-strong">Tucumán</span></span>
               </h1>
               <p className="hidden sm:block mt-2 md:mt-4 text-base md:text-lg text-gray-500 max-w-xl mx-auto">
                 Plomeros, electricistas, profes y más. Escribiles directo por WhatsApp, sin intermediarios.
@@ -311,6 +314,10 @@ function HomePage() {
               onSelectCategory={setSelectedCategory} 
               counts={categoryCounts}
             />
+            </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto px-4">
 
             {loadError && (
               <div className="max-w-2xl mx-auto mt-6 bg-red-50 text-red-700 font-medium text-sm text-center rounded-lg py-3 px-4">
@@ -400,6 +407,7 @@ function HomePage() {
                   ))}
                 </AnimatePresence>
               )}
+            </div>
             </div>
           </main>
 

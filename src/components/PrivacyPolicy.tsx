@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
             Volver
           </Link>
           <div className="flex items-center gap-1.5">
-            <span className="text-lg font-extrabold tracking-tight text-gray-900" translate="no">Tucu<span className="text-brand-primary">Oficios</span></span>
+            <span className="text-lg font-extrabold tracking-tight text-gray-900" translate="no">Tucu<span className="text-brand-strong">Oficios</span></span>
           </div>
         </div>
       </nav>

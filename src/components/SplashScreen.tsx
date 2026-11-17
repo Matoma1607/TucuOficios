@@ -17,7 +17,7 @@ export default function SplashScreen() {
         className="text-center"
       >
         <div className="text-4xl md:text-6xl font-extrabold tracking-tight text-gray-900" translate="no">
-          Tucu<span className="text-brand-primary">Oficios</span>
+          Tucu<span className="text-brand-strong">Oficios</span>
         </div>
         <p className="mt-2 text-sm text-gray-500">Profesionales de confianza en Tucumán</p>
       </motion.div>

@@ -12,11 +12,25 @@
   --color-brand-secondary: #FF8C42;
   --color-brand-dark: #1F1F1F;
   --color-brand-light: #FFFFFF;
+  --color-brand-bg: #F7F4F0;          /* fondo cálido (blanco hueso) */
+
+  /* Grises levemente cálidos (escala "stone") para que combinen con el naranja.
+     Redefine gray-* en todo el sitio sin tocar cada componente. */
+  --color-gray-50: #FAFAF9;
+  --color-gray-100: #F5F5F4;
+  --color-gray-200: #E7E5E4;
+  --color-gray-300: #D6D3D1;
+  --color-gray-400: #A8A29E;
+  --color-gray-500: #78716C;
+  --color-gray-600: #57534E;
+  --color-gray-700: #44403C;
+  --color-gray-800: #292524;
+  --color-gray-900: #1C1917;
 }
 
 @layer base {
   body {
-    @apply font-sans bg-[#F5F5F5] text-brand-dark antialiased;
+    @apply font-sans bg-brand-bg text-brand-dark antialiased;
     background-image: none;
   }
 }
