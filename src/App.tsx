@@ -237,7 +237,7 @@ function HomePage() {
                 )}
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="hidden sm:inline-flex items-center gap-1.5 bg-brand-primary hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  className="hidden sm:inline-flex items-center gap-1.5 bg-brand-strong hover:bg-brand-strong-hover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Publicar oficio</span>
@@ -378,7 +378,7 @@ function HomePage() {
                     )}
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="px-4 py-2.5 rounded-lg bg-brand-primary hover:bg-orange-600 text-white text-sm font-semibold"
+                      className="px-4 py-2.5 rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white text-sm font-semibold"
                     >
                       Publicar mi oficio
                     </button>
@@ -457,14 +457,14 @@ function HomePage() {
           {/* Invitación a publicar antes del pie */}
           {view === 'all' && (
             <section className="max-w-6xl mx-auto px-4 mb-12 md:mb-16">
-              <div className="rounded-2xl bg-gray-900 px-6 py-8 md:px-12 md:py-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="rounded-2xl bg-brand-dark px-6 py-8 md:px-12 md:py-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">¿Ofrecés un servicio en Tucumán?</h2>
                   <p className="mt-2 text-gray-400 md:text-lg">Publicá gratis, mostrá tus trabajos y recibí consultas por WhatsApp.</p>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-brand-primary hover:bg-orange-600 text-white font-semibold transition-colors flex-none"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white font-semibold transition-colors flex-none"
                 >
                   Publicar mi oficio
                   <ArrowRight className="w-4 h-4" />
@@ -480,7 +480,7 @@ function HomePage() {
             tabIndex={anyModalOpen || !fabVisible ? -1 : 0}
             className={`sm:hidden fixed bottom-4 left-1/2 z-[90] inline-flex transition-all duration-300 ${
               anyModalOpen || !fabVisible ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'
-            } -translate-x-1/2 items-center gap-2 bg-brand-primary active:bg-orange-600 text-white pl-4 pr-5 py-3 rounded-full text-sm font-semibold shadow-lg`}
+            } -translate-x-1/2 items-center gap-2 bg-brand-strong active:bg-brand-strong-hover text-white pl-4 pr-5 py-3 rounded-full text-sm font-semibold shadow-lg`}
           >
             <Plus className="w-4 h-4" />
             Publicar oficio

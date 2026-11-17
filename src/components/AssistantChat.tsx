@@ -74,7 +74,7 @@ const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? 'Cerrar ayuda' : 'Abrir ayuda'}
-        className="w-12 h-12 bg-gray-900 hover:bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg relative"
+        className="w-12 h-12 bg-brand-dark hover:bg-black text-white rounded-full flex items-center justify-center shadow-lg relative"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
@@ -125,7 +125,7 @@ const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
                 >
                   <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     m.role === 'user' 
-                      ? 'bg-gray-900 text-white rounded-br-md' 
+                      ? 'bg-brand-dark text-white rounded-br-md' 
                       : 'bg-white text-gray-700 border border-gray-200 rounded-bl-md'
                   }`}>
                     {m.content}
@@ -174,7 +174,7 @@ const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
                   disabled={!input.trim() || isLoading}
                   aria-label="Enviar"
                   className={`absolute right-1.5 p-2 rounded-md transition-colors ${
-                    input.trim() && !isLoading ? 'bg-gray-900 text-white' : 'text-gray-300'
+                    input.trim() && !isLoading ? 'bg-brand-dark text-white' : 'text-gray-300'
                   }`}
                 >
                   <Send className="w-4 h-4" />

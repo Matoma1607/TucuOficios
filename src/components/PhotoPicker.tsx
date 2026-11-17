@@ -87,7 +87,7 @@ export default function PhotoPicker({ items, onChange, error, onError }: PhotoPi
             <div key={item.key} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
               <img src={item.url} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
               {i === 0 ? (
-                <span className="absolute bottom-1 left-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-900/80 text-white">
+                <span className="absolute bottom-1 left-1 text-[10px] font-medium px-1.5 py-0.5 rounded bg-brand-dark/80 text-white">
                   Portada
                 </span>
               ) : (

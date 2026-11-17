@@ -94,7 +94,7 @@ export default function ProfilePage() {
             </p>
             <Link
               to="/"
-              className="mt-8 inline-block px-5 py-2.5 rounded-lg bg-brand-primary hover:bg-orange-600 text-white font-semibold"
+              className="mt-8 inline-block px-5 py-2.5 rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white font-semibold"
             >
               Ver todos los profesionales
             </Link>

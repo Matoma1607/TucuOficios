@@ -241,7 +241,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             <CategoryIcon className="w-8 h-8 text-gray-300" aria-label="Sin foto" />
           )}
           {job.photoUrls.length > 1 && (
-            <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-900/75 text-white">
+            <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-brand-dark/75 text-white">
               +{job.photoUrls.length - 1} {job.photoUrls.length === 2 ? 'foto' : 'fotos'}
             </span>
           )}
@@ -277,7 +277,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           <button
             onClick={(e) => changeStatus(e, 'aprobado')}
             disabled={!!statusBusy}
-            className="inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-1.5 py-2 rounded-lg bg-brand-dark hover:bg-black text-white text-sm font-medium disabled:opacity-60"
           >
             {statusBusy === 'aprobado' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Aprobar

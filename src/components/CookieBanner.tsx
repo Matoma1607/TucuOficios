@@ -53,7 +53,7 @@ export default function CookieBanner({ paused = false }: CookieBannerProps) {
             </button>
             <button
               onClick={() => decide(true)}
-              className="flex-1 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-800"
+              className="flex-1 py-2 rounded-lg bg-brand-dark text-white text-sm font-medium hover:bg-gray-800"
             >
               Aceptar
             </button>

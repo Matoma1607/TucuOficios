@@ -108,7 +108,7 @@ export default function PrivacyPolicy() {
           <footer className="pt-16 border-t border-gray-100 flex flex-col items-center gap-6">
             <Link 
               to="/" 
-              className="bg-brand-primary hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors"
+              className="bg-brand-strong hover:bg-brand-strong-hover text-white px-6 py-2.5 rounded-lg font-semibold text-sm transition-colors"
             >
               Entendido, volver al inicio
             </Link>

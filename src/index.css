@@ -6,7 +6,9 @@
   
   --breakpoint-xs: 350px;
   
-  --color-brand-primary: #FC6100;
+  --color-brand-primary: #FC6100;     /* logo, íconos y acentos */
+  --color-brand-strong: #C2410C;      /* botones con texto blanco (contraste 5,2:1) */
+  --color-brand-strong-hover: #9A3412;
   --color-brand-secondary: #FF8C42;
   --color-brand-dark: #1F1F1F;
   --color-brand-light: #FFFFFF;

@@ -61,7 +61,7 @@ const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
               <X className="w-5 h-5" />
             </button>
 
-            <p className="text-sm font-semibold text-brand-primary">Bienvenido a TucuOficios</p>
+            <p className="text-sm font-semibold text-brand-strong">Bienvenido a TucuOficios</p>
             <h2 id="onboarding-title" className="mt-1 text-2xl font-bold text-gray-900">
               Así funciona
             </h2>
@@ -82,7 +82,7 @@ const OnboardingModal = ({ isOpen, onClose }: OnboardingModalProps) => {
 
             <button
               onClick={onClose}
-              className="mt-8 w-full py-3 rounded-lg bg-brand-primary hover:bg-orange-600 text-white font-semibold transition-colors"
+              className="mt-8 w-full py-3 rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white font-semibold transition-colors"
             >
               Empezar
             </button>

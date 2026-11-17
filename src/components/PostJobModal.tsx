@@ -213,7 +213,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 </p>
                 <button
                   onClick={resetAndClose}
-                  className="w-full bg-brand-primary hover:bg-orange-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                  className="w-full bg-brand-strong hover:bg-brand-strong-hover text-white py-3 rounded-lg font-semibold transition-colors"
                 >
                   Listo
                 </button>
@@ -388,7 +388,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 <button 
                   disabled={isSubmitting}
                   type="submit"
-                  className="w-full bg-brand-primary hover:bg-orange-600 text-white py-3.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-brand-strong hover:bg-brand-strong-hover text-white py-3.5 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

@@ -32,7 +32,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p className="mt-3 text-gray-500 max-w-sm">Probá recargar. Si sigue pasando, avisanos.</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-8 px-5 py-2.5 rounded-lg bg-brand-primary hover:bg-orange-600 text-white font-semibold transition-colors"
+            className="mt-8 px-5 py-2.5 rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white font-semibold transition-colors"
           >
             Recargar
           </button>
