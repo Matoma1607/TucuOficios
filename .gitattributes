@@ -1,0 +1,7 @@
+# Normaliza saltos de línea: LF en el repo, el sistema de cada uno decide al hacer checkout.
+* text=auto
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+*.mp4 binary

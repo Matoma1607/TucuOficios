@@ -48,3 +48,14 @@ Las variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` están cargadas en
 Netlify → Project configuration → Environment variables.
 
 Dominio `tucuoficios.net.ar` registrado en NIC Argentina (vence cada 17/11), delegado a Netlify DNS.
+
+## Flujo de trabajo
+
+- `dev`: rama de trabajo. Cada push publica una copia de prueba en https://dev--tucuoficios.netlify.app
+- `main`: producción (https://tucuoficios.net.ar). Solo recibe cambios ya probados en `dev`.
+
+1. Trabajá y commiteá en `dev`, y hacé push.
+2. Probá en dev--tucuoficios.netlify.app (el login con Google también funciona ahí).
+3. Si está todo bien, uní `dev` en `main` (en GitHub Desktop: rama `main` → *Branch → Merge into current branch* → `dev`) y hacé push.
+
+El build corre `tsc --noEmit` antes de compilar: si hay errores de TypeScript, Netlify no publica.
