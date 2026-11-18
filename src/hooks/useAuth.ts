@@ -33,7 +33,12 @@ export function useAuth() {
   const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + window.location.pathname },
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+        // Sin esto Google entra directo con la cuenta ya abierta en el navegador
+        // y no deja elegir otra (por ejemplo, después de cerrar sesión).
+        queryParams: { prompt: 'select_account' },
+      },
     });
   };
 
