@@ -6,13 +6,13 @@
   
   --breakpoint-xs: 350px;
   
-  --color-brand-primary: #FC6100;     /* logo, íconos y acentos */
-  --color-brand-strong: #C2410C;      /* botones con texto blanco (contraste 5,2:1) */
-  --color-brand-strong-hover: #9A3412;
+  --color-brand-primary: #FF7A1A;     /* logo, íconos y acentos */
+  --color-brand-strong: #FF7A1A;      /* naranja de acento: botones con texto azul marino */
+  --color-brand-strong-hover: #F26B0A;
   --color-brand-secondary: #FF8C42;
-  --color-brand-dark: #1F1F1F;
+  --color-brand-dark: #1E2A5A;        /* azul marino (30%) */
   --color-brand-light: #FFFFFF;
-  --color-brand-bg: #F1F2F4;          /* gris frío de base; el degradé naranja va encima (.fondo-degrade) */
+  --color-brand-bg: #F5F0E8;          /* crema (60%) */
 
   /* Grises levemente cálidos (escala "stone") para que combinen con el naranja.
      Redefine gray-* en todo el sitio sin tocar cada componente. */
@@ -25,7 +25,7 @@
   --color-gray-600: #57534E;
   --color-gray-700: #44403C;
   --color-gray-800: #292524;
-  --color-gray-900: #1C1917;
+  --color-gray-900: #1E2A5A;
 }
 
 @layer base {
@@ -72,3 +72,14 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ---- Prototipo paleta crema / azul marino / naranja ----
+   Reglas fuera de @layer para que ganen sobre las utilidades de Tailwind. */
+.fondo-degrade { display: none; }
+header.sticky, div.bg-white.border-b { background-color: rgb(245 240 232 / 0.94); border-color: rgb(30 42 90 / 0.10); }
+.bg-brand-strong, .bg-brand-strong svg { color: #1E2A5A; }            /* texto azul sobre naranja (contraste 6:1) */
+article { background-color: #fff; border-color: rgb(30 42 90 / 0.10); box-shadow: 0 1px 2px rgb(30 42 90 / 0.06), 0 6px 18px rgb(30 42 90 / 0.06); }
+article .bg-white\/35 { background-color: #FBF8F3; }
+footer { background-color: #1E2A5A; border-color: #1E2A5A; }
+footer, footer * { color: #E9E4DA; border-color: rgb(255 255 255 / 0.12); }
+footer .text-brand-strong { color: #FF7A1A; }
