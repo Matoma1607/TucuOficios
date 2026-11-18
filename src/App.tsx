@@ -125,7 +125,7 @@ function HomePage() {
 
   const handleCloseOnboarding = () => {
     setShowOnboarding(false);
-    localStorage.setItem('tucu_onboarding_seen', 'true');
+    try { localStorage.setItem('tucu_onboarding_seen', 'true'); } catch { /* navegación privada: se vuelve a mostrar, no pasa nada */ }
   };
 
   const loadJobs = useCallback(async () => {
@@ -379,7 +379,7 @@ function HomePage() {
                         ? 'Resultados'
                         : 'Publicados recientemente'}
                 </h2>
-                <p className="text-sm text-gray-500 text-right">
+                <p className="text-sm text-gray-600 text-right">
                   {filteredJobs.length === 1 ? '1 profesional' : `${filteredJobs.length} profesionales`}
                   {searchQuery && <> para <span className="font-medium text-gray-900">“{searchQuery}”</span></>}
                   {selectedZone && <> en <span className="font-medium text-gray-900">{selectedZone}</span></>}
@@ -403,7 +403,7 @@ function HomePage() {
                         ? 'Todavía no publicaste nada'
                         : searchQuery || selectedZone ? 'No encontramos resultados' : 'Todavía no hay publicaciones acá'}
                   </h3>
-                  <p className="mt-1 text-gray-500 max-w-sm mx-auto">
+                  <p className="mt-1 text-gray-600 max-w-sm mx-auto">
                     {searchQuery
                       ? `Probá con otra palabra o mirá todas las categorías.`
                       : 'Si ofrecés este servicio, podés ser el primero en publicar.'}

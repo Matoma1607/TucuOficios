@@ -35,9 +35,22 @@ export interface JobInput {
 // Las publicaciones migradas del sistema viejo guardan la URL completa de Cloudinary.
 const isExternal = (path: string) => /^https?:\/\//.test(path);
 
+/** Cloudinary achica y convierte la imagen por URL (los originales de los avisos migrados pesan varios MB). */
+const cloudinary = (url: string, transform: string) =>
+  url.includes('res.cloudinary.com') && url.includes('/upload/') ? url.replace('/upload/', `/upload/${transform}/`) : url;
+
+/** Foto para verla grande (detalle, galería): hasta 1600px de ancho. */
 export const publicImageUrl = (path: string | null) => {
   if (!path) return '';
-  return isExternal(path) ? path : supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  return isExternal(path)
+    ? cloudinary(path, 'c_limit,w_1600,f_auto,q_auto')
+    : supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+};
+
+/** Foto para la tarjeta del listado en compu: hasta 640px (las de Supabase ya se suben comprimidas). */
+export const cardImageUrl = (path: string | null) => {
+  if (!path) return '';
+  return isExternal(path) ? cloudinary(path, 'c_limit,w_640,f_auto,q_auto') : publicImageUrl(path);
 };
 
 /**
@@ -50,9 +63,7 @@ export const thumbPathFor = (path: string) => path.replace(/\.webp$/, '_thumb.we
 export const thumbImageUrl = (path: string | null) => {
   if (!path) return '';
   if (isExternal(path)) {
-    return path.includes('res.cloudinary.com') && path.includes('/upload/')
-      ? path.replace('/upload/', '/upload/c_fill,w_240,h_240,f_auto,q_auto/')
-      : path;
+    return cloudinary(path, 'c_fill,w_240,h_240,f_auto,q_auto');
   }
   return publicImageUrl(thumbPathFor(path));
 };
@@ -72,6 +83,7 @@ const toJob = (r: JobRow): Job => {
     imagePath: r.image_path,
     imageUrl: publicImageUrl(r.image_path),
     thumbUrl: thumbImageUrl(r.image_path),
+    cardUrl: cardImageUrl(r.image_path),
     photoPaths: paths,
     photoUrls: paths.map(publicImageUrl),
     estado: r.estado,

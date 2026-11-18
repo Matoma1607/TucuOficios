@@ -9,6 +9,7 @@ export interface Job {
   instagram: string | null; // usuario, sin @
   imageUrl: string;          // portada
   thumbUrl: string;          // portada en miniatura (listado)
+  cardUrl: string;           // portada mediana (tarjeta en compu)
   imagePath: string | null;
   photoUrls: string[];       // todas las fotos, la portada primero
   photoPaths: string[];
