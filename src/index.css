@@ -12,7 +12,7 @@
   --color-brand-secondary: #FF8C42;
   --color-brand-dark: #1E2A5A;        /* azul marino (30%) */
   --color-brand-light: #FFFFFF;
-  --color-brand-bg: #F5F0E8;          /* crema (60%) */
+  --color-brand-bg: #F4F5F7;          /* gris muy clarito (60%) */
 
   /* Grises levemente cálidos (escala "stone") para que combinen con el naranja.
      Redefine gray-* en todo el sitio sin tocar cada componente. */
@@ -35,13 +35,12 @@
   }
 }
 
-/* Manchas de color muy difuminadas detrás de los resultados (naranja, naranja oscuro y ámbar de la marca).
-   Va en un div fijo (no background-attachment: fixed, que en iPhone no anda). */
+/* Dos manchas muy difuminadas detrás de los resultados (naranja a la izquierda, azul marino a la derecha),
+   para que se note la transparencia de las tarjetas. Va en un div fijo (background-attachment: fixed no anda en iPhone). */
 .fondo-degrade {
   background-image:
-    radial-gradient(720px 440px at 8% 35%, rgb(252 97 0 / 0.22), transparent 65%),
-    radial-gradient(700px 480px at 92% 60%, rgb(194 65 12 / 0.14), transparent 65%),
-    radial-gradient(640px 400px at 50% 100%, rgb(251 191 36 / 0.14), transparent 65%);
+    radial-gradient(600px 420px at 0% 30%, rgb(255 122 26 / 0.16), transparent 65%),
+    radial-gradient(600px 480px at 100% 65%, rgb(30 42 90 / 0.14), transparent 65%);
 }
 
 .glass-card {
@@ -52,14 +51,6 @@
   @apply bg-white/60 backdrop-blur-lg border-b border-white/20 sticky top-0 z-40;
 }
 
-/* Manchas de color muy difuminadas detrás de los resultados (naranja, naranja oscuro y ámbar de la marca).
-   Va en un div fijo (no background-attachment: fixed, que en iPhone no anda). */
-.fondo-degrade {
-  background-image:
-    radial-gradient(720px 440px at 8% 35%, rgb(252 97 0 / 0.22), transparent 65%),
-    radial-gradient(700px 480px at 92% 60%, rgb(194 65 12 / 0.14), transparent 65%),
-    radial-gradient(640px 400px at 50% 100%, rgb(251 191 36 / 0.14), transparent 65%);
-}
 
 .glass-card {
   @apply bg-white/80 backdrop-blur-md border border-gray-100 shadow-sm;
@@ -73,13 +64,16 @@
   scrollbar-width: none;
 }
 
-/* ---- Prototipo paleta crema / azul marino / naranja ----
+/* ---- Paleta gris clarito / azul marino / naranja ----
    Reglas fuera de @layer para que ganen sobre las utilidades de Tailwind. */
-.fondo-degrade { display: none; }
-header.sticky, div.bg-white.border-b { background-color: rgb(245 240 232 / 0.94); border-color: rgb(30 42 90 / 0.10); }
+header.sticky, div.bg-white.border-b { background-color: rgb(244 245 247 / 0.94); border-color: rgb(30 42 90 / 0.10); }
 .bg-brand-strong, .bg-brand-strong svg { color: #1E2A5A; }            /* texto azul sobre naranja (contraste 6:1) */
-article { background-color: #fff; border-color: rgb(30 42 90 / 0.10); box-shadow: 0 1px 2px rgb(30 42 90 / 0.06), 0 6px 18px rgb(30 42 90 / 0.06); }
-article .bg-white\/35 { background-color: #FBF8F3; }
+/* Tarjetas: más redondeadas y semitransparentes */
+article { background-color: rgb(255 255 255 / 0.62); border: 1px solid rgb(255 255 255 / 0.85); border-radius: 20px; box-shadow: 0 8px 28px rgb(30 42 90 / 0.08); }
+article:hover { background-color: rgb(255 255 255 / 0.78); }
+article img, article .aspect-square { border-radius: 14px; }
+@media (min-width: 640px) { article .aspect-square, article .aspect-square img { border-radius: 20px 20px 0 0; } }
+article .bg-white\/35 { background-color: rgb(255 255 255 / 0.4); }
 footer { background-color: #1E2A5A; border-color: #1E2A5A; }
 footer, footer * { color: #E9E4DA; border-color: rgb(255 255 255 / 0.12); }
 footer .text-brand-strong { color: #FF7A1A; }
