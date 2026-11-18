@@ -223,7 +223,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           {statusBadge && <span className="absolute top-3 left-3 z-10">{statusBadge}</span>}
           {hasImage ? (
             <img
-              src={job.imageUrl}
+              src={job.cardUrl || job.imageUrl}
               alt={`Trabajo de ${job.professionalName}: ${categoryLabel}`}
               loading="lazy"
               onError={() => setImgError(true)}
