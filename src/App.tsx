@@ -19,9 +19,9 @@ const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
 
-/** true en pantallas de 640px o más (el breakpoint `sm` de Tailwind). */
+/** true en pantallas de 1024px o más (el breakpoint `lg` de Tailwind): ahí entra el texto largo del buscador. */
 function useIsWide() {
-  const query = '(min-width: 640px)';
+  const query = '(min-width: 1024px)';
   const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
   useEffect(() => {
     const mq = window.matchMedia(query);
@@ -194,7 +194,7 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-brand-bg relative">
       <AnimatePresence mode="wait">
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
@@ -388,7 +388,7 @@ function HomePage() {
             )}
 
             {/* Listado */}
-            <div className="mt-3 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6">
+            <div className="mt-3 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => <JobCardSkeleton key={i} />)
               ) : filteredJobs.length === 0 ? (
@@ -566,7 +566,7 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+    <Suspense fallback={<div className="min-h-screen bg-brand-bg" />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/p/:id/:slug?" element={<ProfilePage />} />

@@ -9,11 +9,11 @@ export default function JobCardSkeleton() {
           <div className="h-3 bg-gray-100 rounded w-2/5" />
           <div className="h-3 bg-gray-100 rounded w-1/3" />
         </div>
-        <div className="w-11 h-11 rounded-full bg-gray-100" />
+        <div className="w-16 h-12 rounded-xl bg-gray-100" />
       </div>
       {/* Compu: tarjeta con foto arriba */}
       <div className="hidden sm:block">
-        <div className="aspect-[4/3] bg-gray-100" />
+        <div className="aspect-square bg-gray-100" />
         <div className="p-4 space-y-2">
           <div className="h-4 bg-gray-100 rounded w-2/3" />
           <div className="h-3 bg-gray-100 rounded w-1/2" />

@@ -169,8 +169,8 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
       {/* Celular: fila compacta (varios profesionales por pantalla) */}
       <div className="flex items-center gap-3 sm:hidden">
         <div
-          className="relative w-16 h-16 flex-none rounded-lg overflow-hidden flex items-center justify-center"
-          style={{ backgroundColor: section.tint }}
+          className="relative w-16 h-16 flex-none rounded-lg overflow-hidden flex items-center justify-center bg-gray-100"
+          style={hasImage ? undefined : { backgroundColor: section.tint }}
         >
           {hasImage ? (
             <img
@@ -187,7 +187,10 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-gray-900 truncate">{job.professionalName}{job.verificado && <BadgeCheck className="inline w-4 h-4 ml-1 -mt-0.5 text-sky-600" aria-label="Verificado" />}</p>
+          <p className="flex items-center gap-1 font-semibold text-gray-900 min-w-0">
+            <span className="truncate">{job.professionalName}</span>
+            {job.verificado && <BadgeCheck className="w-4 h-4 flex-none text-sky-600" aria-label="Verificado" />}
+          </p>
           <p className="text-sm text-gray-600 truncate">{categoryLabel}</p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 min-w-0">
             <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
@@ -202,18 +205,20 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           onClick={stop}
           aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
           data-tour="contacto"
-          className="w-11 h-11 flex-none inline-flex items-center justify-center rounded-full bg-emerald-50 text-emerald-700 active:bg-emerald-100"
+          className="flex-none w-16 py-2 inline-flex flex-col items-center justify-center gap-0.5 rounded-xl bg-emerald-50 text-emerald-800 active:bg-emerald-100"
         >
           <MessageCircle className="w-5 h-5" aria-hidden="true" />
+          <span className="text-[11px] font-medium leading-none">WhatsApp</span>
         </a>
       </div>
 
       {/* Compu y tablet: tarjeta con la foto arriba */}
       <div className="hidden sm:flex flex-col flex-1">
-        {/* Foto completa, sin recortar (muchas son flyers): el espacio sobrante toma el tono del rubro */}
+        {/* Foto cuadrada y completa, sin recortar (muchas son flyers verticales u horizontales).
+            Sin foto, el recuadro toma el tono del rubro. */}
         <div
-          className="relative aspect-[4/3] overflow-hidden flex items-center justify-center border-b border-gray-200"
-          style={{ backgroundColor: section.tint }}
+          className="relative aspect-square overflow-hidden flex items-center justify-center border-b border-gray-200 bg-gray-50"
+          style={hasImage ? undefined : { backgroundColor: section.tint }}
         >
           {statusBadge && <span className="absolute top-3 left-3 z-10">{statusBadge}</span>}
           {hasImage ? (
@@ -235,9 +240,9 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         </div>
 
         <div className="flex flex-col flex-1 p-4">
-          <p className="font-semibold text-gray-900 leading-snug line-clamp-2">
-            {job.professionalName}
-            {job.verificado && <BadgeCheck className="inline w-4 h-4 ml-1 -mt-0.5 text-sky-600" aria-label="Verificado" />}
+          <p className="flex items-start gap-1 font-semibold text-gray-900 leading-snug">
+            <span className="line-clamp-2">{job.professionalName}</span>
+            {job.verificado && <BadgeCheck className="w-4 h-4 mt-0.5 flex-none text-sky-600" aria-label="Verificado" />}
           </p>
           <h3 className="mt-1 text-sm text-gray-700">{categoryLabel}</h3>
           <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500 min-w-0">
