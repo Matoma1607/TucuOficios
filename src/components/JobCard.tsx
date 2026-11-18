@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, sectionOf } from '../types';
 import { instagramUrl } from '../lib/instagram';
+import { channelText } from '../lib/channel';
 import { Icons } from '../lib/icons';
 import { deleteJob, setJobStatus } from '../services/jobs';
 import Avatar from './Avatar';
@@ -97,7 +98,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
   const handleCopyForChannel = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const text = `🛠️ *${job.title}*\n👤 ${job.professionalName}\n📍 ${job.zone}\n\n${job.description}\n\n👉 Contactalo acá: ${shareUrl(job)}\n\n#TucuOficios #Tucumán`;
+    const text = channelText(job, shareUrl(job));
     try {
       await navigator.clipboard.writeText(text);
       toast('Texto para el canal copiado');
