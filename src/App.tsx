@@ -194,7 +194,8 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg relative">
+    <div className="min-h-screen relative">
+      <div aria-hidden="true" className="fondo-degrade fixed inset-0 -z-10 pointer-events-none" />
       <AnimatePresence mode="wait">
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>

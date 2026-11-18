@@ -131,7 +131,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       onClick={onClick}
-      className="group relative flex flex-col bg-white rounded-xl border border-gray-200 p-3 sm:p-0 sm:overflow-hidden cursor-pointer transition-colors hover:border-gray-400"
+      className="group relative flex flex-col bg-white/60 backdrop-blur-md backdrop-saturate-150 rounded-xl border border-white/75 shadow-[0_6px_24px_rgb(16_24_40/0.08)] p-3 sm:p-0 sm:overflow-hidden cursor-pointer transition-colors hover:bg-white/75"
     >
       {/* Confirmación de borrado */}
       <AnimatePresence>
@@ -217,7 +217,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         {/* Foto cuadrada y completa, sin recortar (muchas son flyers verticales u horizontales).
             Sin foto, el recuadro toma el tono del rubro. */}
         <div
-          className="relative aspect-square overflow-hidden flex items-center justify-center border-b border-gray-200 bg-gray-50"
+          className="relative aspect-square overflow-hidden flex items-center justify-center border-b border-white/60 bg-white/35"
           style={hasImage ? undefined : { backgroundColor: section.tint }}
         >
           {statusBadge && <span className="absolute top-3 left-3 z-10">{statusBadge}</span>}
