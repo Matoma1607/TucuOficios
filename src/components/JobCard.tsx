@@ -131,7 +131,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       onClick={onClick}
-      className="group relative flex flex-col bg-white/60 backdrop-blur-md backdrop-saturate-150 rounded-xl border border-white/75 shadow-[0_6px_24px_rgb(16_24_40/0.08)] p-3 sm:p-0 sm:overflow-hidden cursor-pointer transition-colors hover:bg-white/75"
+      className="group relative flex flex-col bg-white/60 rounded-xl border border-white/75 shadow-[0_6px_24px_rgb(16_24_40/0.08)] p-3 sm:p-0 sm:overflow-hidden cursor-pointer transition-colors hover:bg-white/75"
     >
       {/* Confirmación de borrado */}
       <AnimatePresence>
