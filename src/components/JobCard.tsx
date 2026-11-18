@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BadgeCheck, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
-import { Job, CATEGORIES_CONFIG } from '../types';
+import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
+import { Job, CATEGORIES_CONFIG, sectionOf } from '../types';
+import { instagramUrl } from '../lib/instagram';
 import { Icons } from '../lib/icons';
 import { deleteJob, setJobStatus } from '../services/jobs';
 import Avatar from './Avatar';
@@ -59,6 +60,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
   const CategoryIcon = (categoryInfo && Icons[categoryInfo.iconName]) || Icons.HelpCircle;
   // En el listado se muestra el oficio (siempre prolijo); el título libre va en el perfil.
   const categoryLabel = categoryInfo?.label ?? job.category;
+  const section = sectionOf(job.category);
   const hasImage = !!job.imageUrl && !imgError;
   const statusBadge = job.estado !== 'aprobado' ? (
     <span
@@ -129,7 +131,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       onClick={onClick}
-      className="group relative flex flex-col bg-white rounded-xl sm:rounded-2xl border border-gray-200 p-3 sm:p-4 cursor-pointer transition-colors hover:border-gray-300"
+      className="group relative flex flex-col bg-white rounded-xl border border-gray-200 p-3 sm:p-0 sm:overflow-hidden cursor-pointer transition-colors hover:border-gray-400"
     >
       {/* Confirmación de borrado */}
       <AnimatePresence>
@@ -166,7 +168,10 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
       {/* Celular: fila compacta (varios profesionales por pantalla) */}
       <div className="flex items-center gap-3 sm:hidden">
-        <div className="relative w-16 h-16 flex-none rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center">
+        <div
+          className="relative w-16 h-16 flex-none rounded-lg overflow-hidden flex items-center justify-center"
+          style={{ backgroundColor: section.tint }}
+        >
           {hasImage ? (
             <img
               src={thumbFailed ? job.imageUrl : job.thumbUrl || job.imageUrl}
@@ -178,7 +183,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
               className="w-full h-full object-cover"
             />
           ) : (
-            <CategoryIcon className="w-6 h-6 text-gray-400" aria-hidden="true" />
+            <CategoryIcon className="w-6 h-6" style={{ color: section.ink }} aria-hidden="true" />
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -203,79 +208,83 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         </a>
       </div>
 
-      {/* Compu y tablet: tarjeta */}
+      {/* Compu y tablet: tarjeta con la foto arriba */}
       <div className="hidden sm:flex flex-col flex-1">
-        <div className="flex items-start gap-3">
-          <Avatar name={job.professionalName} />
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-gray-900 truncate">{job.professionalName}{job.verificado && <BadgeCheck className="inline w-4 h-4 ml-1 -mt-0.5 text-sky-600" aria-label="Verificado" />}</p>
-            <h3 className="text-sm text-gray-600 truncate">{categoryLabel}</h3>
-          </div>
-        </div>
-
-        <p className="mt-3 flex items-center gap-1 text-xs text-gray-500 min-w-0">
-          <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
-          <span className="truncate">{job.zone}</span>
-        </p>
-
-        {/* Foto: completa, sin recortar (muchas son flyers con texto) */}
-        <div className="relative mt-3 aspect-[16/10] rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
-          {statusBadge && <span className="absolute top-2 left-2 z-10">{statusBadge}</span>}
-          {hasImage && (
-            <img
-              src={job.imageUrl}
-              alt=""
-              aria-hidden="true"
-              loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-50"
-            />
-          )}
+        {/* Foto completa, sin recortar (muchas son flyers): el espacio sobrante toma el tono del rubro */}
+        <div
+          className="relative aspect-[4/3] overflow-hidden flex items-center justify-center border-b border-gray-200"
+          style={{ backgroundColor: section.tint }}
+        >
+          {statusBadge && <span className="absolute top-3 left-3 z-10">{statusBadge}</span>}
           {hasImage ? (
             <img
               src={job.imageUrl}
               alt={`Trabajo de ${job.professionalName}: ${categoryLabel}`}
               loading="lazy"
               onError={() => setImgError(true)}
-              className="relative w-full h-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+              className="w-full h-full object-contain"
             />
           ) : (
-            <CategoryIcon className="w-8 h-8 text-gray-300" aria-label="Sin foto" />
+            <CategoryIcon className="w-10 h-10" style={{ color: section.ink }} aria-label="Sin foto" />
           )}
           {job.photoUrls.length > 1 && (
-            <span className="absolute bottom-2 right-2 text-[11px] font-medium px-2 py-0.5 rounded-full bg-brand-dark/75 text-white">
+            <span className="absolute bottom-2.5 right-2.5 text-[11px] font-medium px-2 py-0.5 rounded-full bg-brand-dark/75 text-white">
               +{job.photoUrls.length - 1} {job.photoUrls.length === 2 ? 'foto' : 'fotos'}
             </span>
           )}
         </div>
 
-        <p className="mt-3 text-sm text-gray-500 leading-relaxed line-clamp-2 min-h-[2.75rem]">{job.description}</p>
+        <div className="flex flex-col flex-1 p-4">
+          <p className="font-semibold text-gray-900 leading-snug line-clamp-2">
+            {job.professionalName}
+            {job.verificado && <BadgeCheck className="inline w-4 h-4 ml-1 -mt-0.5 text-sky-600" aria-label="Verificado" />}
+          </p>
+          <h3 className="mt-1 text-sm text-gray-700">{categoryLabel}</h3>
+          <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500 min-w-0">
+            <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
+            <span className="truncate">{job.zone}</span>
+          </p>
 
-        <div className="mt-auto pt-4 flex gap-2">
-          <a
-            href={whatsappLink(job)}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={stop}
-            aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
-          data-tour="contacto"
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-medium py-2.5 transition-colors"
-          >
-            <MessageCircle className="w-4 h-4" aria-hidden="true" />
-            WhatsApp
-          </a>
-          <button
-            onClick={handleShare}
-            aria-label="Compartir"
-            className="w-11 flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
-          >
-            {shared ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-          </button>
+          <div className="mt-auto pt-4 flex items-center gap-2">
+            <a
+              href={whatsappLink(job)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={stop}
+              data-tour="contacto"
+              aria-label={`Escribirle a ${job.professionalName} por WhatsApp`}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-medium py-2.5 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" aria-hidden="true" />
+              WhatsApp
+            </a>
+            {job.instagram && (
+              <a
+                href={instagramUrl(job.instagram)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={stop}
+                aria-label={`Instagram de ${job.professionalName}`}
+                title={`@${job.instagram}`}
+                className="w-10 h-10 flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+            )}
+            <button
+              onClick={handleShare}
+              aria-label="Compartir"
+              className="w-10 h-10 flex-none inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+            >
+              {shared ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Moderación rápida (admin) */}
       {isAdmin && job.estado !== 'aprobado' && (
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-3 sm:mt-0 sm:px-4 sm:pb-4 grid grid-cols-2 gap-2">
           <button
             onClick={(e) => changeStatus(e, 'aprobado')}
             disabled={!!statusBusy}
@@ -302,7 +311,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
       {/* Herramientas del dueño / admin */}
       {canManage && (
-        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1 text-xs">
+        <div className="mt-3 sm:mt-0 pt-3 sm:px-3 sm:pb-3 border-t border-gray-100 flex items-center gap-1 text-xs">
           <button
             onClick={(e) => { e.stopPropagation(); onEdit?.(job); }}
             className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"

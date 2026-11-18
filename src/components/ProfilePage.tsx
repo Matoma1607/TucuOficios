@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, Link as LinkIcon, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Check, Link as LinkIcon, MessageCircle, Instagram } from 'lucide-react';
+import { instagramUrl } from '../lib/instagram';
 import type { Job } from '../types';
 import { fetchJob } from '../services/jobs';
 import { jobPath } from '../lib/slug';
@@ -122,6 +123,18 @@ export default function ProfilePage() {
                   <MessageCircle className="w-5 h-5" aria-hidden="true" />
                   Contactar por WhatsApp
                 </a>
+                {job.instagram && (
+                  <a
+                    href={instagramUrl(job.instagram)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Instagram de ${job.professionalName}`}
+                    className="px-4 inline-flex items-center gap-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    <Instagram className="w-4 h-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Instagram</span>
+                  </a>
+                )}
                 <button
                   onClick={copyLink}
                   className="px-4 inline-flex items-center gap-2 rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50"

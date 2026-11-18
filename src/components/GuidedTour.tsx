@@ -18,7 +18,7 @@ const STEPS: Step[] = [
   {
     target: 'buscar',
     title: 'Buscá lo que necesitás',
-    text: 'Escribí el oficio que buscás, por ejemplo “plomero” o “clases de inglés”.',
+    text: 'Escribí el oficio que buscás, por ejemplo “plomero” o “clases de inglés”, y elegí tu zona.',
   },
   {
     target: 'categorias',

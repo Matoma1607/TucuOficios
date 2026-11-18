@@ -6,6 +6,7 @@ import { Icons } from '../lib/icons';
 import type { User } from '@supabase/supabase-js';
 import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
+import { normalizeInstagram } from '../lib/instagram';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 
 interface PostJobModalProps {
@@ -24,6 +25,7 @@ const emptyForm = () => ({
   zone: '',
   professionalName: '',
   whatsapp: '',
+  instagram: '',
   description: '',
 });
 
@@ -86,6 +88,9 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
     if (!normalizeWhatsapp(formData.whatsapp)) {
       newErrors.whatsapp = 'Ej: 381 412-3456';
     }
+    if (normalizeInstagram(formData.instagram ?? '') === null) {
+      newErrors.instagram = 'Revisá el usuario';
+    }
     if (photos.length === 0) {
       newErrors.image = 'Subí al menos una foto de tu trabajo.';
     }
@@ -124,7 +129,11 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
 
       step = 'datos';
       await createJob(
-        { ...formData, whatsapp: normalizeWhatsapp(formData.whatsapp)! },
+        {
+          ...formData,
+          whatsapp: normalizeWhatsapp(formData.whatsapp)!,
+          instagram: normalizeInstagram(formData.instagram ?? '') || null,
+        },
         uploaded
       );
 
@@ -332,6 +341,29 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                         errors.whatsapp ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                       }`}
                     />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label htmlFor="post-instagram" className="text-sm font-medium text-gray-700">Instagram <span className="font-normal text-gray-500">(opcional)</span></label>
+                      {errors.instagram && <span className="text-xs font-medium text-red-600">{errors.instagram}</span>}
+                    </div>
+                    <div className={`flex items-center bg-white border rounded-lg transition-colors ${
+                      errors.instagram ? 'border-red-300 focus-within:border-red-500' : 'border-gray-300 focus-within:border-gray-900'
+                    }`}>
+                      <span className="pl-4 text-gray-500" aria-hidden="true">@</span>
+                      <input
+                        id="post-instagram"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        placeholder="tu.usuario"
+                        value={formData.instagram ?? ''}
+                        onChange={e => setFormData({...formData, instagram: e.target.value})}
+                        className="w-full bg-transparent py-3 pl-1 pr-4 outline-none"
+                      />
+                    </div>
+                    <p className="mt-1.5 ml-1 text-xs text-gray-500">Si mostrás tus trabajos ahí, los clientes te van a tener más confianza.</p>
                   </div>
 
                   <div>

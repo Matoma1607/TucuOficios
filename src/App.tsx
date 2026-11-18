@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ArrowRight } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown } from 'lucide-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
@@ -18,19 +18,6 @@ const TucuAssistant = lazy(() => import('./components/AssistantChat'));
 const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
-
-/** Para no montar (ni descargar) el asistente en celulares. */
-function useIsDesktop() {
-  const query = '(min-width: 640px)';
-  const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
-  useEffect(() => {
-    const mql = window.matchMedia(query);
-    const onChange = () => setMatches(mql.matches);
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-  return matches;
-}
 
 /** true desde la primera vez que `flag` fue true (para montar un modal recién al abrirlo y conservar su animación de cierre). */
 function useOnceTrue(flag: boolean) {
@@ -115,7 +102,8 @@ function HomePage() {
   const anyModalOpen = isModalOpen || !!editingJob || !!selectedJobDetail || showOnboarding;
   // Durante el recorrido el botón de publicar del celular tiene que verse (es uno de los pasos)
   const hideFab = (anyModalOpen && !showOnboarding) || (!fabVisible && !showOnboarding);
-  const isDesktop = useIsDesktop();
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const mountAssistant = useOnceTrue(assistantOpen);
   const mountPost = useOnceTrue(isModalOpen);
   const mountEdit = useOnceTrue(!!editingJob);
   const mountDetail = useOnceTrue(!!selectedJobDetail);
@@ -263,17 +251,52 @@ function HomePage() {
                 Plomeros, electricistas, profes y más. Escribiles directo por WhatsApp, sin intermediarios.
               </p>
 
-              <div data-tour="buscar" className="relative max-w-2xl mx-auto mt-3 sm:mt-5 md:mt-8">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
-                <input
-                  type="search"
-                  aria-label="Buscar profesionales"
-                  placeholder="Plomero, electricista, clases…"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white border border-gray-300 focus:border-gray-900 focus:ring-4 focus:ring-gray-900/5 rounded-xl py-3 md:py-3.5 pl-12 pr-4 outline-none transition text-gray-900 placeholder:text-gray-400"
-                />
-              </div>
+              {/* Buscador: qué + zona + botón. El filtrado es en vivo; el botón lleva a los resultados. */}
+              <form
+                role="search"
+                data-tour="buscar"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  (document.activeElement as HTMLElement | null)?.blur();
+                  document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="max-w-3xl mx-auto mt-3 sm:mt-5 md:mt-8 flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-0 sm:bg-white sm:border sm:border-gray-300 sm:rounded-xl sm:p-1.5 sm:focus-within:border-gray-900 transition-colors text-left"
+              >
+                <label className="relative flex-1 min-w-0">
+                  <span className="sr-only">¿Qué necesitás?</span>
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" aria-hidden="true" />
+                  <input
+                    type="search"
+                    placeholder="¿Qué necesitás? Plomero, electricista, clases…"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full h-12 bg-white border border-gray-300 sm:border-0 rounded-xl sm:rounded-lg pl-12 pr-3 outline-none focus:border-gray-900 text-gray-900 placeholder:text-gray-400"
+                  />
+                </label>
+                <div className="flex gap-2 sm:gap-0">
+                  <label className="relative flex-1 sm:flex-none sm:w-56 sm:border-l sm:border-gray-200">
+                    <span className="sr-only">Zona</span>
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
+                    <select
+                      value={selectedZone}
+                      onChange={(e) => setSelectedZone(e.target.value)}
+                      className={`w-full h-12 appearance-none bg-white border border-gray-300 sm:border-0 rounded-xl sm:rounded-none pl-10 pr-8 outline-none focus:border-gray-900 text-sm ${
+                        selectedZone ? 'text-gray-900 font-medium' : 'text-gray-500'
+                      }`}
+                    >
+                      <option value="">Toda la provincia</option>
+                      {ZONES.filter(z => z !== 'Todo Tucumán').map(z => <option key={z} value={z}>{z}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
+                  </label>
+                  <button
+                    type="submit"
+                    className="h-12 px-6 rounded-xl sm:rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white font-semibold transition-colors"
+                  >
+                    Buscar
+                  </button>
+                </div>
+              </form>
 
               {/* Sellos de confianza */}
               <ul className="hidden sm:flex mt-4 md:mt-5 flex-wrap justify-center gap-x-5 gap-y-1.5 text-xs sm:text-sm text-gray-500">
@@ -332,34 +355,26 @@ function HomePage() {
             )}
 
             {!isLoading && (
-              <div className="mt-4 sm:mt-6 flex items-center justify-between gap-3">
-                <p className="text-sm text-gray-500">
+              <div id="resultados" className="scroll-mt-20 mt-6 sm:mt-10 flex items-baseline justify-between gap-3">
+                <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-gray-900">
                   {view === 'pending'
-                    ? (filteredJobs.length === 1 ? '1 publicación para revisar' : `${filteredJobs.length} publicaciones para revisar`)
+                    ? 'Pendientes de revisión'
                     : view === 'mine'
-                      ? (filteredJobs.length === 1 ? '1 publicación tuya' : `${filteredJobs.length} publicaciones tuyas`)
-                      : (filteredJobs.length === 1 ? '1 profesional' : `${filteredJobs.length} profesionales`)}
+                      ? 'Tus publicaciones'
+                      : searchQuery || selectedZone || selectedCategory !== 'All'
+                        ? 'Resultados'
+                        : 'Publicados recientemente'}
+                </h2>
+                <p className="text-sm text-gray-500 text-right">
+                  {filteredJobs.length === 1 ? '1 profesional' : `${filteredJobs.length} profesionales`}
                   {searchQuery && <> para <span className="font-medium text-gray-900">“{searchQuery}”</span></>}
+                  {selectedZone && <> en <span className="font-medium text-gray-900">{selectedZone}</span></>}
                 </p>
-                <label className="relative inline-flex items-center">
-                  <span className="sr-only">Filtrar por zona</span>
-                  <MapPin className="absolute left-3 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
-                  <select
-                    value={selectedZone}
-                    onChange={(e) => setSelectedZone(e.target.value)}
-                    className={`pl-9 pr-3 py-2 rounded-lg border bg-white text-sm outline-none transition-colors ${
-                      selectedZone ? 'border-gray-900 text-gray-900 font-medium' : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                    }`}
-                  >
-                    <option value="">Todas las zonas</option>
-                    {ZONES.filter(z => z !== 'Todo Tucumán').map(z => <option key={z} value={z}>{z}</option>)}
-                  </select>
-                </label>
               </div>
             )}
 
             {/* Listado */}
-            <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
+            <div className="mt-3 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6">
               {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => <JobCardSkeleton key={i} />)
               ) : filteredJobs.length === 0 ? (
@@ -450,10 +465,9 @@ function HomePage() {
             </Suspense>
           )}
 
-          {/* En celular la burbuja tapaba contenido y competía con "Publicar oficio" */}
-          {isDesktop && (
+          {mountAssistant && (
             <Suspense fallback={null}>
-              <TucuAssistant hidden={anyModalOpen} />
+              <TucuAssistant open={assistantOpen && !anyModalOpen} onClose={() => setAssistantOpen(false)} />
             </Suspense>
           )}
 
@@ -480,7 +494,6 @@ function HomePage() {
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-brand-strong hover:bg-brand-strong-hover text-white font-semibold transition-colors flex-none"
                 >
                   Publicar mi oficio
-                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </section>
@@ -501,18 +514,33 @@ function HomePage() {
           </button>
 
           <footer className="border-t border-gray-200 bg-white">
-            <div className="max-w-6xl mx-auto px-4 pt-8 pb-24 sm:pb-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500">
-              <p>© {new Date().getFullYear()} TucuOficios · Hecho en Tucumán</p>
-              <div className="flex items-center gap-5">
-                <button
-                  type="button"
-                  onClick={() => { window.scrollTo({ top: 0 }); setShowOnboarding(true); }}
-                  className="hover:text-gray-900"
-                >
-                  ¿Cómo funciona?
-                </button>
-                <Link to="/privacidad" className="hover:text-gray-900">Política de privacidad</Link>
+            <div className="max-w-6xl mx-auto px-4 pt-10 pb-10 grid gap-8 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
+              <div>
+                <p className="text-lg font-extrabold tracking-tight text-gray-900" translate="no">
+                  Tucu<span className="text-brand-strong">Oficios</span>
+                </p>
+                <p className="mt-2 text-sm text-gray-500 max-w-xs leading-relaxed">
+                  Profesionales y emprendedores de Tucumán, con contacto directo por WhatsApp. Cada aviso se revisa antes de publicarse.
+                </p>
               </div>
+              <nav aria-label="Para profesionales" className="text-sm">
+                <p className="font-semibold text-gray-900">Para profesionales</p>
+                <ul className="mt-3 space-y-2 text-gray-600">
+                  <li><button type="button" onClick={() => setIsModalOpen(true)} className="hover:text-gray-900">Publicar mi oficio</button></li>
+                  {!user && <li><button type="button" onClick={signInWithGoogle} className="hover:text-gray-900">Entrar a mi cuenta</button></li>}
+                </ul>
+              </nav>
+              <nav aria-label="Ayuda" className="text-sm">
+                <p className="font-semibold text-gray-900">Ayuda</p>
+                <ul className="mt-3 space-y-2 text-gray-600">
+                  <li><button type="button" onClick={() => { window.scrollTo({ top: 0 }); setShowOnboarding(true); }} className="hover:text-gray-900">¿Cómo funciona?</button></li>
+                  <li><button type="button" onClick={() => setAssistantOpen(true)} className="hover:text-gray-900">Preguntas frecuentes</button></li>
+                  <li><Link to="/privacidad" className="hover:text-gray-900">Política de privacidad</Link></li>
+                </ul>
+              </nav>
+            </div>
+            <div className="border-t border-gray-100">
+              <p className="max-w-6xl mx-auto px-4 py-4 pb-24 sm:pb-4 text-xs text-gray-500">© {new Date().getFullYear()} TucuOficios. Hecho en Tucumán.</p>
             </div>
           </footer>
         </motion.div>

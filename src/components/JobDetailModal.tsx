@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, BadgeCheck, MapPin, Calendar, Link as LinkIcon, Check, MessageCircle, ExternalLink } from 'lucide-react';
+import { X, BadgeCheck, Instagram, MapPin, Calendar, Link as LinkIcon, Check, MessageCircle, ExternalLink } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG } from '../types';
 import { prettyTitle, timeAgo } from '../lib/text';
+import { instagramUrl } from '../lib/instagram';
 import { Icons } from '../lib/icons';
 import Avatar from './Avatar';
 import Gallery from './Gallery';
@@ -96,6 +97,18 @@ export default function JobDetailModal({ job, isOpen, onClose }: JobDetailModalP
                   <MessageCircle className="w-5 h-5" aria-hidden="true" />
                   WhatsApp
                 </a>
+                {job.instagram && (
+                  <a
+                    href={instagramUrl(job.instagram)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Instagram de ${job.professionalName}`}
+                    title={`@${job.instagram}`}
+                    className="px-3 inline-flex items-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
                 <Link
                   to={jobPath(job)}
                   aria-label="Abrir página del profesional"
@@ -132,7 +145,9 @@ export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
         <Avatar name={job.professionalName} size="lg" />
         <div className="min-w-0">
           <p className="text-lg font-semibold text-gray-900">{job.professionalName}</p>
-          <p className="text-sm text-gray-500">{categoryInfo?.label ?? job.category}</p>
+          <p className="inline-flex items-center gap-1.5 text-sm text-gray-600">
+            <CategoryIcon className="w-4 h-4" aria-hidden="true" /> {categoryInfo?.label ?? job.category}
+          </p>
         </div>
       </div>
 
@@ -142,15 +157,22 @@ export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
 
       <div className="mt-4 flex flex-wrap gap-2 text-sm">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700">
-          <CategoryIcon className="w-4 h-4" aria-hidden="true" /> {categoryInfo?.label ?? job.category}
-        </span>
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700">
           <MapPin className="w-4 h-4" aria-hidden="true" /> {job.zone}
         </span>
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700">
           <Calendar className="w-4 h-4" aria-hidden="true" />
           Publicado {timeAgo(job.createdAt)}
         </span>
+        {job.instagram && (
+          <a
+            href={instagramUrl(job.instagram)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900 transition-colors"
+          >
+            <Instagram className="w-4 h-4" aria-hidden="true" /> @{job.instagram}
+          </a>
+        )}
         {job.verificado && (
           <span
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-800"

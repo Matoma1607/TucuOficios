@@ -13,6 +13,7 @@ interface JobRow {
   zone: string;
   professional_name: string;
   whatsapp: string;
+  instagram: string | null;
   description: string;
   image_path: string | null;
   gallery: string[] | null;
@@ -27,6 +28,7 @@ export interface JobInput {
   zone: string;
   professionalName: string;
   whatsapp: string;
+  instagram?: string | null; // usuario sin @, '' o null = sin Instagram
   description: string;
 }
 
@@ -65,6 +67,7 @@ const toJob = (r: JobRow): Job => {
     zone: r.zone,
     professionalName: r.professional_name,
     whatsapp: r.whatsapp,
+    instagram: r.instagram ?? null,
     description: r.description,
     imagePath: r.image_path,
     imageUrl: publicImageUrl(r.image_path),
@@ -83,6 +86,7 @@ const toRow = (input: JobInput) => ({
   zone: input.zone.trim(),
   professional_name: input.professionalName.trim(),
   whatsapp: input.whatsapp,
+  instagram: input.instagram ? input.instagram : null,
   description: input.description.trim(),
 });
 

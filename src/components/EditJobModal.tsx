@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import { updateJob, uploadJobImage, removeImages, normalizeWhatsapp, formatWhatsappForInput } from '../services/jobs';
+import { normalizeInstagram } from '../lib/instagram';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 import { useToast } from './Toast';
 
@@ -20,6 +21,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
   const [category, setCategory] = useState<Category>(CATEGORIES_CONFIG[0].id);
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [instagram, setInstagram] = useState('');
   const [profName, setProfName] = useState('');
   const [description, setDescription] = useState('');
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
@@ -37,6 +39,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
       setCategory(job.category as Category);
       setZone(job.zone);
       setWhatsapp(formatWhatsappForInput(job.whatsapp || ''));
+      setInstagram(job.instagram ?? '');
       setProfName(job.professionalName);
       setDescription(job.description || '');
       setEstado(job.estado);
@@ -53,6 +56,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
     if (!profName.trim()) newErrors.profName = 'Requerido';
     if (!description.trim() || description.trim().length < 10) newErrors.description = 'Mínimo 10 caracteres';
     if (!normalizeWhatsapp(whatsapp)) newErrors.whatsapp = 'Ej: 381 412-3456';
+    if (normalizeInstagram(instagram) === null) newErrors.instagram = 'Revisá el usuario';
     if (photos.length === 0) newErrors.image = 'Dejá al menos una foto.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -87,6 +91,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
           zone,
           professionalName: profName,
           whatsapp: normalizeWhatsapp(whatsapp)!,
+          instagram: normalizeInstagram(instagram) || null,
           description,
         },
         finalPaths,
@@ -226,6 +231,28 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                       errors.whatsapp ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                     }`}
                   />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label htmlFor="edit-instagram" className="text-sm font-medium text-gray-700">Instagram <span className="font-normal text-gray-500">(opcional)</span></label>
+                    {errors.instagram && <span className="text-xs font-medium text-red-600">{errors.instagram}</span>}
+                  </div>
+                  <div className={`flex items-center bg-white border rounded-lg transition-colors ${
+                    errors.instagram ? 'border-red-300 focus-within:border-red-500' : 'border-gray-300 focus-within:border-gray-900'
+                  }`}>
+                    <span className="pl-4 text-gray-500" aria-hidden="true">@</span>
+                    <input
+                      id="edit-instagram"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      placeholder="tu.usuario"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      className="w-full bg-transparent py-3 pl-1 pr-4 outline-none"
+                    />
+                  </div>
                 </div>
 
                 {isAdmin ? (

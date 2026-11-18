@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { MessageSquare, X, Send, Bot, User, Loader2, Sparkles, Phone } from 'lucide-react';
+import { X, Send, Bot, Loader2 } from 'lucide-react';
 import { CATEGORIES_CONFIG } from '../types';
 
 interface Message {
@@ -8,8 +8,13 @@ interface Message {
   content: string;
 }
 
-const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
-  const [isOpen, setIsOpen] = useState(false);
+interface TucuAssistantProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+/** Ventana de ayuda con respuestas a preguntas frecuentes. Se abre desde "¿Necesitás ayuda?" en el pie. */
+const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: '¡Hola! Soy el asistente de TucuOficios. ¿En qué te puedo ayudar hoy?' }
   ]);
@@ -64,31 +69,15 @@ const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
     }, 800);
   };
 
-  if (hidden) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   return (
-    <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[90]">
-      {/* FAB */}
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? 'Cerrar ayuda' : 'Abrir ayuda'}
-        className="w-12 h-12 bg-brand-dark hover:bg-black text-white rounded-full flex items-center justify-center shadow-lg relative"
-      >
-        <AnimatePresence mode="wait">
-          {isOpen ? (
-            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-              <X className="w-5 h-5" />
-            </motion.div>
-          ) : (
-            <motion.div key="open" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }}>
-              <MessageSquare className="w-5 h-5" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.button>
-
+    <div className="fixed bottom-4 right-4 left-4 sm:left-auto md:bottom-6 md:right-6 z-[95]">
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
@@ -96,7 +85,9 @@ const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
             initial={{ opacity: 0, scale: 0.95, y: 20, transformOrigin: 'bottom right' }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="absolute bottom-16 right-0 w-[340px] max-w-[calc(100vw-32px)] h-[480px] max-h-[70vh] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 flex flex-col"
+            role="dialog"
+            aria-label="Ayuda"
+            className="sm:w-[360px] h-[480px] max-h-[75vh] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 flex flex-col"
           >
             {/* Header */}
             <div className="px-5 py-4 border-b border-gray-100">
@@ -104,10 +95,13 @@ const TucuAssistant = ({ hidden = false }: { hidden?: boolean }) => {
                 <div className="w-9 h-9 bg-orange-50 rounded-full flex items-center justify-center">
                   <Bot className="w-5 h-5 text-orange-700" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-sm text-gray-900">Ayuda</h3>
                   <p className="text-xs text-gray-500">Preguntas frecuentes sobre TucuOficios</p>
                 </div>
+                <button onClick={onClose} aria-label="Cerrar ayuda" className="p-2 -mr-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
 

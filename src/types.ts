@@ -6,6 +6,7 @@ export interface Job {
   zone: string;
   professionalName: string;
   whatsapp: string; // formato 549XXXXXXXXXX
+  instagram: string | null; // usuario, sin @
   imageUrl: string;          // portada
   thumbUrl: string;          // portada en miniatura (listado)
   imagePath: string | null;
@@ -26,21 +27,32 @@ export interface CategoryInfo {
   iconName: string; // Nombre del icono de Lucide
 }
 
-// Secciones en el orden en que se muestran, con su ícono de Lucide.
-export const SECTIONS: { id: string; iconName: string }[] = [
-  { id: 'Hogar', iconName: 'House' },
-  { id: 'Construcción', iconName: 'HardHat' },
-  { id: 'Tecnología', iconName: 'Cpu' },
-  { id: 'Vehículos', iconName: 'Car' },
-  { id: 'Salud y Cuidado', iconName: 'HeartPulse' },
-  { id: 'Educación', iconName: 'BookOpen' },
-  { id: 'Gastronomía', iconName: 'Utensils' },
-  { id: 'Eventos', iconName: 'PartyPopper' },
-  { id: 'Mascotas', iconName: 'Dog' },
-  { id: 'Servicios Profesionales', iconName: 'Briefcase' },
-  { id: 'Emprendimientos', iconName: 'Store' },
-  { id: 'Varios', iconName: 'Shapes' },
+// Secciones en el orden en que se muestran, con su ícono de Lucide y sus colores
+// (fondo suave + texto oscuro del mismo tono, con contraste AA).
+export interface SectionInfo { id: string; iconName: string; tint: string; ink: string }
+
+export const SECTIONS: SectionInfo[] = [
+  { id: 'Hogar', iconName: 'House', tint: '#FDE7D3', ink: '#9A3412' },
+  { id: 'Construcción', iconName: 'HardHat', tint: '#EFE9DF', ink: '#5C4628' },
+  { id: 'Tecnología', iconName: 'Cpu', tint: '#E0EAFB', ink: '#1E3A8A' },
+  { id: 'Vehículos', iconName: 'Car', tint: '#DCEEF9', ink: '#155E8B' },
+  { id: 'Salud y Cuidado', iconName: 'HeartPulse', tint: '#FBE3EA', ink: '#9D174D' },
+  { id: 'Educación', iconName: 'BookOpen', tint: '#E7E4F8', ink: '#4C3FA0' },
+  { id: 'Gastronomía', iconName: 'Utensils', tint: '#FFF1C9', ink: '#7A5200' },
+  { id: 'Eventos', iconName: 'PartyPopper', tint: '#F6E3F5', ink: '#86198F' },
+  { id: 'Mascotas', iconName: 'Dog', tint: '#EAF3DE', ink: '#3F6212' },
+  { id: 'Servicios Profesionales', iconName: 'Briefcase', tint: '#E8EEF2', ink: '#334155' },
+  { id: 'Emprendimientos', iconName: 'Store', tint: '#DDF3EC', ink: '#065F46' },
+  { id: 'Varios', iconName: 'Shapes', tint: '#F1EFE8', ink: '#44403C' },
 ];
+
+const DEFAULT_SECTION: SectionInfo = { id: 'Varios', iconName: 'Shapes', tint: '#F1EFE8', ink: '#44403C' };
+
+/** Colores e ícono de la sección a la que pertenece una categoría. */
+export function sectionOf(categoryId: string): SectionInfo {
+  const section = CATEGORIES_CONFIG.find(c => c.id === categoryId)?.section;
+  return SECTIONS.find(s => s.id === section) ?? DEFAULT_SECTION;
+}
 
 // El "id" se guarda en la base de datos: no cambiar los existentes.
 export const CATEGORIES_CONFIG: CategoryInfo[] = [
