@@ -12,7 +12,7 @@
   --color-brand-secondary: #FF8C42;
   --color-brand-dark: #1F1F1F;
   --color-brand-light: #FFFFFF;
-  --color-brand-bg: #F7F4F0;          /* fondo cálido (blanco hueso) */
+  --color-brand-bg: #FBEEE3;          /* fondo durazno pastel: separa las tarjetas blancas */
 
   /* Grises levemente cálidos (escala "stone") para que combinen con el naranja.
      Redefine gray-* en todo el sitio sin tocar cada componente. */

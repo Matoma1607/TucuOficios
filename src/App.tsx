@@ -194,7 +194,7 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 relative">
+    <div className="min-h-screen bg-brand-bg relative">
       <AnimatePresence mode="wait">
         {showSplash && <SplashScreen key="splash" />}
       </AnimatePresence>
@@ -566,7 +566,7 @@ function HomePage() {
 
 export default function App() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+    <Suspense fallback={<div className="min-h-screen bg-brand-bg" />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/p/:id/:slug?" element={<ProfilePage />} />

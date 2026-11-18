@@ -55,7 +55,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-brand-bg">
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-extrabold tracking-tight text-gray-900" translate="no">
