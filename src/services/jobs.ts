@@ -3,7 +3,7 @@ import type { Job } from '../types';
 import { compressImage } from '../lib/image';
 
 const BUCKET = 'job-images';
-export const MAX_PHOTOS = 4; // portada + 3 de galería
+export const MAX_PHOTOS = 3; // portada + 2 de galería (el plan gratis tiene 1 GB para fotos)
 
 interface JobRow {
   id: string;
@@ -54,7 +54,7 @@ export const cardImageUrl = (path: string | null) => {
 };
 
 /**
- * Miniatura para el listado (la foto completa pesa hasta ~400 KB).
+ * Miniatura para el listado (la foto completa pesa hasta ~250 KB).
  * - Cloudinary (avisos migrados): se pide recortada por URL.
  * - Supabase: al subir guardamos "<foto>_thumb.webp" al lado de la original.
  */
