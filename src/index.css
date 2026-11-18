@@ -12,7 +12,7 @@
   --color-brand-secondary: #FF8C42;
   --color-brand-dark: #1F1F1F;
   --color-brand-light: #FFFFFF;
-  --color-brand-bg: #FBEEE3;          /* fondo durazno pastel: separa las tarjetas blancas */
+  --color-brand-bg: #F1F2F4;          /* gris frío de base; el degradé naranja va encima (.fondo-degrade) */
 
   /* Grises levemente cálidos (escala "stone") para que combinen con el naranja.
      Redefine gray-* en todo el sitio sin tocar cada componente. */
@@ -35,12 +35,30 @@
   }
 }
 
+/* Manchas de color muy difuminadas detrás de los resultados (naranja, naranja oscuro y ámbar de la marca).
+   Va en un div fijo (no background-attachment: fixed, que en iPhone no anda). */
+.fondo-degrade {
+  background-image:
+    radial-gradient(720px 440px at 8% 35%, rgb(252 97 0 / 0.22), transparent 65%),
+    radial-gradient(700px 480px at 92% 60%, rgb(194 65 12 / 0.14), transparent 65%),
+    radial-gradient(640px 400px at 50% 100%, rgb(251 191 36 / 0.14), transparent 65%);
+}
+
 .glass-card {
   @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
 }
 
 .glass-header {
   @apply bg-white/60 backdrop-blur-lg border-b border-white/20 sticky top-0 z-40;
+}
+
+/* Manchas de color muy difuminadas detrás de los resultados (naranja, naranja oscuro y ámbar de la marca).
+   Va en un div fijo (no background-attachment: fixed, que en iPhone no anda). */
+.fondo-degrade {
+  background-image:
+    radial-gradient(720px 440px at 8% 35%, rgb(252 97 0 / 0.22), transparent 65%),
+    radial-gradient(700px 480px at 92% 60%, rgb(194 65 12 / 0.14), transparent 65%),
+    radial-gradient(640px 400px at 50% 100%, rgb(251 191 36 / 0.14), transparent 65%);
 }
 
 .glass-card {

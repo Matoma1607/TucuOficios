@@ -1,6 +1,6 @@
 export default function JobCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-0 sm:overflow-hidden animate-pulse" aria-hidden="true">
+    <div className="bg-white/60 backdrop-blur-md rounded-xl border border-white/75 p-3 sm:p-0 sm:overflow-hidden animate-pulse" aria-hidden="true">
       {/* Celular: fila */}
       <div className="flex items-center gap-3 sm:hidden">
         <div className="w-16 h-16 rounded-lg bg-gray-100" />
