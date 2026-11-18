@@ -19,6 +19,19 @@ const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
 
+/** true en pantallas de 640px o más (el breakpoint `sm` de Tailwind). */
+function useIsWide() {
+  const query = '(min-width: 640px)';
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const onChange = () => setWide(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return wide;
+}
+
 /** true desde la primera vez que `flag` fue true (para montar un modal recién al abrirlo y conservar su animación de cierre). */
 function useOnceTrue(flag: boolean) {
   const [seen, setSeen] = useState(flag);
@@ -104,6 +117,7 @@ function HomePage() {
   const hideFab = (anyModalOpen && !showOnboarding) || (!fabVisible && !showOnboarding);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const mountAssistant = useOnceTrue(assistantOpen);
+  const isWide = useIsWide();
   const mountPost = useOnceTrue(isModalOpen);
   const mountEdit = useOnceTrue(!!editingJob);
   const mountDetail = useOnceTrue(!!selectedJobDetail);
@@ -267,7 +281,7 @@ function HomePage() {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" aria-hidden="true" />
                   <input
                     type="search"
-                    placeholder="¿Qué necesitás? Plomero, electricista, clases…"
+                    placeholder={isWide ? '¿Qué necesitás? Plomero, electricista, clases…' : 'Plomero, electricista, clases…'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full h-12 bg-white border border-gray-300 sm:border-0 rounded-xl sm:rounded-lg pl-12 pr-3 outline-none focus:border-gray-900 text-gray-900 placeholder:text-gray-400"
