@@ -9,6 +9,7 @@ import { deleteJob, setJobStatus } from '../services/jobs';
 import Avatar from './Avatar';
 import { useToast } from './Toast';
 import { jobPath } from '../lib/slug';
+import SaveButton from './SaveButton';
 
 interface JobCardProps {
   job: Job;
@@ -199,6 +200,9 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             {statusBadge}
           </p>
         </div>
+        {job.estado === 'aprobado' && (
+          <SaveButton jobId={job.id} name={job.professionalName} className="flex-none -mx-1 w-9 h-9 active:bg-gray-100" />
+        )}
         <a
           href={whatsappLink(job)}
           target="_blank"
@@ -222,6 +226,9 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           style={hasImage ? undefined : { backgroundColor: section.tint }}
         >
           {statusBadge && <span className="absolute top-3 left-3 z-10">{statusBadge}</span>}
+          {job.estado === 'aprobado' && (
+            <SaveButton jobId={job.id} name={job.professionalName} className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-white/85 hover:bg-white shadow-sm" />
+          )}
           {hasImage ? (
             <img
               src={job.cardUrl || job.imageUrl}

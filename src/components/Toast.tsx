@@ -23,7 +23,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div
         aria-live="polite"
-        className="fixed z-[300] bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none w-[calc(100%-32px)] sm:w-auto"
+        className="fixed z-[300] bottom-[calc(80px+env(safe-area-inset-bottom))] sm:bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 pointer-events-none w-[calc(100%-32px)] sm:w-auto"
       >
         <AnimatePresence>
           {toasts.map(t => (
