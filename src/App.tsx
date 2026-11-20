@@ -51,7 +51,7 @@ import { useToast } from './components/Toast';
 function HomePage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const { user, isAdmin, signInWithGoogle, signOut } = useAuth();
+  const { user, isAdmin, signingIn, signInWithGoogle, signOut } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
@@ -593,6 +593,14 @@ function HomePage() {
             </div>
           </footer>
           <IosInstallHelp open={installAction.iosHelp} onClose={installAction.closeIosHelp} />
+          {signingIn && (
+            <div role="status" aria-live="polite" className="fixed inset-0 z-[400] grid place-items-center bg-white/85">
+              <div className="flex flex-col items-center gap-3 text-gray-900">
+                <span className="w-9 h-9 rounded-full border-[3px] border-gray-200 border-t-brand-strong animate-spin" aria-hidden="true" />
+                <p className="text-base font-semibold">Abriendo Google…</p>
+              </div>
+            </div>
+          )}
         </motion.div>
       )}
       <CookieBanner paused={showOnboarding} />
