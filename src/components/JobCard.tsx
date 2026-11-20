@@ -128,7 +128,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
   return (
     <motion.article
-      layout
+      layout="position"
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
