@@ -6,6 +6,8 @@
  * título, descripción e imagen por los del profesional.
  */
 
+import { slugify } from '../../src/lib/slug.ts';
+
 declare const Netlify: { env: { get(name: string): string | undefined } };
 
 interface Context {
@@ -58,20 +60,29 @@ export default async (request: Request, context: Context) => {
     const res = await fetch(api, { headers: { apikey: key } });
     if (!res.ok) return response;
     const [job] = (await res.json()) as JobRow[];
-    if (!job) return response;
+    if (!job) {
+      // Aviso borrado, rechazado o id inexistente: 404 real y "noindex" para que Google lo saque.
+      let html = await response.text();
+      html = setMeta(html, 'name', 'robots', 'noindex');
+      const headers = new Headers(response.headers);
+      headers.delete('content-length');
+      return new Response(html, { status: 404, headers });
+    }
 
     const title = escapeHtml(`${job.professional_name} · ${job.category} en ${job.zone} | TucuOficios`);
     const description = escapeHtml(
       job.description.length > 150 ? `${job.description.slice(0, 147)}…` : job.description
     );
     const image = imageFor(job.image_path, supabaseUrl);
-    const pageUrl = escapeHtml(`https://tucuoficios.net.ar${url.pathname}`);
+    // Dirección "oficial" del perfil (la misma que el sitemap), aunque entren con otro texto al final.
+    const pageUrl = escapeHtml(`https://tucuoficios.net.ar/p/${id}/${slugify(`${job.professional_name} ${job.title}`)}`);
 
     let html = await response.text();
     html = html.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
     html = setMeta(html, 'name', 'description', description);
     html = setMeta(html, 'property', 'og:type', 'profile');
     html = setMeta(html, 'property', 'og:url', pageUrl);
+    html = html.replace('</head>', `    <link rel="canonical" href="${pageUrl}" />\n  </head>`);
     html = setMeta(html, 'property', 'og:title', title);
     html = setMeta(html, 'property', 'og:description', description);
     if (image) html = setMeta(html, 'property', 'og:image', escapeHtml(image));
