@@ -71,8 +71,8 @@ header.sticky, div.bg-white.border-b { background-color: rgb(244 245 247 / 0.94)
 article { background-color: rgb(255 255 255 / 0.62); border: 1px solid rgb(255 255 255 / 0.85); border-radius: 20px; box-shadow: 0 8px 28px rgb(30 42 90 / 0.08); }
 article:hover { background-color: rgb(255 255 255 / 0.78); }
 article img, article .aspect-square { border-radius: 14px; }
-/* En la compu, sin sombra de color alrededor de las tarjetas */
-@media (min-width: 640px) { article { box-shadow: none; } }
+/* En la compu, sin sombra de color: un borde negro transparente define la tarjeta */
+@media (min-width: 640px) { article { box-shadow: none; border-color: rgb(0 0 0 / 0.2); } }
 @media (min-width: 640px) { article .aspect-square, article .aspect-square img { border-radius: 20px 20px 0 0; } }
 article .bg-white\/35 { background-color: rgb(255 255 255 / 0.4); }
 footer { background-color: #1E2A5A; border-color: #1E2A5A; }
