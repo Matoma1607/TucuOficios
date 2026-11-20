@@ -6,6 +6,15 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Mientras el navegador va a Google (puede tardar 1-2 s con datos móviles)
+  const [signingIn, setSigningIn] = useState(false);
+
+  // Si vuelve con "atrás" desde Google, la página puede quedar congelada con el aviso puesto
+  useEffect(() => {
+    const onShow = () => setSigningIn(false);
+    window.addEventListener('pageshow', onShow);
+    return () => window.removeEventListener('pageshow', onShow);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -31,7 +40,9 @@ export function useAuth() {
   }, [user]);
 
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    if (signingIn) return; // evita doble toque
+    setSigningIn(true);
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
@@ -40,11 +51,12 @@ export function useAuth() {
         queryParams: { prompt: 'select_account' },
       },
     });
+    if (error) setSigningIn(false);
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
-  return { user, isAdmin, loading, signInWithGoogle, signOut };
+  return { user, isAdmin, loading, signingIn, signInWithGoogle, signOut };
 }
