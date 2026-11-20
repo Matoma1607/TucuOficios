@@ -152,10 +152,10 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
-                    <label className="text-sm font-medium text-gray-700">Título</label>
+                    <label htmlFor="edit-titulo" className="text-sm font-medium text-gray-700">Título</label>
                     {errors.title && <span className="text-xs font-medium text-red-600">{errors.title}</span>}
                   </div>
-                  <input
+                  <input id="edit-titulo"
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -167,8 +167,8 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Categoría</label>
-                    <select
+                    <label htmlFor="edit-categoria" className="block text-sm font-medium text-gray-700 mb-2 ml-1">Categoría</label>
+                    <select id="edit-categoria"
                       value={category}
                       onChange={(e) => setCategory(e.target.value as Category)}
                       className="w-full bg-white border border-gray-300 focus:border-gray-900 rounded-lg py-3 px-3 outline-none transition-colors"
@@ -185,10 +185,10 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
-                      <label className="text-sm font-medium text-gray-700">Zona</label>
+                      <label htmlFor="edit-zona" className="text-sm font-medium text-gray-700">Zona</label>
                       {errors.zone && <span className="text-xs font-medium text-red-600">{errors.zone}</span>}
                     </div>
-                    <select
+                    <select id="edit-zona"
                       value={zone}
                       onChange={(e) => setZone(e.target.value)}
                       className={`w-full bg-white border rounded-lg py-3 px-3 outline-none transition-colors ${
@@ -204,10 +204,10 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
-                    <label className="text-sm font-medium text-gray-700">Nombre</label>
+                    <label htmlFor="edit-nombre" className="text-sm font-medium text-gray-700">Nombre</label>
                     {errors.profName && <span className="text-xs font-medium text-red-600">{errors.profName}</span>}
                   </div>
-                  <input
+                  <input id="edit-nombre"
                     required
                     value={profName}
                     onChange={(e) => setProfName(e.target.value)}
@@ -219,10 +219,10 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
-                    <label className="text-sm font-medium text-gray-700">WhatsApp</label>
+                    <label htmlFor="edit-whatsapp" className="text-sm font-medium text-gray-700">WhatsApp</label>
                     {errors.whatsapp && <span className="text-xs font-medium text-red-600">{errors.whatsapp}</span>}
                   </div>
-                  <input
+                  <input id="edit-whatsapp"
                     required
                     type="tel"
                     value={whatsapp}
@@ -257,8 +257,8 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 {isAdmin ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Estado</label>
-                    <select
+                    <label htmlFor="edit-estado" className="block text-sm font-medium text-gray-700 mb-2 ml-1">Estado</label>
+                    <select id="edit-estado"
                       value={estado}
                       onChange={(e) => setEstado(e.target.value as Job['estado'])}
                       className={`w-full border rounded-lg py-3 px-3 outline-none font-medium transition-colors ${
@@ -292,10 +292,10 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
-                    <label className="text-sm font-medium text-gray-700">Descripción</label>
+                    <label htmlFor="edit-descripcion" className="text-sm font-medium text-gray-700">Descripción</label>
                     {errors.description && <span className="text-xs font-medium text-red-600">{errors.description}</span>}
                   </div>
-                  <textarea
+                  <textarea id="edit-descripcion"
                     placeholder="Descripción del oficio..."
                     rows={3}
                     value={description}

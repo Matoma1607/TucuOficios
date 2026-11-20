@@ -79,7 +79,7 @@ export default function PhotoPicker({ items, onChange, error, onError }: PhotoPi
         >
           <Camera className="w-8 h-8" aria-hidden="true" />
           <span className="text-sm font-medium">Subí fotos de tu trabajo</span>
-          <span className="text-xs text-gray-400">Hasta {MAX_PHOTOS}. La primera es la portada.</span>
+          <span className="text-xs text-gray-500">Hasta {MAX_PHOTOS}. La primera es la portada.</span>
         </button>
       ) : (
         <div className="grid grid-cols-4 gap-2">

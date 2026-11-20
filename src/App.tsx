@@ -268,7 +268,7 @@ function HomePage() {
             <section className="pt-4 pb-3 sm:pt-6 sm:pb-5 md:pt-14 md:pb-10 sm:text-center">
               <h1 className="text-xl leading-tight sm:text-4xl md:text-5xl font-extrabold tracking-tight text-gray-900 text-balance">
                 <span className="sm:hidden">¿Qué profesional necesitás?</span>
-                <span className="hidden sm:inline">Profesionales de confianza en <span className="text-brand-strong">Tucumán</span></span>
+                <span className="hidden sm:inline">Profesionales de confianza en <span className="text-[#E8650A]">Tucumán</span></span>
               </h1>
               <p className="hidden sm:block mt-2 md:mt-4 text-base md:text-lg text-gray-500 max-w-xl mx-auto">
                 Plomeros, electricistas, profes y más. Escribiles directo por WhatsApp, sin intermediarios.
@@ -333,11 +333,12 @@ function HomePage() {
               </ul>
             </section>
 
-            {user && (
+            {(user || savedCount > 0 || view === 'saved') && (
               <div role="tablist" aria-label="Vista" className="mb-5 hidden sm:flex gap-1 border-b border-gray-200">
                 {([
                   { id: 'all', label: 'Todas', count: null },
-                  { id: 'mine', label: 'Mis publicaciones', count: mineCount },
+                  ...(savedCount > 0 || view === 'saved' ? [{ id: 'saved', label: 'Guardados', count: savedCount }] : []),
+                  ...(user ? [{ id: 'mine', label: 'Mis publicaciones', count: mineCount }] : []),
                   ...(isAdmin ? [{ id: 'pending', label: 'Pendientes', count: pendingCount }] : []),
                 ] as { id: typeof view; label: string; count: number | null }[]).map(tab => (
                   <button
