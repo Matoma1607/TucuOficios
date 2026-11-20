@@ -40,6 +40,11 @@ function useOnceTrue(flag: boolean) {
 }
 import { Job, Category, CATEGORIES_CONFIG, ZONES } from './types';
 import { useAuth } from './hooks/useAuth';
+import { useInstallApp } from './hooks/useInstallApp';
+import { InstallBanner, IosInstallHelp, useInstallAction } from './components/InstallApp';
+import BottomNav from './components/BottomNav';
+import AccountSheet from './components/AccountSheet';
+import { useFavorites } from './hooks/useFavorites';
 import { fetchJobs } from './services/jobs';
 import { useToast } from './components/Toast';
 
@@ -50,7 +55,9 @@ function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
-  const [view, setView] = useState<'all' | 'mine' | 'pending'>('all');
+  const [view, setView] = useState<'all' | 'mine' | 'pending' | 'saved'>('all');
+  const favorites = useFavorites();
+  const [accountOpen, setAccountOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [selectedJobDetail, setSelectedJobDetail] = useState<Job | null>(null);
@@ -98,24 +105,22 @@ function HomePage() {
     if ((view === 'mine' && !user) || (view === 'pending' && !isAdmin)) setView('all');
   }, [user, isAdmin, view]);
 
-  // El botón flotante "Publicar" se esconde al bajar y vuelve al subir
-  const [fabVisible, setFabVisible] = useState(true);
+  // Con el teclado abierto (buscador u otro campo) el menú de abajo se esconde para dejar lugar
+  const [typing, setTyping] = useState(false);
   useEffect(() => {
-    let lastY = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      if (Math.abs(y - lastY) < 8) return;
-      setFabVisible(y < lastY || y < 200);
-      lastY = y;
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const isField = (el: EventTarget | null) =>
+      el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
+    const onIn = (e: FocusEvent) => { if (isField(e.target)) setTyping(true); };
+    const onOut = () => setTimeout(() => setTyping(isField(document.activeElement)), 0);
+    document.addEventListener('focusin', onIn);
+    document.addEventListener('focusout', onOut);
+    return () => { document.removeEventListener('focusin', onIn); document.removeEventListener('focusout', onOut); };
   }, []);
 
   const anyModalOpen = isModalOpen || !!editingJob || !!selectedJobDetail || showOnboarding;
-  // Durante el recorrido el botón de publicar del celular tiene que verse (es uno de los pasos)
-  const hideFab = (anyModalOpen && !showOnboarding) || (!fabVisible && !showOnboarding);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const installApp = useInstallApp();
+  const installAction = useInstallAction(installApp.install);
   const mountAssistant = useOnceTrue(assistantOpen);
   const isWide = useIsWide();
   const mountPost = useOnceTrue(isModalOpen);
@@ -153,11 +158,14 @@ function HomePage() {
   const tabJobs = useMemo(() => {
     if (view === 'mine') return jobs.filter(j => j.ownerId === user?.id);
     if (view === 'pending') return jobs.filter(j => j.estado === 'pendiente');
+    if (view === 'saved') return jobs.filter(j => j.estado === 'aprobado' && favorites.ids.includes(j.id));
     return jobs.filter(j => j.estado === 'aprobado');
-  }, [jobs, view, user?.id]);
+  }, [jobs, view, user?.id, favorites.ids]);
 
   const pendingCount = useMemo(() => jobs.filter(j => j.estado === 'pendiente').length, [jobs]);
   const mineCount = useMemo(() => jobs.filter(j => j.ownerId === user?.id).length, [jobs, user?.id]);
+  // Solo cuentan los guardados que siguen publicados (si alguien borró su aviso, no suma)
+  const savedCount = useMemo(() => jobs.filter(j => j.estado === 'aprobado' && favorites.ids.includes(j.id)).length, [jobs, favorites.ids]);
 
   // Búsqueda (sin importar mayúsculas ni acentos) + zona, antes de filtrar por categoría
   const searchedJobs = useMemo(() => {
@@ -208,7 +216,7 @@ function HomePage() {
                 Tucu<span className="text-brand-strong">Oficios</span>
               </a>
 
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="hidden sm:flex items-center gap-2 sm:gap-3">
                 {!user ? (
                   <button
                     onClick={signInWithGoogle}
@@ -282,6 +290,7 @@ function HomePage() {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" aria-hidden="true" />
                   <input
                     type="search"
+                    id="buscador"
                     placeholder={isWide ? '¿Qué necesitás? Plomero, electricista, clases…' : 'Plomero, electricista, clases…'}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -312,6 +321,9 @@ function HomePage() {
                   </button>
                 </div>
               </form>
+              {installApp.showBanner && (
+                <InstallBanner onInstall={installAction.run} onDismiss={installApp.dismiss} />
+              )}
 
               {/* Sellos de confianza */}
               <ul className="hidden sm:flex mt-4 md:mt-5 flex-wrap justify-center gap-x-5 gap-y-1.5 text-xs sm:text-sm text-gray-500">
@@ -322,7 +334,7 @@ function HomePage() {
             </section>
 
             {user && (
-              <div role="tablist" aria-label="Vista" className="mb-5 flex gap-1 border-b border-gray-200">
+              <div role="tablist" aria-label="Vista" className="mb-5 hidden sm:flex gap-1 border-b border-gray-200">
                 {([
                   { id: 'all', label: 'Todas', count: null },
                   { id: 'mine', label: 'Mis publicaciones', count: mineCount },
@@ -376,6 +388,8 @@ function HomePage() {
                     ? 'Pendientes de revisión'
                     : view === 'mine'
                       ? 'Tus publicaciones'
+                      : view === 'saved'
+                        ? 'Tus guardados'
                       : searchQuery || selectedZone || selectedCategory !== 'All'
                         ? 'Resultados'
                         : 'Publicados recientemente'}
@@ -402,10 +416,14 @@ function HomePage() {
                       ? 'No hay nada pendiente'
                       : view === 'mine' && !searchQuery && !selectedZone
                         ? 'Todavía no publicaste nada'
+                        : view === 'saved' && !searchQuery && !selectedZone
+                          ? 'Todavía no guardaste a nadie'
                         : searchQuery || selectedZone ? 'No encontramos resultados' : 'Todavía no hay publicaciones acá'}
                   </h3>
                   <p className="mt-1 text-gray-600 max-w-sm mx-auto">
-                    {searchQuery
+                    {view === 'saved' && !searchQuery
+                      ? 'Tocá el corazón de un profesional para tenerlo a mano acá.'
+                      : searchQuery
                       ? `Probá con otra palabra o mirá todas las categorías.`
                       : 'Si ofrecés este servicio, podés ser el primero en publicar.'}
                   </p>
@@ -514,19 +532,34 @@ function HomePage() {
             </section>
           )}
 
-          {/* Botón fijo para publicar en el celular */}
-          <button
-            onClick={() => setIsModalOpen(true)}
-            data-tour="publicar"
-            aria-hidden={hideFab}
-            tabIndex={hideFab ? -1 : 0}
-            className={`sm:hidden fixed bottom-4 left-1/2 z-[90] inline-flex transition-all duration-300 ${
-              hideFab ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'
-            } -translate-x-1/2 items-center gap-2 bg-brand-strong active:bg-brand-strong-hover text-white pl-4 pr-5 py-3 rounded-full text-sm font-semibold shadow-lg`}
-          >
-            <Plus className="w-4 h-4" />
-            Publicar oficio
-          </button>
+          {/* Menú de abajo en el celular */}
+          <BottomNav
+            active={accountOpen || view === 'mine' || view === 'pending' ? 'account' : view === 'saved' ? 'saved' : 'home'}
+            savedCount={savedCount}
+            hidden={(anyModalOpen && !showOnboarding) || assistantOpen || (typing && !showOnboarding)}
+            avatarUrl={user?.user_metadata?.avatar_url}
+            onHome={() => { setView('all'); setSelectedCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onSearch={() => { setView('all'); window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => document.getElementById('buscador')?.focus(), 250); }}
+            onPublish={() => setIsModalOpen(true)}
+            onSaved={() => { setView('saved'); setSelectedCategory('All'); document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            onAccount={() => setAccountOpen(true)}
+          />
+          <AccountSheet
+            open={accountOpen}
+            onClose={() => setAccountOpen(false)}
+            user={user}
+            isAdmin={isAdmin}
+            mineCount={mineCount}
+            pendingCount={pendingCount}
+            canInstall={installApp.canInstall}
+            onSignIn={signInWithGoogle}
+            onSignOut={handleLogout}
+            onMine={() => { setView('mine'); setSelectedCategory('All'); setTimeout(() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+            onPending={() => { setView('pending'); setSelectedCategory('All'); setTimeout(() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+            onInstall={installAction.run}
+            onHowItWorks={() => { window.scrollTo({ top: 0 }); setShowOnboarding(true); }}
+            onFaq={() => setAssistantOpen(true)}
+          />
 
           <footer className="border-t border-gray-200 bg-white">
             <div className="max-w-6xl mx-auto px-4 pt-10 pb-10 grid gap-8 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
@@ -550,6 +583,7 @@ function HomePage() {
                 <ul className="mt-3 space-y-2 text-gray-600">
                   <li><button type="button" onClick={() => { window.scrollTo({ top: 0 }); setShowOnboarding(true); }} className="hover:text-gray-900">¿Cómo funciona?</button></li>
                   <li><button type="button" onClick={() => setAssistantOpen(true)} className="hover:text-gray-900">Preguntas frecuentes</button></li>
+                  {installApp.canInstall && <li><button type="button" onClick={installAction.run} className="hover:text-gray-900">Instalar la app</button></li>}
                   <li><Link to="/privacidad" className="hover:text-gray-900">Política de privacidad</Link></li>
                 </ul>
               </nav>
@@ -558,6 +592,7 @@ function HomePage() {
               <p className="max-w-6xl mx-auto px-4 py-4 pb-24 sm:pb-4 text-xs text-gray-500">© {new Date().getFullYear()} TucuOficios. Hecho en Tucumán.</p>
             </div>
           </footer>
+          <IosInstallHelp open={installAction.iosHelp} onClose={installAction.closeIosHelp} />
         </motion.div>
       )}
       <CookieBanner paused={showOnboarding} />
