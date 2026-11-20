@@ -118,7 +118,7 @@ export default function ProfilePage() {
                   href={whatsappLink(job)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 transition-colors"
                 >
                   <MessageCircle className="w-5 h-5" aria-hidden="true" />
                   Contactar por WhatsApp

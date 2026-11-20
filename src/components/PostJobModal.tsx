@@ -253,10 +253,10 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
-                      <label className="text-sm font-medium text-gray-700">¿Qué ofrecés? *</label>
+                      <label htmlFor="post-titulo" className="text-sm font-medium text-gray-700">¿Qué ofrecés? *</label>
                       {errors.title && <span className="text-xs font-medium text-red-600">{errors.title}</span>}
                     </div>
-                    <input 
+                    <input id="post-titulo" 
                       required
                       maxLength={80}
                       placeholder="Ej: Instalación y service de aires split"
@@ -271,15 +271,15 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="flex justify-between items-center mb-2 ml-1">
-                        <label className="text-sm font-medium text-gray-700">Categoría *</label>
+                        <label htmlFor="post-categoria" className="text-sm font-medium text-gray-700">Categoría *</label>
                         {errors.category && <span className="text-xs font-medium text-red-600">{errors.category}</span>}
                       </div>
-                      <select 
+                      <select id="post-categoria" 
                         value={formData.category}
                         onChange={e => setFormData({...formData, category: e.target.value as Category})}
                         className={`w-full bg-white border rounded-lg py-3 px-3 outline-none transition-colors ${
                           errors.category ? 'border-red-300' : 'border-gray-300 focus:border-gray-900'
-                        } ${formData.category ? 'text-gray-900' : 'text-gray-400'}`}
+                        } ${formData.category ? 'text-gray-900' : 'text-gray-500'}`}
                       >
                         <option value="" disabled>Elegí una…</option>
                         {sections.map(section => (
@@ -293,15 +293,15 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                     </div>
                     <div>
                       <div className="flex justify-between items-center mb-2 ml-1">
-                        <label className="text-sm font-medium text-gray-700">Zona *</label>
+                        <label htmlFor="post-zona" className="text-sm font-medium text-gray-700">Zona *</label>
                         {errors.zone && <span className="text-xs font-medium text-red-600">{errors.zone}</span>}
                       </div>
-                      <select
+                      <select id="post-zona"
                         value={formData.zone}
                         onChange={e => setFormData({...formData, zone: e.target.value})}
                         className={`w-full bg-white border rounded-lg py-3 px-3 outline-none transition-colors ${
                           errors.zone ? 'border-red-300' : 'border-gray-300 focus:border-gray-900'
-                        } ${formData.zone ? 'text-gray-900' : 'text-gray-400'}`}
+                        } ${formData.zone ? 'text-gray-900' : 'text-gray-500'}`}
                       >
                         <option value="" disabled>Elegí una…</option>
                         {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
@@ -311,10 +311,10 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
 
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
-                      <label className="text-sm font-medium text-gray-700">Tu nombre *</label>
+                      <label htmlFor="post-nombre" className="text-sm font-medium text-gray-700">Tu nombre *</label>
                       {errors.professionalName && <span className="text-xs font-medium text-red-600">{errors.professionalName}</span>}
                     </div>
-                    <input 
+                    <input id="post-nombre" 
                       required
                       maxLength={60}
                       placeholder="Nombre y Apellido"
@@ -328,10 +328,10 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
 
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
-                      <label className="text-sm font-medium text-gray-700">WhatsApp *</label>
+                      <label htmlFor="post-whatsapp" className="text-sm font-medium text-gray-700">WhatsApp *</label>
                       {errors.whatsapp && <span className="text-xs font-medium text-red-600">{errors.whatsapp}</span>}
                     </div>
-                    <input 
+                    <input id="post-whatsapp" 
                       required
                       type="tel"
                       placeholder="381 412-3456"
@@ -368,10 +368,10 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
 
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
-                      <label className="text-sm font-medium text-gray-700">Descripción *</label>
+                      <label htmlFor="post-descripcion" className="text-sm font-medium text-gray-700">Descripción *</label>
                       {errors.description && <span className="text-xs font-medium text-red-600">{errors.description}</span>}
                     </div>
-                    <textarea 
+                    <textarea id="post-descripcion" 
                       required
                       placeholder="Ej: 10 años de experiencia, matriculado. Atiendo de lunes a sábado, presupuesto sin cargo."
                       rows={4}

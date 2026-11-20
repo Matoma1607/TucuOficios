@@ -8,6 +8,7 @@ import { Icons } from '../lib/icons';
 import Avatar from './Avatar';
 import Gallery from './Gallery';
 import { useToast } from './Toast';
+import SaveButton from './SaveButton';
 import { whatsappLink, shareUrl } from './JobCard';
 import { Link } from 'react-router-dom';
 import { jobPath } from '../lib/slug';
@@ -92,11 +93,14 @@ export default function JobDetailModal({ job, isOpen, onClose }: JobDetailModalP
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 transition-colors"
                 >
                   <MessageCircle className="w-5 h-5" aria-hidden="true" />
                   WhatsApp
                 </a>
+                {job.estado === 'aprobado' && (
+                  <SaveButton jobId={job.id} name={job.professionalName} className="px-3 w-12 rounded-lg border border-gray-200 hover:bg-gray-50" />
+                )}
                 {job.instagram && (
                   <a
                     href={instagramUrl(job.instagram)}
