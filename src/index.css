@@ -37,10 +37,9 @@
 
 /* Dos manchas muy difuminadas detrás de los resultados (naranja a la izquierda, azul marino a la derecha),
    para que se note la transparencia de las tarjetas. Va en un div fijo (background-attachment: fixed no anda en iPhone). */
+/* Fondo liso con el gris clarito de la paleta (antes era un degradé naranja/azul) */
 .fondo-degrade {
-  background-image:
-    radial-gradient(600px 420px at 0% 30%, rgb(255 122 26 / 0.16), transparent 65%),
-    radial-gradient(600px 480px at 100% 65%, rgb(30 42 90 / 0.14), transparent 65%);
+  background-color: var(--color-brand-bg);
 }
 
 .glass-card {
