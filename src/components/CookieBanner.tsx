@@ -38,7 +38,7 @@ export default function CookieBanner({ paused = false }: CookieBannerProps) {
           initial={{ y: 40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 40, opacity: 0 }}
-          className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:max-w-sm z-[60] bg-white border border-gray-200 rounded-xl shadow-lg p-4"
+          className="fixed bottom-[calc(76px+env(safe-area-inset-bottom))] sm:bottom-4 left-4 right-4 md:left-auto md:right-6 md:bottom-6 md:max-w-sm z-[60] bg-white border border-gray-200 rounded-xl shadow-lg p-4"
         >
           <p className="text-sm text-gray-700 leading-relaxed">
             Usamos cookies para estadísticas anónimas de visitas.{' '}
