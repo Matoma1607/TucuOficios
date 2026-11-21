@@ -1,4 +1,22 @@
+import { useEffect, useState } from 'react';
 import { Home, Search, Plus, Heart, UserRound } from 'lucide-react';
+
+// El botón Publicar "late" 3 veces una sola vez por visita, para que se note sin molestar
+function useLatidoPublicar() {
+  const [latir, setLatir] = useState(false);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('tucu_latido')) return;
+      sessionStorage.setItem('tucu_latido', '1');
+    } catch {
+      /* sin almacenamiento: late igual */
+    }
+    setLatir(true);
+    const t = setTimeout(() => setLatir(false), 8000);
+    return () => clearTimeout(t);
+  }, []);
+  return latir;
+}
 
 export type NavTab = 'home' | 'saved' | 'account';
 
@@ -16,6 +34,7 @@ interface Props {
 
 /** Menú fijo abajo, solo en el celular. */
 export default function BottomNav({ active, savedCount, hidden, avatarUrl, onHome, onSearch, onPublish, onSaved, onAccount }: Props) {
+  const latir = useLatidoPublicar();
   const item = (isActive: boolean) =>
     `flex-1 flex flex-col items-center justify-center gap-0.5 h-full text-[11px] font-semibold transition-colors ${
       isActive ? 'text-gray-900' : 'text-gray-500 active:text-gray-900'
@@ -46,8 +65,9 @@ export default function BottomNav({ active, savedCount, hidden, avatarUrl, onHom
             aria-label="Publicar oficio"
             className="-mt-5 flex flex-col items-center gap-1 text-[11px] font-semibold text-gray-900"
           >
-            <span className="w-12 h-12 grid place-items-center rounded-full bg-brand-strong active:bg-brand-strong-hover text-white shadow-[0_6px_16px_-4px_rgba(255,122,26,.6)] ring-4 ring-white">
-              <Plus className="w-6 h-6" strokeWidth={2.6} aria-hidden="true" />
+            <span className={`relative w-12 h-12 grid place-items-center rounded-full bg-brand-strong active:bg-brand-strong-hover text-white shadow-[0_6px_16px_-4px_rgba(255,122,26,.6)] ring-4 ring-white ${latir ? 'latido-publicar' : ''}`}>
+              {latir && <span aria-hidden="true" className="onda-publicar absolute inset-0 rounded-full bg-brand-strong" />}
+              <Plus className="relative w-6 h-6" strokeWidth={2.6} aria-hidden="true" />
             </span>
             Publicar
           </button>
