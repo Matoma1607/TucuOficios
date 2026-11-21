@@ -10,6 +10,7 @@ import Avatar from './Avatar';
 import { useToast } from './Toast';
 import { jobPath } from '../lib/slug';
 import SaveButton from './SaveButton';
+import { contar } from '../lib/contador';
 
 interface JobCardProps {
   job: Job;
@@ -207,7 +208,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           href={whatsappLink(job)}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={stop}
+          onClick={(e) => { stop(e); contar('whatsapp', job.id); }}
           aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
           data-tour="contacto"
           className="flex-none w-16 py-2 inline-flex flex-col items-center justify-center gap-0.5 rounded-xl bg-emerald-50 text-emerald-800 active:bg-emerald-100"
@@ -263,7 +264,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
               href={whatsappLink(job)}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={stop}
+              onClick={(e) => { stop(e); contar('whatsapp', job.id); }}
               data-tour="contacto"
               aria-label={`Escribirle a ${job.professionalName} por WhatsApp`}
               className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-sm font-medium py-2.5 transition-colors"

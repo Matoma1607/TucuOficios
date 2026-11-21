@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, LogIn, LogOut, FileText, Download, HelpCircle, MessageCircleQuestion, ShieldCheck, ClipboardCheck, ChevronRight } from 'lucide-react';
+import { X, LogIn, LogOut, FileText, Download, HelpCircle, MessageCircleQuestion, ShieldCheck, ClipboardCheck, ChevronRight, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 
@@ -16,6 +16,7 @@ interface Props {
   onSignOut: () => void;
   onMine: () => void;
   onPending: () => void;
+  onStats: () => void;
   onInstall: () => void;
   onHowItWorks: () => void;
   onFaq: () => void;
@@ -92,6 +93,13 @@ export default function AccountSheet(p: Props) {
                   <ClipboardCheck className="w-5 h-5 text-gray-500" aria-hidden="true" />
                   <span className="flex-1">Pendientes de revisión</span>
                   {p.pendingCount > 0 && <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{p.pendingCount}</span>}
+                  <ChevronRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
+                </button>
+              )}
+              {p.isAdmin && (
+                <button type="button" onClick={go(p.onStats)} className={row}>
+                  <BarChart3 className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                  <span className="flex-1">Estadísticas</span>
                   <ChevronRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
                 </button>
               )}
