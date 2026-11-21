@@ -9,6 +9,7 @@ import Avatar from './Avatar';
 import Gallery from './Gallery';
 import { useToast } from './Toast';
 import SaveButton from './SaveButton';
+import { contar } from '../lib/contador';
 import { whatsappLink, shareUrl } from './JobCard';
 import { Link } from 'react-router-dom';
 import { jobPath } from '../lib/slug';
@@ -22,6 +23,11 @@ interface JobDetailModalProps {
 export default function JobDetailModal({ job, isOpen, onClose }: JobDetailModalProps) {
   const [copied, setCopied] = React.useState(false);
   const toast = useToast();
+
+  // Cuenta una vista del perfil cada vez que se abre una publicación
+  useEffect(() => {
+    if (isOpen && job?.estado === 'aprobado') contar('perfil', job.id);
+  }, [isOpen, job?.id, job?.estado]);
 
   // Cerrar con Esc
   useEffect(() => {
@@ -92,6 +98,7 @@ export default function JobDetailModal({ job, isOpen, onClose }: JobDetailModalP
                   href={whatsappLink(job)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => contar('whatsapp', job.id)}
                   aria-label={`Contactar a ${job.professionalName} por WhatsApp`}
                   className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 transition-colors"
                 >

@@ -8,6 +8,7 @@ import { jobPath } from '../lib/slug';
 import { whatsappLink, shareUrl } from './JobCard';
 import { JobInfo } from './JobDetailModal';
 import Gallery from './Gallery';
+import { contar } from '../lib/contador';
 import { useToast } from './Toast';
 
 const DEFAULT_TITLE = 'TucuOficios | Profesionales de confianza en Tucumán';
@@ -19,6 +20,11 @@ export default function ProfilePage() {
   const [status, setStatus] = useState<'loading' | 'ok' | 'notfound' | 'error'>('loading');
   const [copied, setCopied] = useState(false);
   const toast = useToast();
+
+  // Cuenta una vista cuando el perfil terminó de cargar
+  useEffect(() => {
+    if (status === 'ok' && job?.estado === 'aprobado') contar('perfil', job.id);
+  }, [status, job?.id, job?.estado]);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,6 +124,7 @@ export default function ProfilePage() {
                   href={whatsappLink(job)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => contar('whatsapp', job.id)}
                   className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 transition-colors"
                 >
                   <MessageCircle className="w-5 h-5" aria-hidden="true" />

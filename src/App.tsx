@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3 } from 'lucide-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
@@ -8,6 +8,7 @@ import JobCardSkeleton from './components/JobCardSkeleton';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import { logPageView } from './lib/analytics';
+import { contar } from './lib/contador';
 
 // Se descargan recién cuando hacen falta: la página inicial carga menos código.
 const PostJobModal = lazy(() => import('./components/PostJobModal'));
@@ -18,6 +19,7 @@ const TucuAssistant = lazy(() => import('./components/AssistantChat'));
 const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
+const EstadisticasPage = lazy(() => import('./components/EstadisticasPage'));
 
 /** true en pantallas de 1024px o más (el breakpoint `lg` de Tailwind): ahí entra el texto largo del buscador. */
 function useIsWide() {
@@ -236,7 +238,13 @@ function HomePage() {
                       />
                     )}
                     {isAdmin && (
-                      <span className="hidden sm:inline text-xs font-medium px-2 py-0.5 rounded-full bg-orange-50 text-orange-700">Admin</span>
+                      <Link
+                        to="/estadisticas"
+                        className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100"
+                      >
+                        <BarChart3 className="w-4 h-4" aria-hidden="true" />
+                        Estadísticas
+                      </Link>
                     )}
                     <button
                       onClick={handleLogout}
@@ -556,6 +564,7 @@ function HomePage() {
             onSignIn={signInWithGoogle}
             onSignOut={handleLogout}
             onMine={() => { setView('mine'); setSelectedCategory('All'); setTimeout(() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
+            onStats={() => navigate('/estadisticas')}
             onPending={() => { setView('pending'); setSelectedCategory('All'); setTimeout(() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }}
             onInstall={installAction.run}
             onHowItWorks={() => { window.scrollTo({ top: 0 }); setShowOnboarding(true); }}
@@ -610,12 +619,18 @@ function HomePage() {
 }
 
 export default function App() {
+  // Una visita por carga del sitio (la base no repite el mismo dispositivo en 30 min)
+  useEffect(() => {
+    contar('visita');
+  }, []);
+
   return (
     <Suspense fallback={<div className="min-h-screen bg-brand-bg" />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/p/:id/:slug?" element={<ProfilePage />} />
         <Route path="/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/estadisticas" element={<EstadisticasPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
