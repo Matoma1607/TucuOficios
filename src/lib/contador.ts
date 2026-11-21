@@ -42,6 +42,12 @@ const enCola = (fn: () => void) => {
 export function contar(tipo: Tipo, jobId?: string) {
   if (!SITIO_REAL) return; // los admins los descarta la base de datos
   if (typeof navigator !== 'undefined' && navigator.webdriver) return; // robots de prueba
+  // Dispositivos marcados para no contar (el navegador de los controles automáticos)
+  try {
+    if (localStorage.getItem('tucu_no_contar') === '1') return;
+  } catch {
+    /* sin almacenamiento: se cuenta igual */
+  }
   const p_visitante = visitante();
   const p_dispositivo = dispositivo();
   enCola(() => {
