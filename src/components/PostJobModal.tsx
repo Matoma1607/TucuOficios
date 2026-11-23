@@ -8,6 +8,7 @@ import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
 import { normalizeInstagram } from '../lib/instagram';
 import AliasField from './AliasField';
+import PorQueGratis from './PorQueGratis';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 
 interface PostJobModalProps {
@@ -202,7 +203,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Entrá para publicar</h3>
                 <p className="text-gray-500 font-medium text-sm mb-8 leading-relaxed">
-                  Usamos tu cuenta de Google para que solo vos puedas editar o borrar tus publicaciones.
+                  Usamos tu cuenta de Google para que solo vos puedas editar o borrar tus publicaciones. Publicar es gratis.
                   Tu email <strong>no</strong> se muestra en la página.
                 </p>
                 <button
@@ -217,6 +218,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                   </svg>
                   <span>Continuar con Google</span>
                 </button>
+                <PorQueGratis className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center [&_ul]:justify-center" />
               </div>
             ) : success ? (
               <motion.div 

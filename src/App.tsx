@@ -4,6 +4,7 @@ import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, 
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
+import PorQueGratis from './components/PorQueGratis';
 import JobCardSkeleton from './components/JobCardSkeleton';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
@@ -537,10 +538,11 @@ function HomePage() {
           {/* Invitación a publicar antes del pie */}
           {view === 'all' && (
             <section className="max-w-6xl mx-auto px-4 mb-12 md:mb-16">
-              <div className="rounded-2xl bg-brand-dark px-6 py-8 md:px-12 md:py-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+              <div className="rounded-2xl bg-brand-dark px-6 py-8 md:px-12 md:py-12 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                 <div>
                   <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">¿Ofrecés un servicio en Tucumán?</h2>
                   <p className="mt-2 text-gray-400 md:text-lg">Publicá gratis, mostrá tus trabajos y recibí consultas por WhatsApp.</p>
+                  <PorQueGratis oscuro corto className="mt-4" />
                 </div>
                 <button
                   onClick={() => setIsModalOpen(true)}
