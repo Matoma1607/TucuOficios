@@ -47,7 +47,7 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
       if (userMessage.includes('publicar') || userMessage.includes('publico') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
         response = "Para publicar tu oficio, tocá el botón naranja 'Publicar oficio' de arriba (en el celular está abajo). Entrás con tu cuenta de Google. Completás el formulario y ¡listo! Tu anuncio se revisará y aparecerá pronto.";
       } else if (userMessage.includes('gratis') || userMessage.includes('precio') || userMessage.includes('costo') || userMessage.includes('pagar')) {
-        response = "¡TucuOficios es 100% gratuito! No cobramos por publicar ni por contactar profesionales. Queremos ayudar al trabajo tucumano.";
+        response = "Hoy publicar en TucuOficios es gratis: no te pedimos tarjeta, no cobramos comisión y los clientes te escriben directo a tu WhatsApp, sin intermediarios. Buscar y contactar profesionales tampoco tiene costo. Si en el futuro sumamos opciones pagas, van a ser opcionales y avisadas antes.";
       } else if (userMessage.includes('contacto') || userMessage.includes('whatsapp') || userMessage.includes('llamar') || userMessage.includes('hablar')) {
         response = "Para hablar con un profesional, buscá su tarjeta y tocá el botón verde de WhatsApp. Te abre directamente su WhatsApp para que acuerden el trabajo.";
       } else if (userMessage.includes('categoria') || userMessage.includes('rubro') || userMessage.includes('oficio')) {
