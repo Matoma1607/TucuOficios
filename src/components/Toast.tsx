@@ -15,7 +15,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback((message: string, kind: ToastKind = 'success') => {
     const id = nextId.current++;
     setToasts(prev => [...prev.slice(-2), { id, message, kind }]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+    // Los avisos largos quedan más tiempo para poder leerlos
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), Math.max(3000, message.length * 70));
   }, []);
 
   return (
