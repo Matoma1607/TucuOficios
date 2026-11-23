@@ -87,7 +87,9 @@ export function channelText(job: Job, profileUrl: string): string {
     job.description,
     '',
   ];
-  if (job.instagram) lines.push(`📸 Instagram: ${instagramUrl(job.instagram)}`);
-  lines.push(`👉 Contactalo acá: ${profileUrl}`, '', '#TucuOficios #Tucumán');
+  // Sin "https://": se ve más limpio y WhatsApp igual lo hace clickeable
+  const limpio = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '');
+  if (job.instagram) lines.push(`📸 Instagram: ${limpio(instagramUrl(job.instagram))}`);
+  lines.push(`👉 Ver trabajos y contacto: ${limpio(profileUrl)}`, '', '#TucuOficios #Tucumán');
   return lines.join('\n');
 }
