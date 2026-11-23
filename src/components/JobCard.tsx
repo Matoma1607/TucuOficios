@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2 } from 'lucide-react';
+import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2, QrCode } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, sectionOf } from '../types';
 import { instagramUrl } from '../lib/instagram';
 import { channelText } from '../lib/channel';
@@ -11,6 +11,8 @@ import { useToast } from './Toast';
 import { jobPath } from '../lib/slug';
 import SaveButton from './SaveButton';
 import { contar } from '../lib/contador';
+
+const QrModal = lazy(() => import('./QrModal'));
 
 interface JobCardProps {
   job: Job;
@@ -38,6 +40,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
   const [copiedChannel, setCopiedChannel] = useState(false);
+  const [showQr, setShowQr] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [thumbFailed, setThumbFailed] = useState(false);
   const toast = useToast();
@@ -338,6 +341,14 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           >
             <Trash2 className="w-3.5 h-3.5" /> Borrar
           </button>
+          {job.alias && job.estado === 'aprobado' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowQr(true); }}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+            >
+              <QrCode className="w-3.5 h-3.5" /> Mi QR
+            </button>
+          )}
           {isAdmin && (
             <button
               onClick={handleCopyForChannel}
@@ -349,6 +360,11 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             </button>
           )}
         </div>
+      )}
+      {showQr && job.alias && (
+        <Suspense fallback={null}>
+          <QrModal job={{ ...job, alias: job.alias }} onClose={() => setShowQr(false)} />
+        </Suspense>
       )}
     </motion.article>
   );
