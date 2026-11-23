@@ -1,5 +1,5 @@
 /**
- * Vista previa al compartir un perfil (/p/<id>/...).
+ * Vista previa al compartir un perfil: el link corto (/<alias>) o el viejo (/p/<id>/...).
  *
  * WhatsApp, Facebook, etc. no ejecutan JavaScript: leen las etiquetas <meta>
  * del HTML. Esta función corre en Netlify antes de servir la página y cambia
@@ -15,6 +15,8 @@ interface Context {
 }
 
 interface JobRow {
+  id: string;
+  alias: string | null;
   title: string;
   category: string;
   zone: string;
@@ -24,6 +26,9 @@ interface JobRow {
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ALIAS = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
+// Páginas propias del sitio (no son perfiles)
+const PAGINAS = new Set(['privacidad', 'estadisticas']);
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -47,16 +52,26 @@ function setMeta(html: string, attr: 'property' | 'name', key: string, value: st
 }
 
 export default async (request: Request, context: Context) => {
-  const response = await context.next();
   const url = new URL(request.url);
-  const id = url.pathname.split('/')[2] ?? '';
+  const partes = url.pathname.split('/').filter(Boolean);
 
+  // /p/<id>/... (link viejo) o /<alias> (link corto); cualquier otra cosa pasa de largo
+  let filtro = '';
+  if (partes[0] === 'p' && UUID.test(partes[1] ?? '')) {
+    filtro = `id=eq.${partes[1]}`;
+  } else if (partes.length === 1 && ALIAS.test(partes[0]) && !PAGINAS.has(partes[0])) {
+    filtro = `alias=eq.${partes[0]}`;
+  } else {
+    return context.next();
+  }
+
+  const response = await context.next();
   const supabaseUrl = Netlify.env.get('VITE_SUPABASE_URL');
   const key = Netlify.env.get('VITE_SUPABASE_ANON_KEY');
-  if (!UUID.test(id) || !supabaseUrl || !key) return response;
+  if (!supabaseUrl || !key) return response;
 
   try {
-    const api = `${supabaseUrl}/rest/v1/jobs?select=title,category,zone,professional_name,description,image_path&id=eq.${id}&estado=eq.aprobado`;
+    const api = `${supabaseUrl}/rest/v1/jobs?select=id,alias,title,category,zone,professional_name,description,image_path&${filtro}&estado=eq.aprobado`;
     const res = await fetch(api, { headers: { apikey: key } });
     if (!res.ok) return response;
     const [job] = (await res.json()) as JobRow[];
@@ -74,8 +89,12 @@ export default async (request: Request, context: Context) => {
       job.description.length > 150 ? `${job.description.slice(0, 147)}…` : job.description
     );
     const image = imageFor(job.image_path, supabaseUrl);
-    // Dirección "oficial" del perfil (la misma que el sitemap), aunque entren con otro texto al final.
-    const pageUrl = escapeHtml(`https://tucuoficios.net.ar/p/${id}/${slugify(`${job.professional_name} ${job.title}`)}`);
+    // Dirección "oficial" del perfil (la misma que el sitemap): el link corto si tiene.
+    const pageUrl = escapeHtml(
+      job.alias
+        ? `https://tucuoficios.net.ar/${job.alias}`
+        : `https://tucuoficios.net.ar/p/${job.id}/${slugify(`${job.professional_name} ${job.title}`)}`
+    );
 
     let html = await response.text();
     html = html.replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`);
@@ -96,4 +115,8 @@ export default async (request: Request, context: Context) => {
   }
 };
 
-export const config = { path: '/p/*' };
+export const config = {
+  path: ['/p/*', '/*'],
+  // Archivos (js, css, imágenes, sitemap...) nunca son perfiles
+  excludedPath: ['/assets/*', '/*.*'],
+};

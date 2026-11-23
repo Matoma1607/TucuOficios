@@ -10,6 +10,7 @@ const SITE = 'https://tucuoficios.net.ar';
 
 interface Row {
   id: string;
+  alias: string | null;
   professional_name: string;
   title: string;
   updated_at: string;
@@ -25,7 +26,7 @@ export default async () => {
   if (supabaseUrl && key) {
     try {
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/jobs?select=id,professional_name,title,updated_at&estado=eq.aprobado&order=updated_at.desc`,
+        `${supabaseUrl}/rest/v1/jobs?select=id,alias,professional_name,title,updated_at&estado=eq.aprobado&order=updated_at.desc`,
         { headers: { apikey: key } }
       );
       if (res.ok) rows = await res.json();
@@ -39,7 +40,9 @@ export default async () => {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     url(`${SITE}/`),
     url(`${SITE}/privacidad`),
-    ...rows.map(r => url(`${SITE}/p/${r.id}/${slugify(`${r.professional_name} ${r.title}`)}`, r.updated_at)),
+    ...rows.map(r =>
+      url(r.alias ? `${SITE}/${r.alias}` : `${SITE}/p/${r.id}/${slugify(`${r.professional_name} ${r.title}`)}`, r.updated_at)
+    ),
     '</urlset>',
   ].join('\n');
 
