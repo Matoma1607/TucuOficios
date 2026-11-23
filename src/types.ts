@@ -5,6 +5,7 @@ export interface Job {
   category: string;
   zone: string;
   professionalName: string;
+  alias: string | null;      // link corto: tucuoficios.net.ar/<alias>
   whatsapp: string; // formato 549XXXXXXXXXX
   instagram: string | null; // usuario, sin @
   imageUrl: string;          // portada

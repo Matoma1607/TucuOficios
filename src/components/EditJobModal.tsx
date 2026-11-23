@@ -6,6 +6,7 @@ import { updateJob, uploadJobImage, removeImages, normalizeWhatsapp, formatWhats
 import { normalizeInstagram } from '../lib/instagram';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 import { useToast } from './Toast';
+import AliasField from './AliasField';
 
 interface EditJobModalProps {
   isOpen: boolean;
@@ -24,6 +25,8 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
   const [instagram, setInstagram] = useState('');
   const [profName, setProfName] = useState('');
   const [description, setDescription] = useState('');
+  const [alias, setAlias] = useState('');
+  const [aliasOk, setAliasOk] = useState(true);
   const [estado, setEstado] = useState<Job['estado']>('pendiente');
   const [verificado, setVerificado] = useState(false);
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -42,6 +45,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
       setInstagram(job.instagram ?? '');
       setProfName(job.professionalName);
       setDescription(job.description || '');
+      setAlias(job.alias ?? '');
       setEstado(job.estado);
       setVerificado(job.verificado);
       setPhotos(job.photoPaths.map((path, i) => ({ key: path, path, url: job.photoUrls[i] })));
@@ -57,6 +61,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
     if (!description.trim() || description.trim().length < 10) newErrors.description = 'Mínimo 10 caracteres';
     if (!normalizeWhatsapp(whatsapp)) newErrors.whatsapp = 'Ej: 381 412-3456';
     if (normalizeInstagram(instagram) === null) newErrors.instagram = 'Revisá el usuario';
+    if (!aliasOk) newErrors.alias = 'Elegí otro link';
     if (photos.length === 0) newErrors.image = 'Dejá al menos una foto.';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -93,6 +98,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
           whatsapp: normalizeWhatsapp(whatsapp)!,
           instagram: normalizeInstagram(instagram) || null,
           description,
+          alias,
         },
         finalPaths,
         isAdmin ? { estado, verificado } : undefined
@@ -253,6 +259,27 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                       className="w-full bg-transparent py-3 pl-1 pr-4 outline-none"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label htmlFor="edit-alias" className="text-sm font-medium text-gray-700">Tu link en TucuOficios</label>
+                    {errors.alias && <span className="text-xs font-medium text-red-600">{errors.alias}</span>}
+                  </div>
+                  <AliasField
+                    id="edit-alias"
+                    value={alias}
+                    onChange={(a) => setAlias(a)}
+                    nombre={profName}
+                    titulo={title}
+                    categoria={category}
+                    jobId={job?.id}
+                    fijo={Boolean(job?.alias)}
+                    onEstado={setAliasOk}
+                  />
+                  {job?.alias && alias && alias !== job.alias && (
+                    <p className="mt-1 ml-1 text-xs text-amber-700">Si lo cambiás, el link anterior deja de funcionar.</p>
+                  )}
                 </div>
 
                 {isAdmin ? (
