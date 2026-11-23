@@ -23,8 +23,14 @@ describe('texto para el canal', () => {
     expect(text).not.toContain('🛠️');
   });
 
+  it('el link del perfil va sin https y con texto neutro', () => {
+    const text = channelText(job(), 'https://tucuoficios.net.ar/noelia-ollas');
+    expect(text).toContain('👉 Ver trabajos y contacto: tucuoficios.net.ar/noelia-ollas');
+    expect(text).not.toContain('https://');
+  });
+
   it('agrega el link de Instagram solo si lo cargó', () => {
     expect(channelText(job(), 'u')).not.toContain('instagram.com');
-    expect(channelText(job({ instagram: 'noelia.essen' }), 'u')).toContain('📸 Instagram: https://www.instagram.com/noelia.essen/');
+    expect(channelText(job({ instagram: 'noelia.essen' }), 'u')).toContain('📸 Instagram: instagram.com/noelia.essen/');
   });
 });
