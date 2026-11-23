@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, Link as LinkIcon, MessageCircle, Instagram } from 'lucide-react';
 import { instagramUrl } from '../lib/instagram';
 import type { Job } from '../types';
-import { fetchJob } from '../services/jobs';
+import { fetchJob, fetchJobByAlias } from '../services/jobs';
 import { jobPath } from '../lib/slug';
 import { whatsappLink, shareUrl } from './JobCard';
 import { JobInfo } from './JobDetailModal';
@@ -14,7 +14,8 @@ import { useToast } from './Toast';
 const DEFAULT_TITLE = 'TucuOficios | Profesionales de confianza en Tucumán';
 
 export default function ProfilePage() {
-  const { id = '', slug } = useParams();
+  const { id = '', slug, alias } = useParams();
+  const clave = alias ?? id;
   const navigate = useNavigate();
   const [job, setJob] = useState<Job | null>(null);
   const [status, setStatus] = useState<'loading' | 'ok' | 'notfound' | 'error'>('loading');
@@ -29,19 +30,20 @@ export default function ProfilePage() {
   useEffect(() => {
     let cancelled = false;
     setStatus('loading');
-    fetchJob(id)
+    (alias ? fetchJobByAlias(alias) : fetchJob(id))
       .then(found => {
         if (cancelled) return;
         if (!found) return setStatus('notfound');
         setJob(found);
         setStatus('ok');
-        // Corrige la URL si el nombre cambió o llegó sin slug
+        // Lleva siempre a la URL canónica (el link corto si tiene)
         const canonical = jobPath(found);
-        if (`/p/${id}/${slug ?? ''}` !== canonical) navigate(canonical, { replace: true });
+        const actual = alias ? `/${alias}` : `/p/${id}/${slug ?? ''}`;
+        if (actual !== canonical) navigate(canonical, { replace: true });
       })
       .catch(() => !cancelled && setStatus('error'));
     return () => { cancelled = true; };
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [clave]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (job) document.title = `${job.professionalName} · ${job.title} | TucuOficios`;

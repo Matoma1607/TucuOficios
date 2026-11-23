@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js';
 import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
 import { normalizeInstagram } from '../lib/instagram';
+import AliasField from './AliasField';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 
 interface PostJobModalProps {
@@ -27,6 +28,8 @@ const emptyForm = () => ({
   whatsapp: '',
   instagram: '',
   description: '',
+  alias: '',
+  aliasManual: false,
 });
 
 const loadDraft = () => {
@@ -48,6 +51,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
+  const [aliasOk, setAliasOk] = useState(true);
 
   useEffect(() => {
     try {
@@ -91,6 +95,9 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
     if (normalizeInstagram(formData.instagram ?? '') === null) {
       newErrors.instagram = 'Revisá el usuario';
     }
+    if (!aliasOk) {
+      newErrors.alias = 'Elegí otro link';
+    }
     if (photos.length === 0) {
       newErrors.image = 'Subí al menos una foto de tu trabajo.';
     }
@@ -130,7 +137,12 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
       step = 'datos';
       await createJob(
         {
-          ...formData,
+          title: formData.title,
+          category: formData.category,
+          zone: formData.zone,
+          professionalName: formData.professionalName,
+          description: formData.description,
+          alias: formData.alias,
           whatsapp: normalizeWhatsapp(formData.whatsapp)!,
           instagram: normalizeInstagram(formData.instagram ?? '') || null,
         },
@@ -364,6 +376,23 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                       />
                     </div>
                     <p className="mt-1.5 ml-1 text-xs text-gray-500">Si mostrás tus trabajos ahí, los clientes te van a tener más confianza.</p>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
+                      <label htmlFor="post-alias" className="text-sm font-medium text-gray-700">Tu link en TucuOficios</label>
+                      {errors.alias && <span className="text-xs font-medium text-red-600">{errors.alias}</span>}
+                    </div>
+                    <AliasField
+                      id="post-alias"
+                      value={formData.alias}
+                      onChange={(alias, manual) => setFormData(f => ({ ...f, alias, aliasManual: f.aliasManual || manual }))}
+                      nombre={formData.professionalName}
+                      titulo={formData.title}
+                      categoria={formData.category}
+                      fijo={formData.aliasManual}
+                      onEstado={setAliasOk}
+                    />
                   </div>
 
                   <div>

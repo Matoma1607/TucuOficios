@@ -642,6 +642,7 @@ export default function App() {
         <Route path="/p/:id/:slug?" element={<ProfilePage />} />
         <Route path="/privacidad" element={<PrivacyPolicy />} />
         <Route path="/estadisticas" element={<EstadisticasPage />} />
+        <Route path="/:alias" element={<ProfilePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

@@ -12,6 +12,7 @@ interface JobRow {
   category: string;
   zone: string;
   professional_name: string;
+  alias: string | null;
   whatsapp: string;
   instagram: string | null;
   description: string;
@@ -29,6 +30,7 @@ export interface JobInput {
   professionalName: string;
   whatsapp: string;
   instagram?: string | null; // usuario sin @, '' o null = sin Instagram
+  alias?: string; // link corto; vacío = lo arma la base
   description: string;
 }
 
@@ -77,6 +79,7 @@ const toJob = (r: JobRow): Job => {
     category: r.category,
     zone: r.zone,
     professionalName: r.professional_name,
+    alias: r.alias ?? null,
     whatsapp: r.whatsapp,
     instagram: r.instagram ?? null,
     description: r.description,
@@ -100,12 +103,16 @@ const toRow = (input: JobInput) => ({
   whatsapp: input.whatsapp,
   instagram: input.instagram ? input.instagram : null,
   description: input.description.trim(),
+  ...(input.alias !== undefined ? { alias: input.alias.trim() || null } : {}),
 });
 
 /** Traduce los errores de Postgres a mensajes entendibles. */
 function friendlyError(error: { message: string; code?: string }): Error {
-  if (error.message.includes('límite') || error.message.includes('Esperá')) {
+  if (error.message.includes('límite') || error.message.includes('Esperá') || error.message.includes('link')) {
     return new Error(error.message);
+  }
+  if (error.code === '23505' && error.message.includes('alias')) {
+    return new Error('Ese link ya lo usa otra publicación. Probá con otro.');
   }
   if (error.code === '23514') return new Error('Algún dato no es válido. Revisá el formulario.');
   if (error.code === '42501') return new Error('No tenés permiso para hacer esto.');
@@ -129,6 +136,15 @@ export async function fetchJobs(): Promise<Job[]> {
 export async function fetchJob(id: string): Promise<Job | null> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   const { data, error } = await supabase.from('jobs').select('*').eq('id', id).maybeSingle();
+  if (error) throw friendlyError(error);
+  return data ? toJob(data as JobRow) : null;
+}
+
+/** Publicación por su link corto (tucuoficios.net.ar/<alias>). */
+export async function fetchJobByAlias(alias: string): Promise<Job | null> {
+  const a = alias.toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(a)) return null;
+  const { data, error } = await supabase.from('jobs').select('*').eq('alias', a).maybeSingle();
   if (error) throw friendlyError(error);
   return data ? toJob(data as JobRow) : null;
 }
