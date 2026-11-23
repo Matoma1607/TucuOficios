@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2, QrCode } from 'lucide-react';
+import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2, QrCode, Image as ImageIcon } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, sectionOf } from '../types';
 import { instagramUrl } from '../lib/instagram';
 import { channelText } from '../lib/channel';
@@ -40,7 +40,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
   const [copiedChannel, setCopiedChannel] = useState(false);
-  const [showQr, setShowQr] = useState(false);
+  const [compartir, setCompartir] = useState<null | 'qr' | 'historia'>(null);
   const [imgError, setImgError] = useState(false);
   const [thumbFailed, setThumbFailed] = useState(false);
   const toast = useToast();
@@ -328,7 +328,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
       {/* Herramientas del dueño / admin */}
       {canManage && (
-        <div className="mt-3 sm:mt-0 pt-3 sm:px-3 sm:pb-3 border-t border-gray-100 flex items-center gap-1 text-xs">
+        <div className="mt-3 sm:mt-0 pt-3 sm:px-3 sm:pb-3 border-t border-gray-100 flex flex-wrap items-center gap-1 text-xs">
           <button
             onClick={(e) => { e.stopPropagation(); onEdit?.(job); }}
             className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
@@ -343,10 +343,18 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           </button>
           {job.alias && job.estado === 'aprobado' && (
             <button
-              onClick={(e) => { e.stopPropagation(); setShowQr(true); }}
+              onClick={(e) => { e.stopPropagation(); setCompartir('qr'); }}
               className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
             >
               <QrCode className="w-3.5 h-3.5" /> Mi QR
+            </button>
+          )}
+          {job.alias && job.estado === 'aprobado' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setCompartir('historia'); }}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+            >
+              <ImageIcon className="w-3.5 h-3.5" /> Historia
             </button>
           )}
           {isAdmin && (
@@ -361,9 +369,9 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
           )}
         </div>
       )}
-      {showQr && job.alias && (
+      {compartir && job.alias && (
         <Suspense fallback={null}>
-          <QrModal job={{ ...job, alias: job.alias }} onClose={() => setShowQr(false)} />
+          <QrModal job={{ ...job, alias: job.alias }} tipo={compartir} onClose={() => setCompartir(null)} />
         </Suspense>
       )}
     </motion.article>

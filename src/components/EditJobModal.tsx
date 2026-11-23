@@ -110,7 +110,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
       onSaved();
       onClose();
-      toast(isAdmin ? 'Cambios guardados' : 'Cambios guardados. Vuelve a revisión.');
+      toast(isAdmin ? 'Cambios guardados' : 'Cambios guardados. Tu publicación vuelve a revisión y se muestra de nuevo cuando la aprobemos.');
     } catch (error) {
       if (!saved) await removeImages(uploaded);
       setErrors({ submit: error instanceof Error ? error.message : 'Error al guardar.' });
@@ -313,7 +313,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                   </div>
                 ) : (
                   <p className="text-sm text-amber-800 bg-amber-50 rounded-lg px-4 py-3">
-                    Al guardar cambios, tu publicación vuelve a revisión antes de mostrarse.
+                    Al guardar cambios, tu publicación vuelve a revisión y se muestra de nuevo cuando la aprobemos (mientras tanto, tu link no abre).
                   </p>
                 )}
 
