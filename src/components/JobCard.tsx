@@ -1,7 +1,7 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2, QrCode, Image as ImageIcon } from 'lucide-react';
-import { Job, CATEGORIES_CONFIG, sectionOf } from '../types';
+import { Job, CATEGORIES_CONFIG, sectionOf, rubrosDe } from '../types';
 import { instagramUrl } from '../lib/instagram';
 import { channelText } from '../lib/channel';
 import { Icons } from '../lib/icons';
@@ -22,6 +22,8 @@ interface JobCardProps {
   onDeleted?: (id: string) => void;
   onStatusChanged?: (id: string, estado: Job['estado']) => void;
   onClick?: () => void;
+  /** Rubro a mostrar (cuando se filtra por uno de sus rubros extra) */
+  rubro?: string;
 }
 
 export function whatsappLink(job: Job) {
@@ -34,7 +36,7 @@ export function shareUrl(job: Job) {
   return `${window.location.origin}${jobPath(job)}`;
 }
 
-export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, onStatusChanged, onClick }: JobCardProps) {
+export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, onStatusChanged, onClick, rubro }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -62,11 +64,15 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
     }
   };
 
-  const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
+  // Si se filtró por uno de sus rubros extra, se muestra ese; si no, el principal
+  const rubroVisible = rubro && rubrosDe(job).includes(rubro) ? rubro : job.category;
+  const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === rubroVisible);
   const CategoryIcon = (categoryInfo && Icons[categoryInfo.iconName]) || Icons.HelpCircle;
   // En el listado se muestra el oficio (siempre prolijo); el título libre va en el perfil.
-  const categoryLabel = categoryInfo?.label ?? job.category;
-  const section = sectionOf(job.category);
+  const categoryLabel = categoryInfo?.label ?? rubroVisible;
+  const otrosRubros = rubrosDe(job).length - 1;
+  const masRubros = otrosRubros > 0 ? ` · +${otrosRubros} ${otrosRubros === 1 ? 'rubro' : 'rubros'}` : '';
+  const section = sectionOf(rubroVisible);
   const hasImage = !!job.imageUrl && !imgError;
   const statusBadge = job.estado !== 'aprobado' ? (
     <span
@@ -197,7 +203,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             <span className="truncate">{job.professionalName}</span>
             {job.verificado && <BadgeCheck className="w-4 h-4 flex-none text-sky-600" aria-label="Verificado" />}
           </p>
-          <p className="text-sm text-gray-600 truncate">{categoryLabel}</p>
+          <p className="text-sm text-gray-600 truncate">{categoryLabel}{masRubros && <span className="text-gray-500">{masRubros}</span>}</p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500 min-w-0">
             <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
             <span className="truncate">{job.zone}</span>
@@ -256,7 +262,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             <span className="line-clamp-2">{job.professionalName}</span>
             {job.verificado && <BadgeCheck className="w-4 h-4 mt-0.5 flex-none text-sky-600" aria-label="Verificado" />}
           </p>
-          <h3 className="mt-1 text-sm text-gray-700">{categoryLabel}</h3>
+          <h3 className="mt-1 text-sm text-gray-700">{categoryLabel}{masRubros && <span className="text-gray-500">{masRubros}</span>}</h3>
           <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500 min-w-0">
             <MapPin className="w-3.5 h-3.5 flex-none" aria-hidden="true" />
             <span className="truncate">{job.zone}</span>

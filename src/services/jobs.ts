@@ -10,6 +10,7 @@ interface JobRow {
   owner_id: string;
   title: string;
   category: string;
+  categorias_extra: string[] | null;
   zone: string;
   professional_name: string;
   alias: string | null;
@@ -26,6 +27,7 @@ interface JobRow {
 export interface JobInput {
   title: string;
   category: string;
+  extraCategories?: string[];
   zone: string;
   professionalName: string;
   whatsapp: string;
@@ -77,6 +79,7 @@ const toJob = (r: JobRow): Job => {
     ownerId: r.owner_id,
     title: r.title,
     category: r.category,
+    extraCategories: (r.categorias_extra ?? []).filter((c) => c !== r.category),
     zone: r.zone,
     professionalName: r.professional_name,
     alias: r.alias ?? null,
@@ -98,6 +101,9 @@ const toJob = (r: JobRow): Job => {
 const toRow = (input: JobInput) => ({
   title: input.title.trim(),
   category: input.category,
+  ...(input.extraCategories !== undefined
+    ? { categorias_extra: [...new Set(input.extraCategories)].filter((c) => c !== input.category).slice(0, 3) }
+    : {}),
   zone: input.zone.trim(),
   professional_name: input.professionalName.trim(),
   whatsapp: input.whatsapp,

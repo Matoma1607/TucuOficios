@@ -7,6 +7,7 @@ import { normalizeInstagram } from '../lib/instagram';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 import { useToast } from './Toast';
 import AliasField from './AliasField';
+import RubrosExtra from './RubrosExtra';
 
 interface EditJobModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface EditJobModalProps {
 const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJobModalProps) => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<Category>(CATEGORIES_CONFIG[0].id);
+  const [extras, setExtras] = useState<string[]>([]);
   const [zone, setZone] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -40,6 +42,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
     if (job) {
       setTitle(job.title);
       setCategory(job.category as Category);
+      setExtras(job.extraCategories ?? []);
       setZone(job.zone);
       setWhatsapp(formatWhatsappForInput(job.whatsapp || ''));
       setInstagram(job.instagram ?? '');
@@ -93,6 +96,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
         {
           title,
           category,
+          extraCategories: extras,
           zone,
           professionalName: profName,
           whatsapp: normalizeWhatsapp(whatsapp)!,
@@ -176,7 +180,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                     <label htmlFor="edit-categoria" className="block text-sm font-medium text-gray-700 mb-2 ml-1">Categoría</label>
                     <select id="edit-categoria"
                       value={category}
-                      onChange={(e) => setCategory(e.target.value as Category)}
+                      onChange={(e) => { setCategory(e.target.value as Category); setExtras((x) => x.filter((r) => r !== e.target.value)); }}
                       className="w-full bg-white border border-gray-300 focus:border-gray-900 rounded-lg py-3 px-3 outline-none transition-colors"
                     >
                       {!CATEGORIES_CONFIG.some(c => c.id === category) && <option value={category}>{category} (anterior)</option>}
@@ -206,6 +210,11 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                       {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="edit-rubros" className="block text-sm font-medium text-gray-700 mb-2 ml-1">¿Hacés algo más? <span className="font-normal text-gray-500">(opcional)</span></label>
+                  <RubrosExtra id="edit-rubros" principal={category} value={extras} onChange={setExtras} />
                 </div>
 
                 <div>

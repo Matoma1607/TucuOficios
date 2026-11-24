@@ -159,6 +159,11 @@ export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
           <p className="inline-flex items-center gap-1.5 text-sm text-gray-600">
             <CategoryIcon className="w-4 h-4" aria-hidden="true" /> {categoryInfo?.label ?? job.category}
           </p>
+          {job.extraCategories?.length > 0 && (
+            <p className="mt-0.5 text-sm text-gray-500">
+              También: {job.extraCategories.map(r => CATEGORIES_CONFIG.find(c => c.id === r)?.label ?? r).join(' · ')}
+            </p>
+          )}
         </div>
       </div>
 

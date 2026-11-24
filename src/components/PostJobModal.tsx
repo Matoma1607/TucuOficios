@@ -9,6 +9,7 @@ import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../s
 import { normalizeInstagram } from '../lib/instagram';
 import AliasField from './AliasField';
 import PorQueGratis from './PorQueGratis';
+import RubrosExtra from './RubrosExtra';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 
 interface PostJobModalProps {
@@ -31,6 +32,7 @@ const emptyForm = () => ({
   description: '',
   alias: '',
   aliasManual: false,
+  extraCategories: [] as string[],
 });
 
 const loadDraft = () => {
@@ -140,6 +142,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
         {
           title: formData.title,
           category: formData.category,
+          extraCategories: formData.extraCategories,
           zone: formData.zone,
           professionalName: formData.professionalName,
           description: formData.description,
@@ -290,7 +293,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                       </div>
                       <select id="post-categoria" 
                         value={formData.category}
-                        onChange={e => setFormData({...formData, category: e.target.value as Category})}
+                        onChange={e => setFormData({...formData, category: e.target.value as Category, extraCategories: (formData.extraCategories ?? []).filter(r => r !== e.target.value)})}
                         className={`w-full bg-white border rounded-lg py-3 px-3 outline-none transition-colors ${
                           errors.category ? 'border-red-300' : 'border-gray-300 focus:border-gray-900'
                         } ${formData.category ? 'text-gray-900' : 'text-gray-500'}`}
@@ -321,6 +324,16 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                         {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
                       </select>
                     </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="post-rubros" className="block text-sm font-medium text-gray-700 mb-2 ml-1">¿Hacés algo más? <span className="font-normal text-gray-500">(opcional)</span></label>
+                    <RubrosExtra
+                      id="post-rubros"
+                      principal={formData.category}
+                      value={formData.extraCategories ?? []}
+                      onChange={(r) => setFormData(f => ({ ...f, extraCategories: r }))}
+                    />
                   </div>
 
                   <div>
