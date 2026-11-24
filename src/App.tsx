@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3, CircleHelp } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3, CircleHelp, LocateFixed, Loader2, X } from 'lucide-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import PorQueGratis from './components/PorQueGratis';
 import VolverArriba from './components/VolverArriba';
+import { pedirUbicacion, ordenarPorCercania, type Ubicacion } from './lib/cercania';
 import JobCardSkeleton from './components/JobCardSkeleton';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
@@ -59,6 +60,9 @@ function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
+  // "Cerca tuyo": la ubicación solo se usa acá, en el navegador
+  const [cerca, setCerca] = useState<Ubicacion | null>(null);
+  const [buscandoUbicacion, setBuscandoUbicacion] = useState(false);
   const [view, setView] = useState<'all' | 'mine' | 'pending' | 'saved'>('all');
   const favorites = useFavorites();
   const [accountOpen, setAccountOpen] = useState(false);
@@ -211,18 +215,39 @@ function HomePage() {
   // se lo reconoce por su WhatsApp), para que nadie ocupe la portada con avisos parecidos. Si tiene
   // publicaciones de secciones distintas (ej: clases y maquillaje) se ven todas. Al buscar o filtrar, todo.
   const listedJobs = useMemo(() => {
-    if (view !== 'all' || selectedCategory !== 'All' || searchQuery.trim()) return filteredJobs;
+    const base = cerca && view === 'all' ? ordenarPorCercania(filteredJobs, cerca.punto) : filteredJobs;
+    if (view !== 'all' || selectedCategory !== 'All' || searchQuery.trim()) return base;
     const vistos = new Set<string>();
-    return filteredJobs.filter(j => {
+    return base.filter(j => {
       const clave = `${j.whatsapp}|${sectionOf(j.category).id}`;
       return vistos.has(clave) ? false : (vistos.add(clave), true);
     });
-  }, [filteredJobs, view, selectedCategory, searchQuery]);
+  }, [filteredJobs, view, selectedCategory, searchQuery, cerca]);
 
   // Profesionales distintos (no publicaciones)
   const profesionalesCount = useMemo(() => new Set(filteredJobs.map(j => j.whatsapp)).size, [filteredJobs]);
 
   const toast = useToast();
+
+  const buscarCerca = async () => {
+    setBuscandoUbicacion(true);
+    try {
+      const u = await pedirUbicacion();
+      setCerca(u);
+      document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      const motivo = (e as Error).message;
+      toast(
+        motivo === 'denegado'
+          ? 'No tenemos permiso para ver tu ubicación. Podés elegir tu zona en el filtro.'
+          : motivo === 'fuera'
+            ? 'Parece que no estás en Tucumán. Elegí una zona en el filtro.'
+            : 'No pudimos obtener tu ubicación. Probá de nuevo o elegí tu zona en el filtro.',
+      );
+    } finally {
+      setBuscandoUbicacion(false);
+    }
+  };
   const handleLogout = async () => {
     await signOut();
     toast('Sesión cerrada');
@@ -365,6 +390,36 @@ function HomePage() {
                   </button>
                 </div>
               </form>
+              {view === 'all' && (
+                <div className="mt-3">
+                  {cerca ? (
+                    <span className="inline-flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-[#E3E7F3] border border-[#C9D0E6] text-brand-dark text-sm font-medium">
+                      <LocateFixed className="w-4 h-4" aria-hidden="true" />
+                      Primero los más cercanos a {cerca.zona}
+                      <button
+                        type="button"
+                        onClick={() => setCerca(null)}
+                        aria-label="Dejar de ordenar por cercanía"
+                        className="w-7 h-7 inline-flex items-center justify-center rounded-full hover:bg-[#D6DCEE]"
+                      >
+                        <X className="w-4 h-4" aria-hidden="true" />
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={buscarCerca}
+                      disabled={buscandoUbicacion}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-[#E3E7F3] border border-[#C9D0E6] text-brand-dark text-sm font-medium hover:bg-[#D6DCEE] disabled:opacity-70 transition-colors"
+                    >
+                      {buscandoUbicacion
+                        ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        : <LocateFixed className="w-4 h-4" aria-hidden="true" />}
+                      {buscandoUbicacion ? 'Buscando tu ubicación…' : 'Ver primero los más cercanos a mí'}
+                    </button>
+                  )}
+                </div>
+              )}
               {installApp.showBanner && (
                 <InstallBanner onInstall={installAction.run} onDismiss={installApp.dismiss} />
               )}
@@ -437,7 +492,9 @@ function HomePage() {
                         ? 'Tus guardados'
                       : searchQuery || selectedZone || selectedCategory !== 'All'
                         ? 'Resultados'
-                        : 'Publicados recientemente'}
+                        : cerca
+                          ? 'Cerca tuyo'
+                          : 'Publicados recientemente'}
                 </h2>
                 <p className="text-sm text-gray-600 text-right">
                   {view === 'all'
