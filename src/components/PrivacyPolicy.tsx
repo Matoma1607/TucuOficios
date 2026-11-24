@@ -91,6 +91,9 @@ export default function PrivacyPolicy() {
             <p className="text-gray-600 leading-relaxed">
               Al hacer clic en el botón de WhatsApp, el sitio redirige a la aplicación oficial de Meta. Utilizamos cookies mínimas para que la web cargue más rápido y para fines estadísticos anónimos.
             </p>
+            <p className="text-gray-600 leading-relaxed">
+              Si publicás en TucuOficios, podemos escribirte al WhatsApp que cargaste, desde nuestro número oficial (<a href="https://wa.me/5493813217398" target="_blank" rel="noopener noreferrer" className="underline text-gray-900">381 321-7398</a>), solo para darte la bienvenida o avisarte sobre tu publicación. No usamos tu número para publicidad ni lo compartimos con terceros. Si no querés que te escribamos, avisanos por ese mismo chat.
+            </p>
           </section>
 
           <section className="space-y-4">

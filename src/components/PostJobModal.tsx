@@ -368,6 +368,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                         errors.whatsapp ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                       }`}
                     />
+                    <p className="mt-1.5 ml-1 text-xs text-gray-500">Ahí te escriben los clientes. También te podemos escribir desde el WhatsApp oficial de TucuOficios para avisarte sobre tu publicación.</p>
                   </div>
 
                   <div>
