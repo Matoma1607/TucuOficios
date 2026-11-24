@@ -41,7 +41,7 @@ function useOnceTrue(flag: boolean) {
   useEffect(() => { if (flag) setSeen(true); }, [flag]);
   return seen || flag;
 }
-import { Job, Category, CATEGORIES_CONFIG, ZONES, rubrosDe } from './types';
+import { Job, Category, CATEGORIES_CONFIG, ZONES, rubrosDe, sectionOf } from './types';
 import { useAuth } from './hooks/useAuth';
 import { useInstallApp } from './hooks/useInstallApp';
 import { InstallBanner, IosInstallHelp, useInstallAction } from './components/InstallApp';
@@ -193,7 +193,7 @@ function HomePage() {
         counts[`§${sec}`] = (counts[`§${sec}`] ?? 0) + 1;
     }
     // "Todo" muestra lo mismo que la lista: sin búsqueda, una publicación por profesional
-    counts.__total = searchQuery.trim() || view !== 'all' ? searchedJobs.length : new Set(searchedJobs.map(j => j.whatsapp)).size;
+    counts.__total = searchQuery.trim() || view !== 'all' ? searchedJobs.length : new Set(searchedJobs.map(j => `${j.whatsapp}|${sectionOf(j.category).id}`)).size;
     return counts;
   }, [searchedJobs, searchQuery, view]);
 
@@ -206,12 +206,16 @@ function HomePage() {
     ));
   }, [searchedJobs, selectedCategory]);
 
-  // En el listado general, una sola publicación por profesional (la más nueva, identificado por su WhatsApp),
-  // para que nadie ocupe toda la portada. Al buscar o filtrar por rubro se ven todas.
+  // En el listado general, una sola publicación por profesional y por sección (la más nueva; al profesional
+  // se lo reconoce por su WhatsApp), para que nadie ocupe la portada con avisos parecidos. Si tiene
+  // publicaciones de secciones distintas (ej: clases y maquillaje) se ven todas. Al buscar o filtrar, todo.
   const listedJobs = useMemo(() => {
     if (view !== 'all' || selectedCategory !== 'All' || searchQuery.trim()) return filteredJobs;
     const vistos = new Set<string>();
-    return filteredJobs.filter(j => (vistos.has(j.whatsapp) ? false : (vistos.add(j.whatsapp), true)));
+    return filteredJobs.filter(j => {
+      const clave = `${j.whatsapp}|${sectionOf(j.category).id}`;
+      return vistos.has(clave) ? false : (vistos.add(clave), true);
+    });
   }, [filteredJobs, view, selectedCategory, searchQuery]);
 
   // Profesionales distintos (no publicaciones)
