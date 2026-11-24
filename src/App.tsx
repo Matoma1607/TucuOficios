@@ -5,6 +5,7 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import PorQueGratis from './components/PorQueGratis';
+import VolverArriba from './components/VolverArriba';
 import JobCardSkeleton from './components/JobCardSkeleton';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
@@ -579,6 +580,8 @@ function HomePage() {
               </div>
             </section>
           )}
+
+          <VolverArriba hidden={anyModalOpen || assistantOpen || typing} />
 
           {/* Menú de abajo en el celular */}
           <BottomNav
