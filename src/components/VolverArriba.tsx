@@ -32,7 +32,7 @@ export default function VolverArriba({ hidden = false }: { hidden?: boolean }) {
       aria-label="Volver arriba"
       tabIndex={mostrar ? 0 : -1}
       aria-hidden={!mostrar}
-      className={`fixed z-[80] right-4 bottom-[calc(84px+env(safe-area-inset-bottom))] sm:right-6 sm:bottom-6 w-11 h-11 rounded-full bg-white border border-gray-200 shadow-md text-gray-700 hover:text-gray-900 hover:bg-gray-50 inline-flex items-center justify-center transition-all duration-200 ${
+      className={`fixed z-[80] right-4 bottom-[calc(84px+env(safe-area-inset-bottom))] sm:right-6 sm:bottom-6 w-11 h-11 rounded-full bg-[#E3E7F3] border border-[#C9D0E6] shadow-md text-brand-dark hover:bg-[#D6DCEE] inline-flex items-center justify-center transition-all duration-200 ${
         mostrar ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
       }`}
     >
