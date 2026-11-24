@@ -32,16 +32,32 @@ function cargar(url: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Dibuja la foto recortada para llenar el recuadro (como object-fit: cover) */
+/**
+ * Dibuja la foto en el recuadro. Si la forma de la foto se parece a la del recuadro, la llena (recorta un poco);
+ * si es muy distinta (por ejemplo un flyer vertical en un recuadro apaisado), la muestra entera sobre una
+ * copia desenfocada de sí misma, así no se corta el texto de los afiches.
+ */
 function fotoCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number, r: number) {
   ctx.save();
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, r);
   ctx.clip();
-  const esc = Math.max(w / img.width, h / img.height);
-  const iw = img.width * esc;
-  const ih = img.height * esc;
-  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+  const relFoto = img.width / img.height;
+  const relCaja = w / h;
+  const parecidas = Math.max(relFoto, relCaja) / Math.min(relFoto, relCaja) < 1.25;
+  const cubrir = Math.max(w / img.width, h / img.height);
+  if (parecidas) {
+    ctx.drawImage(img, x + (w - img.width * cubrir) / 2, y + (h - img.height * cubrir) / 2, img.width * cubrir, img.height * cubrir);
+  } else {
+    // fondo: la misma foto agrandada y desenfocada
+    ctx.filter = 'blur(28px) brightness(0.75)';
+    const c2 = cubrir * 1.2;
+    ctx.drawImage(img, x + (w - img.width * c2) / 2, y + (h - img.height * c2) / 2, img.width * c2, img.height * c2);
+    ctx.filter = 'none';
+    // encima: la foto entera
+    const entra = Math.min(w / img.width, h / img.height);
+    ctx.drawImage(img, x + (w - img.width * entra) / 2, y + (h - img.height * entra) / 2, img.width * entra, img.height * entra);
+  }
   ctx.restore();
 }
 
@@ -160,7 +176,21 @@ export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasEleme
   const X = 60;
   const ANCHO = W - 120;
   let y = 250; // arriba y abajo dejamos lugar para los controles de las historias
-  if (fotos.length >= 3) {
+  const vertical = (f: HTMLImageElement) => f.width / f.height < 0.8;
+  const columnas = fotos.length >= 2 && vertical(fotos[0]);
+  if (columnas) {
+    // Fotos verticales (por ejemplo flyers): la principal alta a la izquierda y las otras en columna
+    const wGrande = 600;
+    const wCol = ANCHO - wGrande - 20;
+    fotoCover(ctx, fotos[0], X, y, wGrande, 960, 36);
+    if (fotos.length >= 3) {
+      fotoCover(ctx, fotos[1], X + wGrande + 20, y, wCol, 470, 28);
+      fotoCover(ctx, fotos[2], X + wGrande + 20, y + 490, wCol, 470, 28);
+    } else {
+      fotoCover(ctx, fotos[1], X + wGrande + 20, y, wCol, 960, 28);
+    }
+    y += 960;
+  } else if (fotos.length >= 3) {
     fotoCover(ctx, fotos[0], X, y, ANCHO, 660, 36);
     const w2 = (ANCHO - 20) / 2;
     fotoCover(ctx, fotos[1], X, y + 680, w2, 280, 28);
@@ -180,7 +210,7 @@ export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasEleme
     ctx.fill();
     y += 960;
   }
-  if (d.verificado) insigniaVerificado(ctx, X + ANCHO - 24, 274);
+  if (d.verificado) insigniaVerificado(ctx, X + (columnas ? 600 : ANCHO) - 24, 274);
 
   // Datos
   y += 70;
