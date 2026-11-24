@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3, CircleHelp, LocateFixed, Loader2, X } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3, CircleHelp, LocateFixed, Loader2, X, Instagram } from 'lucide-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import PorQueGratis from './components/PorQueGratis';
 import VolverArriba from './components/VolverArriba';
 import { pedirUbicacion, ordenarPorCercania, type Ubicacion } from './lib/cercania';
+import { INSTAGRAM_OFICIAL_URL, INSTAGRAM_OFICIAL } from './lib/alias';
 import JobCardSkeleton from './components/JobCardSkeleton';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
@@ -679,6 +680,17 @@ function HomePage() {
                 <p className="mt-2 text-sm text-gray-500 max-w-xs leading-relaxed">
                   Profesionales y emprendedores de Tucumán, con contacto directo por WhatsApp. Cada aviso se revisa antes de publicarse.
                 </p>
+                <a
+                  href={INSTAGRAM_OFICIAL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                >
+                  <span className="w-8 h-8 rounded-full bg-white/10 inline-flex items-center justify-center">
+                    <Instagram className="w-4 h-4" aria-hidden="true" />
+                  </span>
+                  Seguinos en Instagram <span className="text-gray-500">@{INSTAGRAM_OFICIAL}</span>
+                </a>
               </div>
               <nav aria-label="Para profesionales" className="text-sm">
                 <p className="font-semibold text-gray-900">Para profesionales</p>

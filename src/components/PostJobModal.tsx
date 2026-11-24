@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ChevronRight, Loader2, PartyPopper, LogIn, Lightbulb, MapPin, MessageCircle } from 'lucide-react';
+import { X, ChevronRight, Loader2, PartyPopper, LogIn, Lightbulb, MapPin, MessageCircle, Instagram } from 'lucide-react';
 import { isGenericTitle } from '../lib/text';
 import { Icons } from '../lib/icons';
 import type { User } from '@supabase/supabase-js';
@@ -8,6 +8,7 @@ import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
 import { normalizeInstagram } from '../lib/instagram';
 import AliasField from './AliasField';
+import { INSTAGRAM_OFICIAL_URL } from '../lib/alias';
 import PorQueGratis from './PorQueGratis';
 import RubrosExtra from './RubrosExtra';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
@@ -237,6 +238,15 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                   La vamos a revisar y en cuanto se apruebe aparece en TucuOficios.
                   Mientras tanto la vas a ver en la página marcada como <strong>"En revisión"</strong>.
                 </p>
+                <a
+                  href={INSTAGRAM_OFICIAL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-3 w-full inline-flex items-center justify-center gap-2 py-3 rounded-lg border border-[#C9D0E6] bg-[#E3E7F3] text-brand-dark font-semibold hover:bg-[#D6DCEE] transition-colors"
+                >
+                  <Instagram className="w-4 h-4" aria-hidden="true" />
+                  Seguinos en Instagram
+                </a>
                 <button
                   onClick={resetAndClose}
                   className="w-full bg-brand-strong hover:bg-brand-strong-hover text-white py-3 rounded-lg font-semibold transition-colors"

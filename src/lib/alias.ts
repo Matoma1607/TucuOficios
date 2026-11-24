@@ -4,6 +4,9 @@ import { supabase } from './supabase';
 // Las mismas reglas que valida la base (supabase/migrations/*_link_corto.sql).
 
 export const SITIO = 'tucuoficios.net.ar';
+/** Instagram oficial de TucuOficios */
+export const INSTAGRAM_OFICIAL = 'tucuoficios.net.ar';
+export const INSTAGRAM_OFICIAL_URL = `https://www.instagram.com/${INSTAGRAM_OFICIAL}/`;
 export const ALIAS_RE = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 
 /** "Juan Pérez!" -> "juan-perez" (mismo formato que guarda la base) */
