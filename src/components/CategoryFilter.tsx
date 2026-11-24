@@ -10,9 +10,10 @@ interface CategoryFilterProps {
 }
 
 export default function CategoryFilter({ selectedCategory, onSelectCategory, counts = {} }: CategoryFilterProps) {
-  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  // Con varios rubros por publicación, App manda los totales ya contados una vez por publicación
+  const total = counts.__total ?? Object.values(counts).reduce((a, b) => a + b, 0);
   const sectionCount = (section: string) =>
-    CATEGORIES_CONFIG.filter(c => c.section === section).reduce((sum, c) => sum + (counts[c.id] ?? 0), 0);
+    counts[`§${section}`] ?? CATEGORIES_CONFIG.filter(c => c.section === section).reduce((sum, c) => sum + (counts[c.id] ?? 0), 0);
   // Solo secciones con avisos (más la activa), ordenadas por cantidad.
   const allSections = SECTIONS.map(s => s.id);
   
