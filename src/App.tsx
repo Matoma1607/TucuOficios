@@ -41,7 +41,7 @@ function useOnceTrue(flag: boolean) {
   useEffect(() => { if (flag) setSeen(true); }, [flag]);
   return seen || flag;
 }
-import { Job, Category, CATEGORIES_CONFIG, ZONES } from './types';
+import { Job, Category, CATEGORIES_CONFIG, ZONES, rubrosDe } from './types';
 import { useAuth } from './hooks/useAuth';
 import { useInstallApp } from './hooks/useInstallApp';
 import { InstallBanner, IosInstallHelp, useInstallAction } from './components/InstallApp';
@@ -174,8 +174,8 @@ function HomePage() {
   const searchedJobs = useMemo(() => {
     const q = norm(searchQuery.trim());
     return tabJobs.filter(job => {
-      const label = CATEGORIES_CONFIG.find(c => c.id === job.category)?.label ?? '';
-      const matchesSearch = !q || [job.title, job.zone, job.professionalName, job.category, label, job.description]
+      const rubros = rubrosDe(job).flatMap(r => [r, CATEGORIES_CONFIG.find(c => c.id === r)?.label ?? '']);
+      const matchesSearch = !q || [job.title, job.zone, job.professionalName, ...rubros, job.description]
         .some(field => norm(field || '').includes(q));
       const matchesZone = !selectedZone || job.zone === selectedZone || job.zone === 'Todo Tucumán';
       return matchesSearch && matchesZone;
@@ -185,18 +185,37 @@ function HomePage() {
   // Cantidad por categoría para los filtros
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const j of searchedJobs) counts[j.category] = (counts[j.category] ?? 0) + 1;
+    for (const j of searchedJobs) {
+      const rs = new Set(rubrosDe(j));
+      for (const r of rs) counts[r] = (counts[r] ?? 0) + 1;
+      // cada publicación suma una sola vez en su sección, aunque tenga varios rubros de ella
+      for (const sec of new Set([...rs].map(r => CATEGORIES_CONFIG.find(c => c.id === r)?.section).filter(Boolean)))
+        counts[`§${sec}`] = (counts[`§${sec}`] ?? 0) + 1;
+    }
+    // "Todo" muestra lo mismo que la lista: sin búsqueda, una publicación por profesional
+    counts.__total = searchQuery.trim() || view !== 'all' ? searchedJobs.length : new Set(searchedJobs.map(j => j.whatsapp)).size;
     return counts;
-  }, [searchedJobs]);
+  }, [searchedJobs, searchQuery, view]);
 
   const filteredJobs = useMemo(() => {
     if (selectedCategory === 'All') return searchedJobs;
     const isSection = CATEGORIES_CONFIG.some(c => c.section === selectedCategory);
-    return searchedJobs.filter(job =>
-      job.category === selectedCategory ||
-      (isSection && CATEGORIES_CONFIG.find(c => c.id === job.category)?.section === selectedCategory)
-    );
+    return searchedJobs.filter(job => rubrosDe(job).some(r =>
+      r === selectedCategory ||
+      (isSection && CATEGORIES_CONFIG.find(c => c.id === r)?.section === selectedCategory)
+    ));
   }, [searchedJobs, selectedCategory]);
+
+  // En el listado general, una sola publicación por profesional (la más nueva, identificado por su WhatsApp),
+  // para que nadie ocupe toda la portada. Al buscar o filtrar por rubro se ven todas.
+  const listedJobs = useMemo(() => {
+    if (view !== 'all' || selectedCategory !== 'All' || searchQuery.trim()) return filteredJobs;
+    const vistos = new Set<string>();
+    return filteredJobs.filter(j => (vistos.has(j.whatsapp) ? false : (vistos.add(j.whatsapp), true)));
+  }, [filteredJobs, view, selectedCategory, searchQuery]);
+
+  // Profesionales distintos (no publicaciones)
+  const profesionalesCount = useMemo(() => new Set(filteredJobs.map(j => j.whatsapp)).size, [filteredJobs]);
 
   const toast = useToast();
   const handleLogout = async () => {
@@ -416,7 +435,9 @@ function HomePage() {
                         : 'Publicados recientemente'}
                 </h2>
                 <p className="text-sm text-gray-600 text-right">
-                  {filteredJobs.length === 1 ? '1 profesional' : `${filteredJobs.length} profesionales`}
+                  {view === 'all'
+                    ? (profesionalesCount === 1 ? '1 profesional' : `${profesionalesCount} profesionales`)
+                    : (listedJobs.length === 1 ? '1 publicación' : `${listedJobs.length} publicaciones`)}
                   {searchQuery && <> para <span className="font-medium text-gray-900">“{searchQuery}”</span></>}
                   {selectedZone && <> en <span className="font-medium text-gray-900">{selectedZone}</span></>}
                 </p>
@@ -467,10 +488,11 @@ function HomePage() {
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
-                  {filteredJobs.map((job) => (
+                  {listedJobs.map((job) => (
                     <JobCard 
                       key={job.id} 
                       job={job} 
+                      rubro={selectedCategory !== 'All' ? selectedCategory : undefined}
                       isAdmin={isAdmin} 
                       canManage={isAdmin || job.ownerId === user?.id}
                       onEdit={(j) => setEditingJob(j)}

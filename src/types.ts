@@ -3,6 +3,7 @@ export interface Job {
   ownerId: string;
   title: string;
   category: string;
+  extraCategories: string[]; // hasta 3 rubros más, además del principal
   zone: string;
   professionalName: string;
   alias: string | null;      // link corto: tucuoficios.net.ar/<alias>
@@ -165,3 +166,11 @@ export const ZONES: string[] = [
   'Burruyacú',
   'Todo Tucumán',
 ];
+
+/** Máximo de rubros extra por publicación (además del principal) */
+export const MAX_RUBROS_EXTRA = 3;
+
+/** Todos los rubros de una publicación: el principal primero */
+export function rubrosDe(job: { category: string; extraCategories?: string[] }): string[] {
+  return [job.category, ...(job.extraCategories ?? [])];
+}
