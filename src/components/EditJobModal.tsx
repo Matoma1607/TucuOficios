@@ -192,6 +192,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                         </optgroup>
                       ))}
                     </select>
+                    <p className="mt-1.5 ml-1 text-xs text-gray-500">¿No está tu rubro? Elegí «Otros servicios», al final de la lista.</p>
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
