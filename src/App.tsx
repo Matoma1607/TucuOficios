@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3, CircleHelp, LocateFixed, Loader2, X, Instagram } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, MapPin, BadgeCheck, MessageCircle, Heart, ChevronDown, BarChart3, LocateFixed, Loader2, X, Instagram } from 'lucide-react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
@@ -270,16 +270,6 @@ function HomePage() {
                 Tucu<span className="text-brand-strong">Oficios</span>
               </a>
 
-              {/* Ayuda en el celular: arriba a la derecha, donde la gente la busca */}
-              <button
-                type="button"
-                onClick={() => setAssistantOpen(true)}
-                aria-label="Ayuda y preguntas frecuentes"
-                className="sm:hidden -mr-1 inline-flex items-center gap-1.5 h-10 pl-2.5 pr-3 rounded-full text-sm font-semibold text-gray-700 active:bg-gray-100"
-              >
-                <CircleHelp className="w-5 h-5" aria-hidden="true" />
-                Ayuda
-              </button>
 
               <div className="hidden sm:flex items-center gap-2 sm:gap-3">
                 {!user ? (
