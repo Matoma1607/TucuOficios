@@ -97,13 +97,24 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
   { id: 'Gomería', label: 'Gomería', section: 'Vehículos', iconName: 'CircleDot' },
   { id: 'Chapa y Pintura', label: 'Chapa y pintura', section: 'Vehículos', iconName: 'SprayCan' },
   { id: 'Clases de Manejo', label: 'Clases de manejo', section: 'Vehículos', iconName: 'Car' },
+  { id: 'Electricidad del Automotor', label: 'Electricidad del automotor', section: 'Vehículos', iconName: 'BatteryCharging' },
+  { id: 'Lavadero de Autos', label: 'Lavadero de autos', section: 'Vehículos', iconName: 'Droplet' },
+  { id: 'Motos', label: 'Motos', section: 'Vehículos', iconName: 'Motorbike' },
+  { id: 'Bicicletas', label: 'Bicicletas', section: 'Vehículos', iconName: 'Bike' },
 
   // Salud y Cuidado
   { id: 'Enfermería', label: 'Enfermería', section: 'Salud y Cuidado', iconName: 'Stethoscope' },
   { id: 'Cuidado de Personas', label: 'Cuidado de personas', section: 'Salud y Cuidado', iconName: 'Heart' },
   { id: 'Niñera', label: 'Niñera', section: 'Salud y Cuidado', iconName: 'Baby' },
   { id: 'Masajes', label: 'Masajes', section: 'Salud y Cuidado', iconName: 'HandHeart' },
-  { id: 'Estética', label: 'Estética y peluquería', section: 'Salud y Cuidado', iconName: 'Scissors' },
+  { id: 'Kinesiología', label: 'Kinesiología', section: 'Salud y Cuidado', iconName: 'Activity' },
+  { id: 'Nutrición', label: 'Nutrición', section: 'Salud y Cuidado', iconName: 'Apple' },
+  { id: 'Psicología', label: 'Psicología', section: 'Salud y Cuidado', iconName: 'Brain' },
+  { id: 'Estética', label: 'Estética', section: 'Salud y Cuidado', iconName: 'Sparkles' },
+  { id: 'Peluquería', label: 'Peluquería', section: 'Salud y Cuidado', iconName: 'Scissors' },
+  { id: 'Barbería', label: 'Barbería', section: 'Salud y Cuidado', iconName: 'Scissors' },
+  { id: 'Uñas', label: 'Uñas', section: 'Salud y Cuidado', iconName: 'Sparkle' },
+  { id: 'Maquillaje', label: 'Maquillaje', section: 'Salud y Cuidado', iconName: 'Brush' },
 
   // Educación
   { id: 'Apoyo Escolar', label: 'Apoyo escolar', section: 'Educación', iconName: 'GraduationCap' },
@@ -121,14 +132,20 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
   { id: 'DJ y Sonido', label: 'DJ y sonido', section: 'Eventos', iconName: 'Disc3' },
   { id: 'Catering', label: 'Catering', section: 'Eventos', iconName: 'ChefHat' },
   { id: 'Animación', label: 'Animación infantil', section: 'Eventos', iconName: 'PartyPopper' },
+  { id: 'Decoración de Eventos', label: 'Decoración de eventos', section: 'Eventos', iconName: 'Flower2' },
+  { id: 'Alquiler para Eventos', label: 'Alquiler de vajilla y mobiliario', section: 'Eventos', iconName: 'Armchair' },
 
   // Mascotas
   { id: 'Peluquería Canina', label: 'Peluquería canina', section: 'Mascotas', iconName: 'Dog' },
-  { id: 'Veterinaria / Paseadores', label: 'Veterinaria y paseos', section: 'Mascotas', iconName: 'PawPrint' },
+  { id: 'Veterinaria / Paseadores', label: 'Veterinaria', section: 'Mascotas', iconName: 'PawPrint' },
+  { id: 'Paseo de Perros', label: 'Paseo de perros', section: 'Mascotas', iconName: 'Footprints' },
+  { id: 'Guardería de Mascotas', label: 'Guardería de mascotas', section: 'Mascotas', iconName: 'HouseHeart' },
 
   // Servicios profesionales
   { id: 'Contabilidad', label: 'Contabilidad', section: 'Servicios Profesionales', iconName: 'Calculator' },
   { id: 'Gestoría', label: 'Gestoría y trámites', section: 'Servicios Profesionales', iconName: 'FileText' },
+  { id: 'Abogacía', label: 'Abogacía', section: 'Servicios Profesionales', iconName: 'Gavel' },
+  { id: 'Arquitectura', label: 'Arquitectura', section: 'Servicios Profesionales', iconName: 'DraftingCompass' },
 
   // Emprendimientos (venta de productos)
   { id: 'Ropa y Accesorios', label: 'Ropa y accesorios', section: 'Emprendimientos', iconName: 'Shirt' },
@@ -139,6 +156,9 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
 
   // Varios
   { id: 'Costura', label: 'Costura y arreglos', section: 'Varios', iconName: 'Shirt' },
+  { id: 'Sastrería', label: 'Sastrería', section: 'Varios', iconName: 'Shirt' },
+  { id: 'Reparación de Calzado', label: 'Reparación de calzado', section: 'Varios', iconName: 'Hammer' },
+  { id: 'Tatuajes', label: 'Tatuajes', section: 'Varios', iconName: 'PenTool' },
   { id: 'Otros', label: 'Otros servicios', section: 'Varios', iconName: 'Ellipsis' },
 ];
 

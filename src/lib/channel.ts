@@ -38,12 +38,23 @@ const EMOJI_BY_CATEGORY: Record<string, string> = {
   'Gomería': '🛞',
   'Chapa y Pintura': '🚗',
   'Clases de Manejo': '🚗',
+  'Electricidad del Automotor': '🔋',
+  'Lavadero de Autos': '🧼',
+  'Motos': '🏍️',
+  'Bicicletas': '🚲',
   // Salud y cuidado
   'Enfermería': '🩺',
   'Cuidado de Personas': '🤝',
   'Niñera': '🍼',
   'Masajes': '💆',
-  'Estética': '💇',
+  'Kinesiología': '🦴',
+  'Nutrición': '🥗',
+  'Psicología': '🧠',
+  'Estética': '✨',
+  'Peluquería': '💇',
+  'Barbería': '💈',
+  'Uñas': '💅',
+  'Maquillaje': '💄',
   // Educación
   'Apoyo Escolar': '📚',
   'Idiomas': '🗣️',
@@ -58,12 +69,18 @@ const EMOJI_BY_CATEGORY: Record<string, string> = {
   'DJ y Sonido': '🎧',
   'Catering': '🍽️',
   'Animación': '🎈',
+  'Decoración de Eventos': '🎀',
+  'Alquiler para Eventos': '🪑',
   // Mascotas
   'Peluquería Canina': '🐶',
   'Veterinaria / Paseadores': '🐾',
+  'Paseo de Perros': '🦮',
+  'Guardería de Mascotas': '🏡',
   // Servicios profesionales
   'Contabilidad': '🧮',
   'Gestoría': '📄',
+  'Abogacía': '⚖️',
+  'Arquitectura': '📐',
   // Emprendimientos
   'Ropa y Accesorios': '👕',
   'Cocina y Hogar': '🍳',
@@ -72,6 +89,9 @@ const EMOJI_BY_CATEGORY: Record<string, string> = {
   'Otros Productos': '🛍️',
   // Varios
   'Costura': '🧵',
+  'Sastrería': '🪡',
+  'Reparación de Calzado': '👞',
+  'Tatuajes': '🖋️',
   'Otros': '📌',
 };
 
