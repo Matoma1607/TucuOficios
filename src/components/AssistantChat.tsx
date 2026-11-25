@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Send, Bot, Loader2 } from 'lucide-react';
+import { X, Send, Bot, Loader2, MessageCircle } from 'lucide-react';
 import { CATEGORIES_CONFIG } from '../types';
 
 interface Message {
@@ -16,7 +16,7 @@ interface TucuAssistantProps {
 /** Ventana de ayuda con respuestas a preguntas frecuentes. Se abre desde "¿Necesitás ayuda?" en el pie. */
 const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy el asistente de TucuOficios. ¿En qué te puedo ayudar hoy?' }
+    { role: 'assistant', content: '¡Hola! Soy el asistente de TucuOficios. Te ayudo a buscar un profesional o a publicar tu servicio. Tocá una pregunta de abajo o escribí la tuya.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -42,9 +42,13 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
 
     // Simulamos un pequeño retraso para que parezca que está "pensando"
     setTimeout(() => {
-      let response = "Lo siento, no entendí tu consulta. Podés intentar con palabras como 'publicar', 'precio', 'contacto' o simplemente el oficio que buscás (ej: 'plomero', 'profe').";
+      let response = "No encontré una respuesta para eso. Probá con palabras como 'publicar', 'gratis' o el oficio que buscás (por ejemplo 'plomero' o 'profe'). Si preferís, hablá con una persona por WhatsApp con el botón de abajo.";
 
-      if (userMessage.includes('publicar') || userMessage.includes('publico') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
+      if (userMessage.includes('persona') || userMessage.includes('humano') || userMessage.includes('soporte') || userMessage.includes('equipo')) {
+        response = "Claro. Tocá 'Hablar con una persona por WhatsApp' acá abajo y te responde alguien del equipo de TucuOficios.";
+      } else if (userMessage.includes('como busco') || userMessage.includes('buscar')) {
+        response = "Escribí lo que necesitás en el buscador de arriba (por ejemplo 'electricista' o 'tortas') o elegí una sección en los filtros. Con 'Cerca tuyo' ves primero a los de tu zona. Después tocá el botón verde de WhatsApp para hablar directo con el profesional.";
+      } else if (userMessage.includes('publicar') || userMessage.includes('publico') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
         response = "Para publicar tu oficio, tocá el botón naranja 'Publicar oficio' de arriba (en el celular está abajo). Entrás con tu cuenta de Google. Completás el formulario y ¡listo! Tu anuncio se revisará y aparecerá pronto.";
       } else if (userMessage.includes('gratis') || userMessage.includes('precio') || userMessage.includes('costo') || userMessage.includes('pagar')) {
         response = "Hoy publicar en TucuOficios es gratis: no te pedimos tarjeta, no cobramos comisión y los clientes te escriben directo a tu WhatsApp, sin intermediarios. Buscar y contactar profesionales tampoco tiene costo. Si en el futuro sumamos opciones pagas, van a ser opcionales y avisadas antes.";
@@ -139,7 +143,7 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
             {/* Suggestions */}
             <div className="p-2 border-t border-gray-100 bg-white">
               <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-                {['¿Cómo publico?', '¿Es gratis?', 'Busco plomero'].map((s, i) => (
+                {['¿Cómo busco?', '¿Cómo publico?', '¿Es gratis?'].map((s, i) => (
                   <button
                     key={i}
                     onClick={() => handleSend(s)}
@@ -150,6 +154,16 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
                 ))}
               </div>
             </div>
+
+            <a
+              href="https://wa.me/5493813217398?text=Hola%20TucuOficios%2C%20tengo%20una%20consulta%3A%20"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border-t border-gray-100"
+            >
+              <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
+              Hablar con una persona por WhatsApp
+            </a>
 
             {/* Input */}
             <div className="p-3 bg-white border-t border-gray-100">
