@@ -81,6 +81,20 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
   }, [isOpen, onClose]);
 
   return (
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="fondo"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            aria-hidden="true"
+            className="fixed inset-0 z-[94] bg-black/35 sm:hidden"
+          />
+        )}
+      </AnimatePresence>
     <div className="fixed bottom-4 right-4 left-4 sm:left-auto md:bottom-6 md:right-6 z-[95]">
       {/* Chat Window */}
       <AnimatePresence>
@@ -91,19 +105,19 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             role="dialog"
             aria-label="Ayuda"
-            className="sm:w-[360px] h-[480px] max-h-[75vh] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 flex flex-col"
+            className="sm:w-[360px] h-[480px] max-h-[75vh] bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-300 flex flex-col"
           >
             {/* Header */}
-            <div className="px-5 py-4 border-b border-gray-100">
+            <div className="px-5 py-4 bg-brand-dark">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-orange-50 rounded-full flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-orange-700" />
+                <div className="w-9 h-9 bg-brand-strong rounded-full flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-sm text-gray-900">Ayuda</h3>
-                  <p className="text-xs text-gray-500">Preguntas frecuentes sobre TucuOficios</p>
+                  <h3 className="font-semibold text-sm text-white">Ayuda</h3>
+                  <p className="text-xs text-gray-300">Preguntas frecuentes sobre TucuOficios</p>
                 </div>
-                <button onClick={onClose} aria-label="Cerrar ayuda" className="p-2 -mr-2 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-900">
+                <button onClick={onClose} aria-label="Cerrar ayuda" className="p-2 -mr-2 rounded-full text-gray-300 hover:bg-white/10 hover:text-white">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -193,6 +207,7 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 };
 
