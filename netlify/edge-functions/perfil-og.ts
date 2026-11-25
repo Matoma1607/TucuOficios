@@ -8,6 +8,52 @@
 
 import { slugify } from '../../src/lib/slug.ts';
 
+/** Nombre que ve la gente para los rubros cuyo id interno es distinto (igual que en src/types.ts) */
+const RUBRO_LABEL: Record<string, string> = {
+  'Gasista Matriculado': 'Gasista',
+  'Aires': 'Aire acondicionado',
+  'Electrodomésticos': 'Reparación de electrodomésticos',
+  'Control de Plagas': 'Control de plagas',
+  'Fletes y Mudanzas': 'Fletes y mudanzas',
+  'Techos': 'Techos e impermeabilización',
+  'Durlock': 'Durlock y yesería',
+  'Ferretería y Materiales': 'Ferretería y materiales',
+  'Soporte Técnico': 'Soporte técnico',
+  'Servicio de Celulares': 'Reparación de celulares',
+  'Cámaras y Alarmas': 'Cámaras y alarmas',
+  'Desarrollo Web': 'Desarrollo web',
+  'Diseño y Marketing': 'Diseño y marketing',
+  'Chapa y Pintura': 'Chapa y pintura',
+  'Clases de Manejo': 'Clases de manejo',
+  'Electricidad del Automotor': 'Electricidad del automotor',
+  'Lavadero de Autos': 'Lavadero de autos',
+  'Cuidado de Personas': 'Cuidado de personas',
+  'Apoyo Escolar': 'Apoyo escolar',
+  'Música': 'Clases de música',
+  'Entrenamiento Personal': 'Entrenamiento',
+  'Comidas': 'Comidas y viandas',
+  'Fotografía': 'Fotografía y video',
+  'DJ y Sonido': 'DJ y sonido',
+  'Animación': 'Animación infantil',
+  'Decoración de Eventos': 'Decoración de eventos',
+  'Alquiler para Eventos': 'Alquiler de vajilla y mobiliario',
+  'Peluquería Canina': 'Peluquería canina',
+  'Veterinaria / Paseadores': 'Veterinaria',
+  'Paseo de Perros': 'Paseo de perros',
+  'Guardería de Mascotas': 'Guardería de mascotas',
+  'Gestoría': 'Gestoría y trámites',
+  'Ropa y Accesorios': 'Ropa y accesorios',
+  'Cocina y Hogar': 'Cocina y hogar',
+  'Celulares y Electrónica': 'Celulares y electrónica',
+  'Belleza y Cosmética': 'Belleza y cosmética',
+  'Otros Productos': 'Otros productos',
+  'Costura': 'Costura y arreglos',
+  'Reparación de Calzado': 'Reparación de calzado',
+  'Otros': 'Otros servicios',
+};
+const rubro = (id: string) => RUBRO_LABEL[id] ?? id;
+
+
 declare const Netlify: { env: { get(name: string): string | undefined } };
 
 interface Context {
@@ -84,7 +130,7 @@ export default async (request: Request, context: Context) => {
       return new Response(html, { status: 404, headers });
     }
 
-    const title = escapeHtml(`${job.professional_name} · ${job.category} en ${job.zone} | TucuOficios`);
+    const title = escapeHtml(`${job.professional_name} · ${rubro(job.category)} en ${job.zone} | TucuOficios`);
     const description = escapeHtml(
       job.description.length > 150 ? `${job.description.slice(0, 147)}…` : job.description
     );
