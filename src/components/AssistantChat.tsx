@@ -63,8 +63,22 @@ const TucuAssistant = ({ open: isOpen, onClose, jobs, onOpenJob }: TucuAssistant
 
       if (tiene('persona', 'humano', 'soporte', 'equipo')) {
         response = "Claro. Tocá 'Hablar con una persona por WhatsApp' acá abajo y te responde alguien del equipo de TucuOficios.";
+      } else if (tiene('no aparece', 'no veo', 'no encuentro mi', 'no sale', 'no figura')) {
+        response = "Si la publicaste hace poco, puede estar en revisión: la aprobamos en el día. Podés ver en qué estado está en 'Mis publicaciones'. Si ya pasó más de un día, escribinos por WhatsApp con el botón de abajo.";
+      } else if (tiene('tarda', 'demora', 'cuanto tiempo', 'cuando aparece', 'cuando sale', 'aprueban', 'aprobacion', 'aprobada', 'en revision')) {
+        response = "Revisamos cada publicación a mano y la aprobamos en el día. Cuando está aprobada te avisamos por WhatsApp con el link para compartirla.";
+      } else if (tiene('editar', 'edito', 'modific', 'borrar', 'borro', 'elimin', 'dar de baja')) {
+        response = "Entrá con tu cuenta y andá a 'Mis publicaciones' (en el celular, desde 'Cuenta' en el menú de abajo). Ahí podés editarla o borrarla. Si la editás, vuelve a revisión y la aprobamos de nuevo en el día.";
+      } else if (tiene('mas de un rubro', 'varios rubros', 'otro rubro', 'dos rubros', 'varias cosas', 'mas de una cosa')) {
+        response = "Sí. Al publicar elegís tu rubro principal y en '¿Hacés algo más?' sumás hasta 3 rubros más. Así te encuentran en todos con una sola publicación.";
+      } else if (tiene('cuantas publicaciones', 'varias publicaciones', 'mas de una publicacion', 'limite')) {
+        response = "Cada cuenta puede tener hasta 5 publicaciones. Si hacés varias cosas, te conviene una sola publicación con varios rubros.";
+      } else if (tiene('compartir', 'comparto', 'difundir', 'link', ' qr', 'codigo qr', 'historia')) {
+        response = "Cada publicación tiene su link corto (por ejemplo tucuoficios.net.ar/tu-nombre). Desde 'Mis publicaciones' también podés descargar tu código QR y una imagen lista para historias de Instagram o WhatsApp.";
+      } else if (tiene('seguro', 'confiable', 'confianza', 'estafa', 'verific', 'revisan')) {
+        response = "Cada aviso se revisa antes de publicarse, y los que tienen el tilde azul ya fueron verificados. El trato y el pago se arreglan directo entre ustedes por WhatsApp: TucuOficios no cobra ni intermedia. Antes de contratar, pedí fotos de trabajos y referencias.";
       } else if (tiene('publicar', 'publico', 'anuncio', 'postear')) {
-        response = "Para publicar tu oficio, tocá el botón naranja 'Publicar oficio' de arriba (en el celular está abajo). Entrás con tu cuenta de Google. Completás el formulario y ¡listo! Tu anuncio se revisará y aparecerá pronto.";
+        response = "Para publicar tu oficio, tocá el botón naranja 'Publicar oficio' de arriba (en el celular está abajo). Entrás con tu cuenta de Google. Completás el formulario y listo: revisamos tu publicación y la aprobamos en el día.";
       } else if (tiene('gratis', 'precio', 'costo', 'pagar', 'cobran')) {
         response = "Hoy publicar en TucuOficios es gratis: no te pedimos tarjeta, no cobramos comisión y los clientes te escriben directo a tu WhatsApp, sin intermediarios. Buscar y contactar profesionales tampoco tiene costo. Si en el futuro sumamos opciones pagas, van a ser opcionales y avisadas antes.";
       } else if (busqueda) {
@@ -86,6 +100,8 @@ const TucuAssistant = ({ open: isOpen, onClose, jobs, onOpenJob }: TucuAssistant
             ? `Todavía no tenemos publicaciones${que}${donde}. Si conocés a alguien que lo haga, contale que puede publicar gratis. Y si necesitás ayuda para buscar, escribinos por WhatsApp.`
             : `No encontré publicaciones con eso${donde}. Probá con otra palabra, por ejemplo el oficio ('electricista', 'tortas', 'uñas').`;
         }
+      } else if (tiene('mi zona', 'cerca', 'zona')) {
+        response = "Escribime el oficio y la zona, por ejemplo 'electricista en Yerba Buena', y te muestro quiénes hay. También podés elegir la zona en el buscador de arriba o tocar 'Ver primero los más cercanos a mí'.";
       } else if (tiene('como busco', 'buscar')) {
         response = "Escribime acá lo que necesitás, por ejemplo 'electricista en Tafí Viejo', y te muestro quiénes hay. También podés usar el buscador de arriba o 'Cerca tuyo' para ver primero a los de tu zona.";
       } else if (tiene('contacto', 'whatsapp', 'llamar', 'hablar')) {
