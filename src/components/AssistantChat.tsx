@@ -1,22 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Send, Bot, Loader2, MessageCircle } from 'lucide-react';
-import { CATEGORIES_CONFIG } from '../types';
+import { X, Send, Bot, Loader2, MessageCircle, MapPin, BadgeCheck } from 'lucide-react';
+import { CATEGORIES_CONFIG, Job } from '../types';
+import { buscarEnSitio } from '../lib/buscarChat';
+import { whatsappLink } from './JobCard';
+import { contar } from '../lib/contador';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  /** Resultados de búsqueda que se muestran como tarjetitas */
+  jobs?: Job[];
 }
 
 interface TucuAssistantProps {
   open: boolean;
   onClose: () => void;
+  /** Publicaciones del sitio, para buscar desde el chat */
+  jobs: Job[];
+  /** Abre el detalle de una publicación */
+  onOpenJob: (job: Job) => void;
 }
 
+const etiqueta = (id: string) => CATEGORIES_CONFIG.find((c) => c.id === id)?.label ?? id;
+
 /** Ventana de ayuda con respuestas a preguntas frecuentes. Se abre desde "¿Necesitás ayuda?" en el pie. */
-const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
+const TucuAssistant = ({ open: isOpen, onClose, jobs, onOpenJob }: TucuAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '¡Hola! Soy el asistente de TucuOficios. Te ayudo a buscar un profesional o a publicar tu servicio. Tocá una pregunta de abajo o escribí la tuya.' }
+    { role: 'assistant', content: '¡Hola! Soy el asistente de TucuOficios. Escribime lo que necesitás, por ejemplo "plomero en Yerba Buena", y te muestro quiénes hay. O tocá una pregunta de abajo.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,37 +51,58 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
     setMessages(prev => [...prev, { role: 'user', content: textToSend.trim() }]);
     setIsLoading(true);
 
-    // Simulamos un pequeño retraso para que parezca que está "pensando"
+    // Un pequeño retraso para que se sienta como una respuesta
     setTimeout(() => {
-      let response = "No encontré una respuesta para eso. Probá con palabras como 'publicar', 'gratis' o el oficio que buscás (por ejemplo 'plomero' o 'profe'). Si preferís, hablá con una persona por WhatsApp con el botón de abajo.";
+      const u = userMessage;
+      const tiene = (...ps: string[]) => ps.some((x) => u.includes(x));
+      let response = "No encontré una respuesta para eso. Probá escribiendo lo que necesitás, por ejemplo 'plomero en Yerba Buena' o 'tortas'. Si preferís, hablá con una persona por WhatsApp con el botón de abajo.";
+      let resultados: Job[] | undefined;
+      let extra: string | undefined;
 
-      if (userMessage.includes('persona') || userMessage.includes('humano') || userMessage.includes('soporte') || userMessage.includes('equipo')) {
+      const busqueda = buscarEnSitio(textToSend, jobs);
+
+      if (tiene('persona', 'humano', 'soporte', 'equipo')) {
         response = "Claro. Tocá 'Hablar con una persona por WhatsApp' acá abajo y te responde alguien del equipo de TucuOficios.";
-      } else if (userMessage.includes('como busco') || userMessage.includes('buscar')) {
-        response = "Escribí lo que necesitás en el buscador de arriba (por ejemplo 'electricista' o 'tortas') o elegí una sección en los filtros. Con 'Cerca tuyo' ves primero a los de tu zona. Después tocá el botón verde de WhatsApp para hablar directo con el profesional.";
-      } else if (userMessage.includes('publicar') || userMessage.includes('publico') || userMessage.includes('anuncio') || userMessage.includes('postear')) {
+      } else if (tiene('publicar', 'publico', 'anuncio', 'postear')) {
         response = "Para publicar tu oficio, tocá el botón naranja 'Publicar oficio' de arriba (en el celular está abajo). Entrás con tu cuenta de Google. Completás el formulario y ¡listo! Tu anuncio se revisará y aparecerá pronto.";
-      } else if (userMessage.includes('gratis') || userMessage.includes('precio') || userMessage.includes('costo') || userMessage.includes('pagar')) {
+      } else if (tiene('gratis', 'precio', 'costo', 'pagar', 'cobran')) {
         response = "Hoy publicar en TucuOficios es gratis: no te pedimos tarjeta, no cobramos comisión y los clientes te escriben directo a tu WhatsApp, sin intermediarios. Buscar y contactar profesionales tampoco tiene costo. Si en el futuro sumamos opciones pagas, van a ser opcionales y avisadas antes.";
-      } else if (userMessage.includes('contacto') || userMessage.includes('whatsapp') || userMessage.includes('llamar') || userMessage.includes('hablar')) {
+      } else if (busqueda) {
+        const rubro = busqueda.rubros.length ? etiqueta(busqueda.rubros[0]) : null;
+        const que = rubro ? ` de ${rubro.toLowerCase()}` : '';
+        const donde = busqueda.zona ? ` en ${busqueda.zona}` : '';
+        if (busqueda.jobs.length) {
+          const n = busqueda.jobs.length;
+          response = n === 1 ? `Encontré 1 opción${que}${donde}:` : `Encontré ${n} opciones${que}${donde}:`;
+          resultados = busqueda.jobs.slice(0, 4);
+          if (n > 4) extra = `Y ${n - 4} más. Para verlas todas usá el buscador del sitio.`;
+          else extra = 'Tocá una para ver sus trabajos, o el botón verde para escribirle.';
+        } else if (busqueda.otrasZonas.length) {
+          response = `${busqueda.zona ? `En ${busqueda.zona}` : 'En esa zona'} todavía no hay nadie${que}, pero sí en otras zonas:`;
+          resultados = busqueda.otrasZonas.slice(0, 4);
+          extra = 'Muchos se mueven por toda la provincia: preguntales si llegan hasta tu zona.';
+        } else {
+          response = rubro
+            ? `Todavía no tenemos publicaciones${que}${donde}. Si conocés a alguien que lo haga, contale que puede publicar gratis. Y si necesitás ayuda para buscar, escribinos por WhatsApp.`
+            : `No encontré publicaciones con eso${donde}. Probá con otra palabra, por ejemplo el oficio ('electricista', 'tortas', 'uñas').`;
+        }
+      } else if (tiene('como busco', 'buscar')) {
+        response = "Escribime acá lo que necesitás, por ejemplo 'electricista en Tafí Viejo', y te muestro quiénes hay. También podés usar el buscador de arriba o 'Cerca tuyo' para ver primero a los de tu zona.";
+      } else if (tiene('contacto', 'whatsapp', 'llamar', 'hablar')) {
         response = "Para hablar con un profesional, buscá su tarjeta y tocá el botón verde de WhatsApp. Te abre directamente su WhatsApp para que acuerden el trabajo.";
-      } else if (userMessage.includes('categoria') || userMessage.includes('rubro') || userMessage.includes('oficio')) {
-        response = "Tenemos rubros de todo tipo: Hogar, Construcción, Tecnología, Vehículos, Salud, Educación, Eventos, Mascotas y más. Los ves en los filtros de arriba.";
-      } else if (userMessage.includes('hola') || userMessage.includes('buen') || userMessage.includes('asistente') || userMessage.includes('quien')) {
-        response = "¡Hola! Soy el asistente de TucuOficios. Te ayudo a encontrar lo que necesitás o a publicar tu servicio. ¿Qué duda tenés?";
-      } else if (userMessage.includes('matias') || userMessage.includes('administrador') || userMessage.includes('dueño')) {
+      } else if (tiene('categoria', 'rubro', 'oficio')) {
+        response = "Tenemos rubros de todo tipo: Hogar, Construcción, Tecnología, Vehículos, Salud, Educación, Eventos, Mascotas, Emprendimientos y más. Decime qué necesitás y te muestro quiénes hay.";
+      } else if (tiene('hola', 'buen', 'asistente', 'quien')) {
+        response = "¡Hola! Soy el asistente de TucuOficios. Decime qué necesitás (por ejemplo 'plomero en Yerba Buena') y te muestro quiénes hay, o preguntame cómo publicar.";
+      } else if (tiene('matias', 'administrador', 'dueño', 'dueno')) {
         response = "Matias es quien administra el sitio. Podés contactarlo si tenés dudas técnicas o querés sugerir una mejora para la página.";
-      } else if (userMessage.includes('busco') || userMessage.includes('necesito') || userMessage.includes('donde hay') || userMessage.includes('alguien que')) {
-        response = "Para buscar, usá la lupa 🔍 de arriba. Escribí el nombre del oficio (ej: 'profe', 'limpieza', 'fletes') y te saldrán los profesionales disponibles en Tucumán.";
-      } else if (userMessage.includes('profe') || userMessage.includes('clase') || userMessage.includes('musica') || userMessage.includes('particular')) {
-        response = "Los profes están en la sección 'Educación'. ¡Hay de música, idiomas, apoyo escolar y más!";
-      } else if (userMessage.includes('plomero') || userMessage.includes('electricista') || userMessage.includes('gasista') || userMessage.includes('albañil')) {
-        response = "Esa especialidad está en las secciones 'Hogar' y 'Construcción'. Buscalos con la lupa para ver a los mejores de la zona.";
+      } else if (tiene('busco', 'necesito', 'donde hay', 'alguien que')) {
+        response = "Contame qué oficio o producto buscás (por ejemplo 'plomero', 'tortas' o 'clases de inglés') y, si querés, en qué zona. Te muestro quiénes hay.";
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: response }, ...(resultados ? [{ role: 'assistant' as const, content: extra ?? '', jobs: resultados }] : [])]);
       setIsLoading(false);
-    }, 800);
+    }, 700);
   };
 
   useEffect(() => {
@@ -115,7 +147,7 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-sm text-white">Ayuda</h3>
-                  <p className="text-xs text-gray-300">Preguntas frecuentes sobre TucuOficios</p>
+                  <p className="text-xs text-gray-300">Buscá profesionales o hacé tu consulta</p>
                 </div>
                 <button onClick={onClose} aria-label="Cerrar ayuda" className="p-2 -mr-2 rounded-full text-gray-300 hover:bg-white/10 hover:text-white">
                   <X className="w-5 h-5" />
@@ -135,6 +167,45 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
                   animate={{ opacity: 1, x: 0 }}
                   className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
+                  {m.jobs ? (
+                    <div className="w-full space-y-2">
+                      {m.jobs.map((j) => (
+                        <div key={j.id} className="flex items-center gap-2.5 bg-white border border-gray-200 rounded-xl p-2">
+                          <button
+                            type="button"
+                            onClick={() => onOpenJob(j)}
+                            className="flex items-center gap-2.5 min-w-0 flex-1 text-left"
+                            aria-label={`Ver la publicación de ${j.professionalName}`}
+                          >
+                            {j.thumbUrl || j.imageUrl ? (
+                              <img src={j.thumbUrl || j.imageUrl} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover flex-none bg-gray-100" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-lg bg-gray-100 flex-none" />
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate flex items-center gap-1">
+                                {j.professionalName}
+                                {j.verificado && <BadgeCheck className="w-3.5 h-3.5 flex-none text-sky-600" aria-label="Verificado" />}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate">{etiqueta(j.category)}</p>
+                              <p className="text-xs text-gray-500 truncate flex items-center gap-1"><MapPin className="w-3 h-3 flex-none" aria-hidden="true" />{j.zone}</p>
+                            </div>
+                          </button>
+                          <a
+                            href={whatsappLink(j)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => contar('whatsapp', j.id)}
+                            aria-label={`Escribirle por WhatsApp a ${j.professionalName}`}
+                            className="flex-none w-10 h-10 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 inline-flex items-center justify-center"
+                          >
+                            <MessageCircle className="w-5 h-5" />
+                          </a>
+                        </div>
+                      ))}
+                      {m.content && <p className="text-xs text-gray-500 px-1">{m.content}</p>}
+                    </div>
+                  ) : (
                   <div className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     m.role === 'user' 
                       ? 'bg-brand-dark text-white rounded-br-md' 
@@ -142,6 +213,7 @@ const TucuAssistant = ({ open: isOpen, onClose }: TucuAssistantProps) => {
                   }`}>
                     {m.content}
                   </div>
+                  )}
                 </motion.div>
               ))}
               {isLoading && (
