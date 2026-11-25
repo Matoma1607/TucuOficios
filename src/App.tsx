@@ -597,7 +597,7 @@ function HomePage() {
 
           {mountAssistant && (
             <Suspense fallback={null}>
-              <TucuAssistant open={assistantOpen && !anyModalOpen} onClose={() => setAssistantOpen(false)} />
+              <TucuAssistant open={assistantOpen && !anyModalOpen} onClose={() => setAssistantOpen(false)} jobs={jobs} onOpenJob={(j) => setSelectedJobDetail(j)} />
             </Suspense>
           )}
 
