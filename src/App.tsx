@@ -6,6 +6,7 @@ import CategoryFilter from './components/CategoryFilter';
 import JobCard from './components/JobCard';
 import PorQueGratis from './components/PorQueGratis';
 import VolverArriba from './components/VolverArriba';
+import AyudaFlotante from './components/AyudaFlotante';
 import { pedirUbicacion, ordenarPorCercania, type Ubicacion } from './lib/cercania';
 import { INSTAGRAM_OFICIAL_URL, INSTAGRAM_OFICIAL } from './lib/alias';
 import JobCardSkeleton from './components/JobCardSkeleton';
@@ -640,6 +641,7 @@ function HomePage() {
           )}
 
           <VolverArriba hidden={anyModalOpen || assistantOpen || typing} />
+          <AyudaFlotante hidden={anyModalOpen || assistantOpen || typing || accountOpen} onOpen={() => setAssistantOpen(true)} />
 
           {/* Menú de abajo en el celular */}
           <BottomNav
