@@ -76,7 +76,7 @@ interface JobRow {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALIAS = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 // Páginas propias del sitio (no son perfiles)
-const PAGINAS = new Set(['privacidad', 'estadisticas']);
+const PAGINAS = new Set(['privacidad', 'terminos', 'estadisticas']);
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
