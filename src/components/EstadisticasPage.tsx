@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Users, Eye, MessageCircle, Smartphone, Monitor, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Users, Eye, MessageCircle, Smartphone, Monitor, RefreshCw, SearchX } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { traerEstadisticas, type Estadisticas } from '../lib/contador';
+import { traerEstadisticas, traerBusquedasVacias, type Estadisticas, type FilaBusquedaVacia } from '../lib/contador';
 
 const PERIODOS = [
   { dias: 7, label: '7 días' },
@@ -30,6 +30,7 @@ export default function EstadisticasPage() {
   const [error, setError] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [hover, setHover] = useState<number | null>(null);
+  const [vacias, setVacias] = useState<FilaBusquedaVacia[] | null>(null);
 
   const cargar = () => {
     setCargando(true);
@@ -38,6 +39,8 @@ export default function EstadisticasPage() {
       .then(setData)
       .catch(() => setError(true))
       .finally(() => setCargando(false));
+    // Si esto falla (por ejemplo, antes de crear la función) el resto del panel se ve igual
+    traerBusquedasVacias(dias).then(setVacias, () => setVacias(null));
   };
 
   useEffect(() => {
@@ -240,6 +243,47 @@ export default function EstadisticasPage() {
                 </table>
               )}
             </section>
+
+            {/* Lo que buscaron y no encontraron */}
+            {vacias && (
+              <section className="mt-4 rounded-2xl bg-white border border-gray-200 p-4 sm:p-6">
+                <h2 className="text-lg font-extrabold text-gray-900 inline-flex items-center gap-2">
+                  <SearchX className="w-5 h-5 text-brand-strong" aria-hidden="true" />
+                  Buscaron y no encontraron
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  Búsquedas que no mostraron a nadie, en el buscador o en el chat. Te dice qué oficios conviene salir a buscar y dónde.
+                </p>
+                {vacias.length === 0 ? (
+                  <p className="mt-5 text-sm text-gray-500">En este período todas las búsquedas encontraron algo.</p>
+                ) : (
+                  <table className="mt-4 w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-500 border-b border-gray-200">
+                        <th className="py-2 font-semibold">Qué buscaron</th>
+                        <th className="py-2 font-semibold">Zona</th>
+                        <th className="py-2 font-semibold text-right w-24">Personas</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vacias.map((v, i) => (
+                        <tr key={i} className="border-b border-gray-100 last:border-0">
+                          <td className="py-2.5 pr-2 font-semibold text-gray-900">
+                            {v.que ? (v.es_texto ? `"${v.que}"` : v.que) : <span className="font-normal text-gray-500">Cualquier rubro</span>}
+                          </td>
+                          <td className="py-2.5 pr-2 text-gray-700">{v.zona ?? <span className="text-gray-500">Toda la provincia</span>}</td>
+                          <td className="py-2.5 text-right tabular-nums font-bold text-gray-900">
+                            {fmt(v.personas)}
+                            {v.veces > v.personas && <span className="block text-xs font-normal text-gray-500">{fmt(v.veces)} búsquedas</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+                <p className="mt-3 text-xs text-gray-500">Las palabras entre comillas no coinciden con ningún rubro: pueden ser oficios que todavía no están en la lista.</p>
+              </section>
+            )}
 
             {data.historico.desde && (
               <p className="mt-4 text-sm text-gray-500">

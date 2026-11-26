@@ -4,7 +4,7 @@ import { X, Send, Bot, Loader2, MessageCircle, MapPin, BadgeCheck } from 'lucide
 import { CATEGORIES_CONFIG, Job } from '../types';
 import { buscarEnSitio } from '../lib/buscarChat';
 import { whatsappLink } from './JobCard';
-import { contar } from '../lib/contador';
+import { contar, contarBusquedaVacia } from '../lib/contador';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -85,6 +85,8 @@ const TucuAssistant = ({ open: isOpen, onClose, jobs, onOpenJob }: TucuAssistant
         const rubro = busqueda.rubros.length ? etiqueta(busqueda.rubros[0]) : null;
         const que = rubro ? ` de ${rubro.toLowerCase()}` : '';
         const donde = busqueda.zona ? ` en ${busqueda.zona}` : '';
+        // Del chat no se guarda lo escrito: solo el rubro y la zona que se reconocieron
+        if (!busqueda.jobs.length && rubro) contarBusquedaVacia({ rubro, zona: busqueda.zona, origen: 'chat' });
         if (busqueda.jobs.length) {
           const n = busqueda.jobs.length;
           response = n === 1 ? `Encontré 1 opción${que}${donde}:` : `Encontré ${n} opciones${que}${donde}:`;
