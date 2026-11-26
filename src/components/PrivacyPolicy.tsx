@@ -42,6 +42,9 @@ export default function PrivacyPolicy() {
           <p className="text-lg text-gray-500 leading-relaxed max-w-lg">
             En TucuOficios conectamos personas. Pedimos lo justo para que te encuentren, no vendemos datos y no mostramos publicidad.
           </p>
+          <p className="text-sm text-gray-500">
+            Las reglas para publicar están en los <Link to="/terminos" className="underline text-gray-900">Términos de uso</Link>.
+          </p>
         </motion.header>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="space-y-16">
