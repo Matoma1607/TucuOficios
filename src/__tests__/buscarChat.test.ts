@@ -4,7 +4,7 @@ import { Job } from '../types';
 
 const job = (p: Partial<Job>): Job => ({
   id: Math.random().toString(), ownerId: 'x', title: 'Trabajo', category: 'Plomería', extraCategories: [], zone: 'San Miguel de Tucumán',
-  professionalName: 'Ana', alias: null, whatsapp: '549381' + Math.floor(Math.random() * 1e7), instagram: null, imageUrl: '', thumbUrl: '',
+  professionalName: 'Ana', negocio: null, alias: null, whatsapp: '549381' + Math.floor(Math.random() * 1e7), instagram: null, imageUrl: '', thumbUrl: '',
   cardUrl: '', imagePath: null, photoUrls: [], photoPaths: [], createdAt: '', estado: 'aprobado', verificado: false, description: '', ...p,
 });
 

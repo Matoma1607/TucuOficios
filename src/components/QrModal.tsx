@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Download, Share2, Loader2 } from 'lucide-react';
-import { CATEGORIES_CONFIG, rubrosDe, type Job } from '../types';
+import { CATEGORIES_CONFIG, rubrosDe, nombreVisible, type Job } from '../types';
 import { dibujarTarjetaQR, aBlob } from '../lib/qrTarjeta';
 import { dibujarHistoria } from '../lib/historia';
 import { SITIO } from '../lib/alias';
@@ -36,7 +36,7 @@ export default function QrModal({ job, tipo = 'qr', onClose }: Props) {
     let url = '';
     const datos = {
       alias: job.alias,
-      nombre: job.professionalName,
+      nombre: nombreVisible(job),
       titulo: job.title,
       categoria: job.category,
       zona: job.zone,
@@ -61,7 +61,7 @@ export default function QrModal({ job, tipo = 'qr', onClose }: Props) {
       })
       .catch(() => undefined);
     return () => { if (url) URL.revokeObjectURL(url); };
-  }, [tipo, job.alias, job.professionalName, job.title]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tipo, job.alias, job.professionalName, job.negocio, job.title]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
