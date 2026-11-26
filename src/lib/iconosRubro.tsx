@@ -84,7 +84,6 @@ import {
   SwimmingPool,
   TShirt,
   Tire,
-  Toolbox,
   Translate,
   Truck,
   VinylRecord,
@@ -107,6 +106,15 @@ export function Mate(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/** Yunque de herrero */
+export function Yunque(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 256 256" width="1em" height="1em" fill="none" stroke="currentColor" strokeWidth={16} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M24,80H208V104a24,24,0,0,1-24,24H160v32h24v24H72V160h24V128H96C64,128,38,108,24,80Z" />
+    </svg>
+  );
+}
+
 const POR_RUBRO: Record<string, IconoRubro> = {
   'Electricidad': Lightning,
   'Plomería': Pipe,
@@ -125,7 +133,7 @@ const POR_RUBRO: Record<string, IconoRubro> = {
   'Fletes y Mudanzas': Truck,
   'Albañilería': Wall,
   'Carpintería': Hammer,
-  'Herrería': Toolbox,
+  'Herrería': Yunque,
   'Soldadura': Fire,
   'Techos': HouseLine,
   'Durlock': Layout,
