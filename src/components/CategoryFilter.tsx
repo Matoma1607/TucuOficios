@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Category, CATEGORIES_CONFIG, SECTIONS } from '../types';
 import { Icons } from '../lib/icons';
+import { iconoRubro, iconoSeccion, IconoTodo } from '../lib/iconosRubro';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface CategoryFilterProps {
@@ -57,18 +58,18 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory, cou
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border flex-shrink-0 ${
               selectedCategory === 'All' && !isSearching
-                ? 'bg-brand-dark border-brand-dark text-white'
+                ? 'bg-orange-50 border-orange-300 text-orange-800 font-semibold'
                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
             }`}
           >
-            <Icons.LayoutGrid className="w-4 h-4" />
+            <IconoTodo className="w-[18px] h-[18px]" aria-hidden="true" />
             <span>Todo</span>
-            <span className="opacity-60">{total}</span>
+            <span className="opacity-80">{total}</span>
           </button>
 
           {sections.map(section => {
             const isActive = currentSection === section && !isSearching;
-            const SectionIcon = Icons[SECTIONS.find(s => s.id === section)?.iconName ?? ''] || Icons.HelpCircle;
+            const SectionIcon = iconoSeccion(section);
 
             return (
               <button
@@ -80,15 +81,15 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory, cou
                 }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border flex-shrink-0 ${
                   isActive 
-                    ? 'bg-brand-dark border-brand-dark text-white' 
+                    ? 'bg-orange-50 border-orange-300 text-orange-800 font-semibold' 
                     : sectionCount(section) > 0
                       ? 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900'
                       : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'
                 }`}
               >
-                <SectionIcon className="w-4 h-4" />
+                <SectionIcon className="w-[18px] h-[18px]" aria-hidden="true" />
                 <span>{section}</span>
-                {sectionCount(section) > 0 && <span className="opacity-60">{sectionCount(section)}</span>}
+                {sectionCount(section) > 0 && <span className="opacity-80">{sectionCount(section)}</span>}
               </button>
             );
           })}
@@ -102,7 +103,7 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory, cou
           }}
           aria-label="Buscar categoría"
           className={`flex-none ml-1 p-2.5 rounded-full border transition-colors ${
-            isSearching ? 'bg-brand-dark border-brand-dark text-white' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+            isSearching ? 'bg-orange-50 border-orange-300 text-orange-800' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
           }`}
         >
           <Icons.Search className="w-4 h-4" />
@@ -134,7 +135,7 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory, cou
             <div className="flex overflow-x-auto no-scrollbar -mx-4 px-4 gap-2 py-1">
               {filteredSubCats.map((cat) => {
                 const isActive = selectedCategory === cat.id;
-                const IconComponent = (Icons as any)[cat.iconName] || Icons.HelpCircle;
+                const IconComponent = iconoRubro(cat.id);
                 
                 return (
                   <button
@@ -142,15 +143,15 @@ export default function CategoryFilter({ selectedCategory, onSelectCategory, cou
                     onClick={() => onSelectCategory(cat.id)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors border flex-shrink-0 ${
                       isActive 
-                        ? 'bg-orange-50 border-orange-200 text-orange-800 font-medium' 
+                        ? 'bg-orange-50 border-orange-300 text-orange-800 font-semibold' 
                         : (counts[cat.id] ?? 0) > 0
                           ? 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                           : 'bg-white border-gray-100 text-gray-400 hover:border-gray-200'
                     }`}
                   >
-                    <IconComponent className="w-3.5 h-3.5" />
+                    <IconComponent className="w-4 h-4" aria-hidden="true" />
                     <span>{cat.label}</span>
-                    {(counts[cat.id] ?? 0) > 0 && <span className="opacity-60">{counts[cat.id]}</span>}
+                    {(counts[cat.id] ?? 0) > 0 && <span className="opacity-80">{counts[cat.id]}</span>}
                   </button>
                 );
               })}

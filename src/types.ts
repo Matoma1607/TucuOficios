@@ -152,6 +152,7 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
   { id: 'Cocina y Hogar', label: 'Cocina y hogar', section: 'Emprendimientos', iconName: 'CookingPot' },
   { id: 'Celulares y Electrónica', label: 'Celulares y electrónica', section: 'Emprendimientos', iconName: 'Smartphone' },
   { id: 'Belleza y Cosmética', label: 'Belleza y cosmética', section: 'Emprendimientos', iconName: 'Sparkles' },
+  { id: 'Mates y Accesorios', label: 'Mates y accesorios', section: 'Emprendimientos', iconName: 'Coffee' },
   { id: 'Otros Productos', label: 'Otros productos', section: 'Emprendimientos', iconName: 'ShoppingBag' },
 
   // Varios

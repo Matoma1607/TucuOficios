@@ -4,7 +4,6 @@ import { X, BadgeCheck, Instagram, MapPin, Calendar, Link as LinkIcon, Check, Me
 import { Job, CATEGORIES_CONFIG } from '../types';
 import { prettyTitle, timeAgo } from '../lib/text';
 import { instagramUrl } from '../lib/instagram';
-import { Icons } from '../lib/icons';
 import Avatar from './Avatar';
 import Gallery from './Gallery';
 import { useToast } from './Toast';
@@ -13,6 +12,7 @@ import { contar } from '../lib/contador';
 import { whatsappLink, shareUrl } from './JobCard';
 import { Link } from 'react-router-dom';
 import { jobPath } from '../lib/slug';
+import { iconoRubro } from '../lib/iconosRubro';
 
 interface JobDetailModalProps {
   job: Job | null;
@@ -148,7 +148,7 @@ export default function JobDetailModal({ job, isOpen, onClose }: JobDetailModalP
 /** Datos del profesional y del servicio (se usa en el modal y en la página). */
 export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === job.category);
-  const CategoryIcon = (categoryInfo && Icons[categoryInfo.iconName]) || Icons.HelpCircle;
+  const CategoryIcon = iconoRubro(job.category);
 
   return (
     <>
