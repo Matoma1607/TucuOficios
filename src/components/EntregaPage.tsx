@@ -60,6 +60,14 @@ export default function EntregaPage() {
               <p className="mt-2 text-gray-600">
                 La encontrás en <b>Mis publicaciones</b>. Desde ahí la podés editar y descargar tu QR y la imagen para historias.
               </p>
+              <div className="mt-5 rounded-xl bg-gray-50 border border-gray-200 p-4">
+                <p className="text-sm font-semibold text-gray-900">Tené en cuenta</p>
+                <ul className="mt-2 space-y-1.5 text-sm text-gray-700 list-disc pl-5">
+                  <li>Cada publicación puede tener hasta <b>3 fotos</b>. La primera es la portada.</li>
+                  <li>Podés tener hasta <b>5 publicaciones</b> por cuenta.</li>
+                  <li>Si la editás, la revisamos antes de volver a mostrarla. Suele estar en el día.</li>
+                </ul>
+              </div>
               <button onClick={() => navigate('/?ver=mias')} className="mt-6 w-full py-3 rounded-xl bg-brand-strong hover:bg-brand-strong-hover text-brand-dark font-semibold">
                 Ver mis publicaciones
               </button>
