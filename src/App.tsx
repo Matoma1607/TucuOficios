@@ -26,6 +26,7 @@ const ProfilePage = lazy(() => import('./components/ProfilePage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const EstadisticasPage = lazy(() => import('./components/EstadisticasPage'));
+const EntregaPage = lazy(() => import('./components/EntregaPage'));
 
 /** true en pantallas de 1024px o más (el breakpoint `lg` de Tailwind): ahí entra el texto largo del buscador. */
 function useIsWide() {
@@ -112,6 +113,14 @@ function HomePage() {
     }, 1200);
     return () => clearTimeout(timer);
   }, []);
+
+  // Después de quedarse con una publicación entregada (/?ver=mias): abre "Mis publicaciones"
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('ver') !== 'mias' || !user) return;
+    setView('mine');
+    navigate('/', { replace: true });
+    setTimeout(() => document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+  }, [location.search, user, navigate]);
 
   useEffect(() => {
     if ((view === 'mine' && !user) || (view === 'pending' && !isAdmin)) setView('all');
@@ -571,6 +580,7 @@ function HomePage() {
                       rubro={selectedCategory !== 'All' ? selectedCategory : undefined}
                       isAdmin={isAdmin} 
                       canManage={isAdmin || job.ownerId === user?.id}
+                      esMia={job.ownerId === user?.id}
                       onEdit={(j) => setEditingJob(j)}
                       onDeleted={(id) => setJobs(prev => prev.filter(j => j.id !== id))}
                       onStatusChanged={(id, estado) => setJobs(prev => prev.map(j => j.id === id ? { ...j, estado } : j))}
@@ -756,6 +766,7 @@ export default function App() {
         <Route path="/p/:id/:slug?" element={<ProfilePage />} />
         <Route path="/privacidad" element={<PrivacyPolicy />} />
         <Route path="/estadisticas" element={<EstadisticasPage />} />
+        <Route path="/entregar/:codigo" element={<EntregaPage />} />
         <Route path="/:alias" element={<ProfilePage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /entregar/
 
 Sitemap: https://tucuoficios.net.ar/sitemap.xml
