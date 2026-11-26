@@ -1,6 +1,6 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2, QrCode, Image as ImageIcon } from 'lucide-react';
+import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone, AlertCircle, MessageCircle, X, Loader2, QrCode, Image as ImageIcon, Handshake } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, sectionOf, rubrosDe } from '../types';
 import { instagramUrl } from '../lib/instagram';
 import { channelText } from '../lib/channel';
@@ -14,11 +14,14 @@ import { iconoRubro } from '../lib/iconosRubro';
 import { nombreVisible } from '../types';
 
 const QrModal = lazy(() => import('./QrModal'));
+const EntregarModal = lazy(() => import('./EntregarModal'));
 
 interface JobCardProps {
   job: Job;
   isAdmin: boolean;      // muestra herramientas de admin (copiar para canal)
   canManage: boolean;    // dueño o admin: editar / borrar
+  /** la publicación es de la cuenta que mira (el admin puede entregar las que creó él) */
+  esMia?: boolean;
   onEdit?: (job: Job) => void;
   onDeleted?: (id: string) => void;
   onStatusChanged?: (id: string, estado: Job['estado']) => void;
@@ -37,13 +40,14 @@ export function shareUrl(job: Job) {
   return `${window.location.origin}${jobPath(job)}`;
 }
 
-export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, onStatusChanged, onClick, rubro }: JobCardProps) {
+export default function JobCard({ job, isAdmin, canManage, esMia, onEdit, onDeleted, onStatusChanged, onClick, rubro }: JobCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [shared, setShared] = useState(false);
   const [copiedChannel, setCopiedChannel] = useState(false);
   const [compartir, setCompartir] = useState<null | 'qr' | 'historia'>(null);
+  const [entregar, setEntregar] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [thumbFailed, setThumbFailed] = useState(false);
   const toast = useToast();
@@ -364,6 +368,15 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
               <ImageIcon className="w-3.5 h-3.5" /> Historia
             </button>
           )}
+          {isAdmin && esMia && job.estado === 'aprobado' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEntregar(true); }}
+              title="Mandarle el link para que la publicación quede a su nombre"
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-600 hover:bg-gray-100"
+            >
+              <Handshake className="w-3.5 h-3.5" /> Entregar
+            </button>
+          )}
           {isAdmin && (
             <button
               onClick={handleCopyForChannel}
@@ -375,6 +388,11 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
             </button>
           )}
         </div>
+      )}
+      {entregar && (
+        <Suspense fallback={null}>
+          <EntregarModal job={job} onClose={() => setEntregar(false)} />
+        </Suspense>
       )}
       {compartir && job.alias && (
         <Suspense fallback={null}>
