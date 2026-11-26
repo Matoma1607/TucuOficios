@@ -164,28 +164,26 @@ export const CATEGORIES_CONFIG: CategoryInfo[] = [
 
 export const CATEGORIES = CATEGORIES_CONFIG.map(c => c.id);
 
-// Localidades de Tucumán para el campo "Zona".
-export const ZONES: string[] = [
-  'San Miguel de Tucumán',
-  'Yerba Buena',
-  'Tafí Viejo',
-  'Banda del Río Salí',
-  'Alderetes',
-  'Las Talitas',
-  'El Manantial',
-  'San Pablo',
-  'Lules',
-  'Famaillá',
-  'Monteros',
-  'Concepción',
-  'Aguilares',
-  'Simoca',
-  'Bella Vista',
-  'Tafí del Valle',
-  'Trancas',
-  'Burruyacú',
-  'Todo Tucumán',
+// Localidades de Tucumán para el campo "Zona", agrupadas por región para los desplegables.
+export const ZONAS_POR_REGION: { region: string; zonas: string[] }[] = [
+  {
+    region: 'Gran Tucumán',
+    zonas: ['San Miguel de Tucumán', 'Alderetes', 'Banda del Río Salí', 'El Cadillal', 'El Manantial', 'Las Talitas', 'Los Pocitos', 'Lules', 'Raco', 'San Javier', 'San Pablo', 'Tafí Viejo', 'Yerba Buena'],
+  },
+  {
+    region: 'Este',
+    zonas: ['Bella Vista', 'Burruyacú', 'Colombres', 'Delfín Gallo', 'Los Ralos', 'Ranchillos', 'Santa Rosa de Leales'],
+  },
+  {
+    region: 'Sur',
+    zonas: ['Acheral', 'Aguilares', 'Alpachiri', 'Concepción', 'Famaillá', 'Graneros', 'Juan Bautista Alberdi', 'La Cocha', 'Monteros', 'Río Seco', 'Santa Ana', 'Santa Lucía', 'Simoca', 'Villa Quinteros'],
+  },
+  { region: 'Valles', zonas: ['Amaicha del Valle', 'Colalao del Valle', 'El Mollar', 'Tafí del Valle'] },
+  { region: 'Norte', zonas: ['San Pedro de Colalao', 'Trancas'] },
 ];
+
+/** Todas las zonas (sin agrupar) + "Todo Tucumán" para quien trabaja en toda la provincia */
+export const ZONES: string[] = [...ZONAS_POR_REGION.flatMap((r) => r.zonas), 'Todo Tucumán'];
 
 /** Máximo de rubros extra por publicación (además del principal) */
 export const MAX_RUBROS_EXTRA = 3;

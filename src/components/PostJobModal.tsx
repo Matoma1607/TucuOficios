@@ -4,7 +4,8 @@ import { X, ChevronRight, Loader2, PartyPopper, LogIn, Lightbulb, MapPin, Messag
 import { isGenericTitle } from '../lib/text';
 import { Icons } from '../lib/icons';
 import type { User } from '@supabase/supabase-js';
-import { CATEGORIES_CONFIG, Category, ZONES } from '../types';
+import { CATEGORIES_CONFIG, Category } from '../types';
+import OpcionesZona from './OpcionesZona';
 import { createJob, uploadJobImage, removeImages, normalizeWhatsapp } from '../services/jobs';
 import { normalizeInstagram } from '../lib/instagram';
 import AliasField from './AliasField';
@@ -332,7 +333,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                         } ${formData.zone ? 'text-gray-900' : 'text-gray-500'}`}
                       >
                         <option value="" disabled>Elegí una…</option>
-                        {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+                        <OpcionesZona />
                       </select>
                     </div>
                   </div>

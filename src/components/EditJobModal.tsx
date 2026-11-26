@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Check, Loader2 } from 'lucide-react';
 import { Job, CATEGORIES_CONFIG, Category, ZONES } from '../types';
+import OpcionesZona from './OpcionesZona';
 import { updateJob, uploadJobImage, removeImages, normalizeWhatsapp, formatWhatsappForInput } from '../services/jobs';
 import { normalizeInstagram } from '../lib/instagram';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
@@ -208,7 +209,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                     >
                       {/* Publicaciones viejas pueden tener una zona escrita a mano */}
                       {zone && !ZONES.includes(zone) && <option value={zone}>{zone} (anterior)</option>}
-                      {ZONES.map(z => <option key={z} value={z}>{z}</option>)}
+                      <OpcionesZona />
                     </select>
                   </div>
                 </div>
