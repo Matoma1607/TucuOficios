@@ -13,7 +13,8 @@ import JobCardSkeleton from './components/JobCardSkeleton';
 import SplashScreen from './components/SplashScreen';
 import CookieBanner from './components/CookieBanner';
 import { logPageView } from './lib/analytics';
-import { contar } from './lib/contador';
+import { contar, contarBusquedaVacia } from './lib/contador';
+import { rubrosEn, zonaEn } from './lib/buscarChat';
 
 // Se descargan recién cuando hacen falta: la página inicial carga menos código.
 const PostJobModal = lazy(() => import('./components/PostJobModal'));
@@ -226,6 +227,23 @@ function HomePage() {
       return vistos.has(clave) ? false : (vistos.add(clave), true);
     });
   }, [filteredJobs, view, selectedCategory, searchQuery, cerca]);
+
+  // Búsquedas sin resultado: si alguien busca y no aparece nadie, se anota el rubro (o la palabra) y la zona
+  // para saber qué oficios faltan y dónde. Espera a que deje de escribir.
+  useEffect(() => {
+    if (isLoading || view !== 'all' || filteredJobs.length > 0) return;
+    const q = searchQuery.trim();
+    const hayCategoria = selectedCategory !== 'All';
+    if (q.length < 3 && !hayCategoria && !selectedZone) return;
+    const t = setTimeout(() => {
+      const rubroQ = q ? rubrosEn(q)[0] : undefined;
+      const rubro = hayCategoria
+        ? CATEGORIES_CONFIG.find(c => c.id === selectedCategory)?.label ?? selectedCategory
+        : rubroQ ? CATEGORIES_CONFIG.find(c => c.id === rubroQ)?.label ?? rubroQ : null;
+      contarBusquedaVacia({ rubro, texto: q, zona: selectedZone || (q ? zonaEn(q) : null), origen: 'buscador' });
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [isLoading, view, filteredJobs.length, searchQuery, selectedCategory, selectedZone]);
 
   // Profesionales distintos (no publicaciones)
   const profesionalesCount = useMemo(() => new Set(filteredJobs.map(j => j.whatsapp)).size, [filteredJobs]);
