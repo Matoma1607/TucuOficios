@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronRight, Loader2, PartyPopper, LogIn, Lightbulb, MapPin, MessageCircle, Instagram } from 'lucide-react';
 import { isGenericTitle } from '../lib/text';
-import { Icons } from '../lib/icons';
 import type { User } from '@supabase/supabase-js';
 import { CATEGORIES_CONFIG, Category } from '../types';
 import OpcionesZona from './OpcionesZona';
@@ -13,6 +12,7 @@ import { INSTAGRAM_OFICIAL_URL } from '../lib/alias';
 import PorQueGratis from './PorQueGratis';
 import RubrosExtra from './RubrosExtra';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
+import { iconoRubro } from '../lib/iconosRubro';
 
 interface PostJobModalProps {
   isOpen: boolean;
@@ -445,7 +445,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 {/* Vista previa: así aparece en el listado */}
                 {(photos.length > 0 || formData.professionalName || formData.category) && (() => {
                   const cat = CATEGORIES_CONFIG.find(c => c.id === formData.category);
-                  const CatIcon = (cat && Icons[cat.iconName]) || Icons.HelpCircle;
+                  const CatIcon = iconoRubro(cat?.id ?? '');
                   return (
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-2 ml-1">Así se va a ver en el listado</p>

@@ -46,6 +46,7 @@ const RUBRO_LABEL: Record<string, string> = {
   'Cocina y Hogar': 'Cocina y hogar',
   'Celulares y Electrónica': 'Celulares y electrónica',
   'Belleza y Cosmética': 'Belleza y cosmética',
+  'Mates y Accesorios': 'Mates y accesorios',
   'Otros Productos': 'Otros productos',
   'Costura': 'Costura y arreglos',
   'Reparación de Calzado': 'Reparación de calzado',

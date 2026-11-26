@@ -26,3 +26,12 @@ describe('categorías', () => {
     expect(new Set(ZONES).size).toBe(ZONES.length);
   });
 });
+
+import { iconoRubro, iconoSeccion } from '../lib/iconosRubro';
+import { Question } from '@phosphor-icons/react';
+describe('íconos de rubros', () => {
+  it('cada rubro y cada sección tiene su ícono', () => {
+    for (const c of CATEGORIES_CONFIG) expect(iconoRubro(c.id), c.id).not.toBe(Question);
+    for (const s of SECTIONS) expect(iconoSeccion(s.id), s.id).toBeDefined();
+  });
+});

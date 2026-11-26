@@ -4,13 +4,13 @@ import { BadgeCheck, Instagram, MapPin, Trash2, Pencil, Share2, Check, Megaphone
 import { Job, CATEGORIES_CONFIG, sectionOf, rubrosDe } from '../types';
 import { instagramUrl } from '../lib/instagram';
 import { channelText } from '../lib/channel';
-import { Icons } from '../lib/icons';
 import { deleteJob, setJobStatus } from '../services/jobs';
 import Avatar from './Avatar';
 import { useToast } from './Toast';
 import { jobPath } from '../lib/slug';
 import SaveButton from './SaveButton';
 import { contar } from '../lib/contador';
+import { iconoRubro } from '../lib/iconosRubro';
 
 const QrModal = lazy(() => import('./QrModal'));
 
@@ -67,7 +67,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
   // Si se filtró por uno de sus rubros extra, se muestra ese; si no, el principal
   const rubroVisible = rubro && rubrosDe(job).includes(rubro) ? rubro : job.category;
   const categoryInfo = CATEGORIES_CONFIG.find(c => c.id === rubroVisible);
-  const CategoryIcon = (categoryInfo && Icons[categoryInfo.iconName]) || Icons.HelpCircle;
+  const CategoryIcon = iconoRubro(rubroVisible);
   // En el listado se muestra el oficio (siempre prolijo); el título libre va en el perfil.
   const categoryLabel = categoryInfo?.label ?? rubroVisible;
   const otrosRubros = rubrosDe(job).length - 1;

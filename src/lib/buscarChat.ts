@@ -80,6 +80,8 @@ const SINONIMOS: Record<string, string[]> = {
   'Arquitectura': ['arquitect', 'plano', 'planos'],
   'Ropa y Accesorios': ['ropa', 'accesorio', 'zapatilla', 'indumentaria'],
   'Cocina y Hogar': ['bazar', 'cocina y hogar'],
+  // "yerba" sola no: chocaría con Yerba Buena
+  'Mates y Accesorios': ['mate', 'mates', 'matero', 'materos', 'matera', 'materas', 'bombilla', 'termo', 'termos', 'yerbera', 'yerberas', 'azucarera'],
   'Celulares y Electrónica': ['funda', 'fundas', 'cargador', 'electronica', 'auricular'],
   'Belleza y Cosmética': ['cosmetic', 'perfume', 'crema', 'cremas', 'belleza'],
   'Costura': ['costur', 'modista', 'arreglo de ropa'],

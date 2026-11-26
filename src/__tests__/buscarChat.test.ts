@@ -26,6 +26,9 @@ describe('buscador del chat', () => {
     expect(zonaEn('plomero en yerba buena')).toBe('Yerba Buena');
     expect(zonaEn('en tafi del valle')).toBe('Tafí del Valle');
     expect(zonaEn('electricista en santa lucia')).toBe('Santa Lucía');
+    expect(rubrosEn('busco mates y bombillas')).toContain('Mates y Accesorios');
+    expect(rubrosEn('plomero en yerba buena')).not.toContain('Mates y Accesorios');
+    expect(rubrosEn('arreglo de termotanque')).not.toContain('Mates y Accesorios');
     expect(zonaEn('algo en el cadillal')).toBe('El Cadillal');
     expect(zonaEn('peluqueria en alberdi')).toBe('Juan Bautista Alberdi');
     expect(zonaEn('gasista en san pedro de colalao')).toBe('San Pedro de Colalao');

@@ -86,6 +86,7 @@ const EMOJI_BY_CATEGORY: Record<string, string> = {
   'Cocina y Hogar': '🍳',
   'Celulares y Electrónica': '📱',
   'Belleza y Cosmética': '💄',
+  'Mates y Accesorios': '🧉',
   'Otros Productos': '🛍️',
   // Varios
   'Costura': '🧵',
