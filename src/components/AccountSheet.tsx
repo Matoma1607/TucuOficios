@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, LogIn, LogOut, FileText, Download, HelpCircle, MessageCircleQuestion, ShieldCheck, ClipboardCheck, ChevronRight, BarChart3, Instagram, ExternalLink } from 'lucide-react';
+import { X, LogIn, LogOut, FileText, Download, HelpCircle, MessageCircleQuestion, ShieldCheck, ScrollText, ClipboardCheck, ChevronRight, BarChart3, Instagram, ExternalLink } from 'lucide-react';
 import { INSTAGRAM_OFICIAL_URL } from '../lib/alias';
 import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
@@ -129,6 +129,11 @@ export default function AccountSheet(p: Props) {
               <Link to="/privacidad" onClick={p.onClose} className={row}>
                 <ShieldCheck className="w-5 h-5 text-gray-500" aria-hidden="true" />
                 <span className="flex-1">Política de privacidad</span>
+                <ChevronRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
+              </Link>
+              <Link to="/terminos" onClick={p.onClose} className={row}>
+                <ScrollText className="w-5 h-5 text-gray-500" aria-hidden="true" />
+                <span className="flex-1">Términos de uso</span>
                 <ChevronRight className="w-4 h-4 text-gray-300" aria-hidden="true" />
               </Link>
               {p.user && (
