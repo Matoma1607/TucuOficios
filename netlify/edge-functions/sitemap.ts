@@ -40,6 +40,7 @@ export default async () => {
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     url(`${SITE}/`),
     url(`${SITE}/privacidad`),
+    url(`${SITE}/terminos`),
     ...rows.map(r =>
       url(r.alias ? `${SITE}/${r.alias}` : `${SITE}/p/${r.id}/${slugify(`${r.professional_name} ${r.title}`)}`, r.updated_at)
     ),
