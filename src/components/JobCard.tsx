@@ -11,6 +11,7 @@ import { jobPath } from '../lib/slug';
 import SaveButton from './SaveButton';
 import { contar } from '../lib/contador';
 import { iconoRubro } from '../lib/iconosRubro';
+import { nombreVisible } from '../types';
 
 const QrModal = lazy(() => import('./QrModal'));
 
@@ -200,7 +201,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
         </div>
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 font-semibold text-gray-900 min-w-0">
-            <span className="truncate">{job.professionalName}</span>
+            <span className="truncate">{nombreVisible(job)}</span>
             {job.verificado && <BadgeCheck className="w-4 h-4 flex-none text-sky-600" aria-label="Verificado" />}
           </p>
           <p className="text-sm text-gray-600 truncate">{categoryLabel}{masRubros && <span className="text-gray-500">{masRubros}</span>}</p>
@@ -259,7 +260,7 @@ export default function JobCard({ job, isAdmin, canManage, onEdit, onDeleted, on
 
         <div className="flex flex-col flex-1 p-4">
           <p className="flex items-start gap-1 font-semibold text-gray-900 leading-snug">
-            <span className="line-clamp-2">{job.professionalName}</span>
+            <span className="line-clamp-2">{nombreVisible(job)}</span>
             {job.verificado && <BadgeCheck className="w-4 h-4 mt-0.5 flex-none text-sky-600" aria-label="Verificado" />}
           </p>
           <h3 className="mt-1 text-sm text-gray-700">{categoryLabel}{masRubros && <span className="text-gray-500">{masRubros}</span>}</h3>

@@ -10,6 +10,7 @@ import { JobInfo } from './JobDetailModal';
 import Gallery from './Gallery';
 import { contar } from '../lib/contador';
 import { useToast } from './Toast';
+import { nombreVisible } from '../types';
 
 const DEFAULT_TITLE = 'TucuOficios | Profesionales de confianza en Tucumán';
 
@@ -46,7 +47,7 @@ export default function ProfilePage() {
   }, [clave]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (job) document.title = `${job.professionalName} · ${job.title} | TucuOficios`;
+    if (job) document.title = `${nombreVisible(job)} · ${job.title} | TucuOficios`;
     return () => { document.title = DEFAULT_TITLE; };
   }, [job]);
 

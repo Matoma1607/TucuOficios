@@ -6,6 +6,7 @@ export interface Job {
   extraCategories: string[]; // hasta 3 rubros más, además del principal
   zone: string;
   professionalName: string;
+  negocio: string | null;    // nombre del emprendimiento o negocio (opcional)
   alias: string | null;      // link corto: tucuoficios.net.ar/<alias>
   whatsapp: string; // formato 549XXXXXXXXXX
   instagram: string | null; // usuario, sin @
@@ -20,6 +21,9 @@ export interface Job {
   verificado: boolean;       // lo marca el admin después de comprobar los datos
   description: string;
 }
+
+/** Nombre que se muestra: el del negocio si tiene, si no el de la persona */
+export const nombreVisible = (job: Pick<Job, 'negocio' | 'professionalName'>) => job.negocio || job.professionalName;
 
 export type Category = string;
 

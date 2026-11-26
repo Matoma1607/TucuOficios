@@ -68,6 +68,7 @@ interface JobRow {
   category: string;
   zone: string;
   professional_name: string;
+  negocio?: string | null;
   description: string;
   image_path: string | null;
 }
@@ -118,7 +119,7 @@ export default async (request: Request, context: Context) => {
   if (!supabaseUrl || !key) return response;
 
   try {
-    const api = `${supabaseUrl}/rest/v1/jobs?select=id,alias,title,category,zone,professional_name,description,image_path&${filtro}&estado=eq.aprobado`;
+    const api = `${supabaseUrl}/rest/v1/jobs?select=id,alias,title,category,zone,professional_name,negocio,description,image_path&${filtro}&estado=eq.aprobado`;
     const res = await fetch(api, { headers: { apikey: key } });
     if (!res.ok) return response;
     const [job] = (await res.json()) as JobRow[];
@@ -131,7 +132,7 @@ export default async (request: Request, context: Context) => {
       return new Response(html, { status: 404, headers });
     }
 
-    const title = escapeHtml(`${job.professional_name} · ${rubro(job.category)} en ${job.zone} | TucuOficios`);
+    const title = escapeHtml(`${job.negocio || job.professional_name} · ${rubro(job.category)} en ${job.zone} | TucuOficios`);
     const description = escapeHtml(
       job.description.length > 150 ? `${job.description.slice(0, 147)}…` : job.description
     );

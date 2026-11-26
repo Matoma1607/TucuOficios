@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronRight, Loader2, PartyPopper, LogIn, Lightbulb, MapPin, MessageCircle, Instagram } from 'lucide-react';
-import { isGenericTitle } from '../lib/text';
+import { validarPublicacion } from '../lib/validarPublicacion';
 import type { User } from '@supabase/supabase-js';
 import { CATEGORIES_CONFIG, Category } from '../types';
 import OpcionesZona from './OpcionesZona';
@@ -29,6 +29,7 @@ const emptyForm = () => ({
   category: '',
   zone: '',
   professionalName: '',
+  negocio: '',
   whatsapp: '',
   instagram: '',
   description: '',
@@ -76,37 +77,34 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
   }, [user]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (formData.title.trim().length < 5) {
-      newErrors.title = 'Mínimo 5 caracteres';
-    } else if (isGenericTitle(formData.title)) {
-      newErrors.title = 'Contá qué hacés (ej: Venta de ropa)';
-    }
-    if (formData.description.trim().length < 10) {
-      newErrors.description = 'Mínimo 10 caracteres';
-    }
-    if (!CATEGORIES_CONFIG.some(c => c.id === formData.category)) {
-      newErrors.category = 'Elegí una';
-    }
-    if (!formData.zone) {
-      newErrors.zone = 'Elegí una';
-    }
-    if (formData.professionalName.trim().length < 2) {
-      newErrors.professionalName = 'Requerido';
-    }
-    if (!normalizeWhatsapp(formData.whatsapp)) {
-      newErrors.whatsapp = 'Ej: 381 412-3456';
-    }
-    if (normalizeInstagram(formData.instagram ?? '') === null) {
-      newErrors.instagram = 'Revisá el usuario';
-    }
-    if (!aliasOk) {
-      newErrors.alias = 'Elegí otro link';
-    }
-    if (photos.length === 0) {
-      newErrors.image = 'Subí al menos una foto de tu trabajo.';
-    }
+    const v = validarPublicacion({
+      title: formData.title,
+      category: formData.category,
+      zone: formData.zone,
+      nombre: formData.professionalName,
+      negocio: formData.negocio,
+      whatsapp: formData.whatsapp,
+      instagram: formData.instagram,
+      description: formData.description,
+      fotos: photos.length,
+    });
+    const { nombre, ...resto } = v;
+    const newErrors: Record<string, string> = { ...resto } as Record<string, string>;
+    if (nombre) newErrors.professionalName = nombre;
+    if (!aliasOk) newErrors.alias = 'Elegí otro link';
     setErrors(newErrors);
+    // Lleva al primer dato a corregir (en el celular el error puede quedar fuera de la pantalla)
+    const orden: [string, string][] = [
+      ['image', 'post-fotos'], ['title', 'post-titulo'], ['category', 'post-categoria'], ['zone', 'post-zona'],
+      ['professionalName', 'post-nombre'], ['negocio', 'post-negocio'], ['whatsapp', 'post-whatsapp'],
+      ['instagram', 'post-instagram'], ['alias', 'post-alias'], ['description', 'post-descripcion'],
+    ];
+    const primero = orden.find(([k]) => newErrors[k]);
+    if (primero) {
+      const el = document.getElementById(primero[1]);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) el.focus({ preventScroll: true });
+    }
     return Object.keys(newErrors).length === 0;
   };
 
@@ -147,6 +145,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
           extraCategories: formData.extraCategories,
           zone: formData.zone,
           professionalName: formData.professionalName,
+          negocio: formData.negocio,
           description: formData.description,
           alias: formData.alias,
           whatsapp: normalizeWhatsapp(formData.whatsapp)!,
@@ -256,7 +255,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 </button>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form noValidate onSubmit={handleSubmit} className="space-y-6">
                 <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-900">
                   <p className="flex items-center gap-1.5 font-semibold">
                     <Lightbulb className="w-4 h-4" aria-hidden="true" /> Para que te escriban más
@@ -268,7 +267,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                   </ul>
                 </div>
 
-                <div>
+                <div id="post-fotos">
                   <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Fotos de tu trabajo *</label>
                   <PhotoPicker
                     items={photos}
@@ -294,6 +293,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                         errors.title ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                       }`}
                     />
+                    <p className="mt-1.5 ml-1 text-xs text-gray-500">Decí qué hacés en pocas palabras, como lo buscaría un cliente.</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -367,6 +367,23 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
 
                   <div>
                     <div className="flex justify-between items-center mb-2 ml-1">
+                      <label htmlFor="post-negocio" className="text-sm font-medium text-gray-700">Nombre de tu emprendimiento o negocio <span className="font-normal text-gray-500">(opcional)</span></label>
+                      {errors.negocio && <span className="text-xs font-medium text-red-600">{errors.negocio}</span>}
+                    </div>
+                    <input id="post-negocio"
+                      maxLength={60}
+                      placeholder="Ej: Ferretería Italia"
+                      value={formData.negocio ?? ''}
+                      onChange={e => setFormData({...formData, negocio: e.target.value})}
+                      className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
+                        errors.negocio ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                      }`}
+                    />
+                    <p className="mt-1.5 ml-1 text-xs text-gray-500">Si tenés una marca o un local, ponelo acá y se va a ver como nombre principal. Si no, dejalo vacío.</p>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2 ml-1">
                       <label htmlFor="post-whatsapp" className="text-sm font-medium text-gray-700">WhatsApp *</label>
                       {errors.whatsapp && <span className="text-xs font-medium text-red-600">{errors.whatsapp}</span>}
                     </div>
@@ -416,6 +433,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                       value={formData.alias}
                       onChange={(alias, manual) => setFormData(f => ({ ...f, alias, aliasManual: f.aliasManual || manual }))}
                       nombre={formData.professionalName}
+                      negocio={formData.negocio ?? ''}
                       titulo={formData.title}
                       categoria={formData.category}
                       fijo={formData.aliasManual}
@@ -439,11 +457,15 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                         errors.description ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                       }`}
                     />
+                    <div className="mt-1.5 ml-1 flex justify-between gap-3 text-xs text-gray-500">
+                      <span>Contá experiencia, horarios, si tenés matrícula y hasta dónde te movés.</span>
+                      <span className="tabular-nums flex-none">{formData.description.trim().length}/600</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Vista previa: así aparece en el listado */}
-                {(photos.length > 0 || formData.professionalName || formData.category) && (() => {
+                {(photos.length > 0 || formData.professionalName || formData.negocio || formData.category) && (() => {
                   const cat = CATEGORIES_CONFIG.find(c => c.id === formData.category);
                   const CatIcon = iconoRubro(cat?.id ?? '');
                   return (
@@ -458,7 +480,7 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-gray-900 truncate">{formData.professionalName || 'Tu nombre'}</p>
+                          <p className="font-semibold text-gray-900 truncate">{formData.negocio?.trim() || formData.professionalName || 'Tu nombre'}</p>
                           <p className="text-sm text-gray-600 truncate">{cat?.label ?? 'Tu oficio'}</p>
                           <p className="flex items-center gap-1 text-xs text-gray-500">
                             <MapPin className="w-3.5 h-3.5" aria-hidden="true" /> {formData.zone || 'Tu zona'}

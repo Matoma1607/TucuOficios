@@ -5,6 +5,7 @@ import { CATEGORIES_CONFIG, Job } from '../types';
 import { buscarEnSitio } from '../lib/buscarChat';
 import { whatsappLink } from './JobCard';
 import { contar, contarBusquedaVacia } from '../lib/contador';
+import { nombreVisible } from '../types';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -202,7 +203,7 @@ const TucuAssistant = ({ open: isOpen, onClose, jobs, onOpenJob }: TucuAssistant
                             )}
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-gray-900 truncate flex items-center gap-1">
-                                {j.professionalName}
+                                {nombreVisible(j)}
                                 {j.verificado && <BadgeCheck className="w-3.5 h-3.5 flex-none text-sky-600" aria-label="Verificado" />}
                               </p>
                               <p className="text-xs text-gray-500 truncate">{etiqueta(j.category)}</p>

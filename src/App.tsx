@@ -184,7 +184,7 @@ function HomePage() {
     const q = norm(searchQuery.trim());
     return tabJobs.filter(job => {
       const rubros = rubrosDe(job).flatMap(r => [r, CATEGORIES_CONFIG.find(c => c.id === r)?.label ?? '']);
-      const matchesSearch = !q || [job.title, job.zone, job.professionalName, ...rubros, job.description]
+      const matchesSearch = !q || [job.title, job.zone, job.professionalName, job.negocio ?? '', ...rubros, job.description]
         .some(field => norm(field || '').includes(q));
       const matchesZone = !selectedZone || job.zone === selectedZone || job.zone === 'Todo Tucumán';
       return matchesSearch && matchesZone;
