@@ -45,7 +45,8 @@ function useOnceTrue(flag: boolean) {
   useEffect(() => { if (flag) setSeen(true); }, [flag]);
   return seen || flag;
 }
-import { Job, Category, CATEGORIES_CONFIG, ZONES, rubrosDe, sectionOf } from './types';
+import { Job, Category, CATEGORIES_CONFIG, rubrosDe, sectionOf } from './types';
+import OpcionesZona from './components/OpcionesZona';
 import { useAuth } from './hooks/useAuth';
 import { useInstallApp } from './hooks/useInstallApp';
 import { InstallBanner, IosInstallHelp, useInstallAction } from './components/InstallApp';
@@ -370,7 +371,7 @@ function HomePage() {
                       }`}
                     >
                       <option value="">Toda la provincia</option>
-                      {ZONES.filter(z => z !== 'Todo Tucumán').map(z => <option key={z} value={z}>{z}</option>)}
+                      <OpcionesZona conTodoTucuman={false} />
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" aria-hidden="true" />
                   </label>

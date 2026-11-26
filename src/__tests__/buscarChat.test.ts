@@ -25,6 +25,10 @@ describe('buscador del chat', () => {
   it('reconoce zonas, con o sin acentos', () => {
     expect(zonaEn('plomero en yerba buena')).toBe('Yerba Buena');
     expect(zonaEn('en tafi del valle')).toBe('Tafí del Valle');
+    expect(zonaEn('electricista en santa lucia')).toBe('Santa Lucía');
+    expect(zonaEn('algo en el cadillal')).toBe('El Cadillal');
+    expect(zonaEn('peluqueria en alberdi')).toBe('Juan Bautista Alberdi');
+    expect(zonaEn('gasista en san pedro de colalao')).toBe('San Pedro de Colalao');
     expect(zonaEn('algo en tafi')).toBe('Tafí Viejo');
     expect(zonaEn('en el centro')).toBe('San Miguel de Tucumán');
   });

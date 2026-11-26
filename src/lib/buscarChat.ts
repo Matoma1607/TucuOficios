@@ -112,7 +112,7 @@ export function rubrosEn(texto: string): string[] {
 /** Zona que menciona el texto (la más larga que coincida, para no confundir "Tafí" con "Tafí del Valle") */
 export function zonaEn(texto: string): string | null {
   const t = normalizar(texto);
-  const alias: Record<string, string> = { 'san miguel': 'San Miguel de Tucumán', 'capital': 'San Miguel de Tucumán', 'centro': 'San Miguel de Tucumán', 'tafi': 'Tafí Viejo', 'banda': 'Banda del Río Salí', 'yb': 'Yerba Buena' };
+  const alias: Record<string, string> = { 'san miguel': 'San Miguel de Tucumán', 'capital': 'San Miguel de Tucumán', 'centro': 'San Miguel de Tucumán', 'tafi': 'Tafí Viejo', 'banda': 'Banda del Río Salí', 'yb': 'Yerba Buena', 'cadillal': 'El Cadillal', 'alberdi': 'Juan Bautista Alberdi', 'amaicha': 'Amaicha del Valle', 'mollar': 'El Mollar', 'leales': 'Santa Rosa de Leales', 'quinteros': 'Villa Quinteros' };
   const zonas = ZONES.filter((z) => z !== 'Todo Tucumán').sort((a, b) => b.length - a.length);
   for (const z of zonas) if (t.includes(normalizar(z))) return z;
   for (const [k, z] of Object.entries(alias)) if (empiezaPalabra(t, k)) return z;
