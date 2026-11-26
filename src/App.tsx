@@ -27,6 +27,7 @@ const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const EstadisticasPage = lazy(() => import('./components/EstadisticasPage'));
 const EntregaPage = lazy(() => import('./components/EntregaPage'));
+const TerminosPage = lazy(() => import('./components/TerminosPage'));
 
 /** true en pantallas de 1024px o más (el breakpoint `lg` de Tailwind): ahí entra el texto largo del buscador. */
 function useIsWide() {
@@ -730,6 +731,7 @@ function HomePage() {
                   <li><button type="button" onClick={() => setAssistantOpen(true)} className="hover:text-gray-900">Preguntas frecuentes</button></li>
                   {installApp.canInstall && <li><button type="button" onClick={installAction.run} className="hover:text-gray-900">Instalar la app</button></li>}
                   <li><Link to="/privacidad" className="hover:text-gray-900">Política de privacidad</Link></li>
+                  <li><Link to="/terminos" className="hover:text-gray-900">Términos de uso</Link></li>
                 </ul>
               </nav>
             </div>
@@ -765,6 +767,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/p/:id/:slug?" element={<ProfilePage />} />
         <Route path="/privacidad" element={<PrivacyPolicy />} />
+        <Route path="/terminos" element={<TerminosPage />} />
         <Route path="/estadisticas" element={<EstadisticasPage />} />
         <Route path="/entregar/:codigo" element={<EntregaPage />} />
         <Route path="/:alias" element={<ProfilePage />} />

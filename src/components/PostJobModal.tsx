@@ -13,6 +13,7 @@ import PorQueGratis from './PorQueGratis';
 import RubrosExtra from './RubrosExtra';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 import { iconoRubro } from '../lib/iconosRubro';
+import { Link } from 'react-router-dom';
 
 interface PostJobModalProps {
   isOpen: boolean;
@@ -495,6 +496,12 @@ const PostJobModal = ({ isOpen, onClose, user, onSignIn, onCreated }: PostJobMod
                 })()}
 
                 {errors.submit && <p className="text-red-700 text-sm font-medium text-center bg-red-50 py-3 rounded-lg">{errors.submit}</p>}
+
+                <p className="text-xs text-gray-500 text-center">
+                  Al publicar aceptás los{' '}
+                  <Link to="/terminos" target="_blank" className="underline text-gray-700">Términos de uso</Link> y la{' '}
+                  <Link to="/privacidad" target="_blank" className="underline text-gray-700">Política de privacidad</Link>.
+                </p>
 
                 <button 
                   disabled={isSubmitting}
