@@ -13,6 +13,7 @@ interface JobRow {
   categorias_extra: string[] | null;
   zone: string;
   professional_name: string;
+  negocio: string | null;
   alias: string | null;
   whatsapp: string;
   instagram: string | null;
@@ -30,6 +31,7 @@ export interface JobInput {
   extraCategories?: string[];
   zone: string;
   professionalName: string;
+  negocio?: string | null; // '' o null = sin negocio
   whatsapp: string;
   instagram?: string | null; // usuario sin @, '' o null = sin Instagram
   alias?: string; // link corto; vacío = lo arma la base
@@ -82,6 +84,7 @@ const toJob = (r: JobRow): Job => {
     extraCategories: (r.categorias_extra ?? []).filter((c) => c !== r.category),
     zone: r.zone,
     professionalName: r.professional_name,
+    negocio: r.negocio?.trim() || null,
     alias: r.alias ?? null,
     whatsapp: r.whatsapp,
     instagram: r.instagram ?? null,
@@ -106,6 +109,7 @@ const toRow = (input: JobInput) => ({
     : {}),
   zone: input.zone.trim(),
   professional_name: input.professionalName.trim(),
+  ...(input.negocio !== undefined ? { negocio: input.negocio?.trim() || null } : {}),
   whatsapp: input.whatsapp,
   instagram: input.instagram ? input.instagram : null,
   description: input.description.trim(),

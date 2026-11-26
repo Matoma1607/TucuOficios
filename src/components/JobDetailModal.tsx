@@ -13,6 +13,7 @@ import { whatsappLink, shareUrl } from './JobCard';
 import { Link } from 'react-router-dom';
 import { jobPath } from '../lib/slug';
 import { iconoRubro } from '../lib/iconosRubro';
+import { nombreVisible } from '../types';
 
 interface JobDetailModalProps {
   job: Job | null;
@@ -153,9 +154,10 @@ export function JobInfo({ job, titleId }: { job: Job; titleId?: string }) {
   return (
     <>
       <div className="flex items-center gap-4 pr-8">
-        <Avatar name={job.professionalName} size="lg" />
+        <Avatar name={nombreVisible(job)} size="lg" />
         <div className="min-w-0">
-          <p className="text-lg font-semibold text-gray-900">{job.professionalName}</p>
+          <p className="text-lg font-semibold text-gray-900">{nombreVisible(job)}</p>
+          {job.negocio && <p className="text-sm text-gray-600">a cargo de {job.professionalName}</p>}
           <p className="inline-flex items-center gap-1.5 text-sm text-gray-600">
             <CategoryIcon className="w-4 h-4" aria-hidden="true" /> {categoryInfo?.label ?? job.category}
           </p>

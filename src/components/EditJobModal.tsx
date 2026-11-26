@@ -5,6 +5,7 @@ import { Job, CATEGORIES_CONFIG, Category, ZONES } from '../types';
 import OpcionesZona from './OpcionesZona';
 import { updateJob, uploadJobImage, removeImages, normalizeWhatsapp, formatWhatsappForInput } from '../services/jobs';
 import { normalizeInstagram } from '../lib/instagram';
+import { validarPublicacion } from '../lib/validarPublicacion';
 import PhotoPicker, { PhotoItem } from './PhotoPicker';
 import { useToast } from './Toast';
 import AliasField from './AliasField';
@@ -27,6 +28,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
   const [profName, setProfName] = useState('');
+  const [negocio, setNegocio] = useState('');
   const [description, setDescription] = useState('');
   const [alias, setAlias] = useState('');
   const [aliasOk, setAliasOk] = useState(true);
@@ -48,6 +50,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
       setWhatsapp(formatWhatsappForInput(job.whatsapp || ''));
       setInstagram(job.instagram ?? '');
       setProfName(job.professionalName);
+      setNegocio(job.negocio ?? '');
       setDescription(job.description || '');
       setAlias(job.alias ?? '');
       setEstado(job.estado);
@@ -58,16 +61,26 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
   }, [job]);
 
   const validate = () => {
-    const newErrors: Record<string, string> = {};
-    if (!title.trim() || title.length < 5) newErrors.title = 'Requerido (min 5)';
-    if (!zone.trim()) newErrors.zone = 'Requerido';
-    if (!profName.trim()) newErrors.profName = 'Requerido';
-    if (!description.trim() || description.trim().length < 10) newErrors.description = 'Mínimo 10 caracteres';
-    if (!normalizeWhatsapp(whatsapp)) newErrors.whatsapp = 'Ej: 381 412-3456';
-    if (normalizeInstagram(instagram) === null) newErrors.instagram = 'Revisá el usuario';
+    const v = validarPublicacion({
+      title, category, zone, nombre: profName, negocio, whatsapp, instagram, description, fotos: photos.length,
+    });
+    const { nombre, image, ...resto } = v;
+    const newErrors: Record<string, string> = { ...resto } as Record<string, string>;
+    if (nombre) newErrors.profName = nombre;
+    if (image) newErrors.image = 'Dejá al menos una foto.';
     if (!aliasOk) newErrors.alias = 'Elegí otro link';
-    if (photos.length === 0) newErrors.image = 'Dejá al menos una foto.';
     setErrors(newErrors);
+    const orden: [string, string][] = [
+      ['image', 'edit-fotos'], ['title', 'edit-titulo'], ['category', 'edit-categoria'], ['zone', 'edit-zona'],
+      ['profName', 'edit-nombre'], ['negocio', 'edit-negocio'], ['whatsapp', 'edit-whatsapp'],
+      ['instagram', 'edit-instagram'], ['alias', 'edit-alias'], ['description', 'edit-descripcion'],
+    ];
+    const primero = orden.find(([k]) => newErrors[k]);
+    if (primero) {
+      const el = document.getElementById(primero[1]);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) el.focus({ preventScroll: true });
+    }
     return Object.keys(newErrors).length === 0;
   };
 
@@ -100,6 +113,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
           extraCategories: extras,
           zone,
           professionalName: profName,
+          negocio,
           whatsapp: normalizeWhatsapp(whatsapp)!,
           instagram: normalizeInstagram(instagram) || null,
           description,
@@ -149,9 +163,9 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+            <form noValidate onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
               <div className="space-y-4">
-                <div>
+                <div id="edit-fotos">
                   <label className="block text-sm font-medium text-gray-700 mb-2 ml-1">Fotos</label>
                   <PhotoPicker
                     items={photos}
@@ -163,17 +177,20 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
-                    <label htmlFor="edit-titulo" className="text-sm font-medium text-gray-700">Título</label>
+                    <label htmlFor="edit-titulo" className="text-sm font-medium text-gray-700">¿Qué ofrecés?</label>
                     {errors.title && <span className="text-xs font-medium text-red-600">{errors.title}</span>}
                   </div>
                   <input id="edit-titulo"
                     required
+                    maxLength={80}
+                    placeholder="Ej: Instalación y service de aires split"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
                       errors.title ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                     }`}
                   />
+                  <p className="mt-1.5 ml-1 text-xs text-gray-500">Decí qué hacés en pocas palabras, como lo buscaría un cliente.</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -221,15 +238,32 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
 
                 <div>
                   <div className="flex justify-between items-center mb-2 ml-1">
-                    <label htmlFor="edit-nombre" className="text-sm font-medium text-gray-700">Nombre</label>
+                    <label htmlFor="edit-nombre" className="text-sm font-medium text-gray-700">Tu nombre</label>
                     {errors.profName && <span className="text-xs font-medium text-red-600">{errors.profName}</span>}
                   </div>
                   <input id="edit-nombre"
                     required
+                    maxLength={60}
                     value={profName}
                     onChange={(e) => setProfName(e.target.value)}
                     className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
                       errors.profName ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2 ml-1">
+                    <label htmlFor="edit-negocio" className="text-sm font-medium text-gray-700">Nombre de tu emprendimiento o negocio <span className="font-normal text-gray-500">(opcional)</span></label>
+                    {errors.negocio && <span className="text-xs font-medium text-red-600">{errors.negocio}</span>}
+                  </div>
+                  <input id="edit-negocio"
+                    maxLength={60}
+                    placeholder="Ej: Ferretería Italia"
+                    value={negocio}
+                    onChange={(e) => setNegocio(e.target.value)}
+                    className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors ${
+                      errors.negocio ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
                     }`}
                   />
                 </div>
@@ -282,6 +316,7 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                     value={alias}
                     onChange={(a) => setAlias(a)}
                     nombre={profName}
+                    negocio={negocio}
                     titulo={title}
                     categoria={category}
                     jobId={job?.id}
@@ -334,12 +369,19 @@ const EditJobModal = ({ isOpen, onClose, job, isAdmin, userId, onSaved }: EditJo
                     {errors.description && <span className="text-xs font-medium text-red-600">{errors.description}</span>}
                   </div>
                   <textarea id="edit-descripcion"
-                    placeholder="Descripción del oficio..."
-                    rows={3}
+                    placeholder="Ej: 10 años de experiencia, matriculado. Atiendo de lunes a sábado, presupuesto sin cargo."
+                    rows={4}
+                    maxLength={600}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-white border border-gray-300 focus:border-gray-900 rounded-lg py-3 px-4 outline-none transition-colors resize-none"
+                    className={`w-full bg-white border rounded-lg py-3 px-4 outline-none transition-colors resize-none ${
+                      errors.description ? 'border-red-300 focus:border-red-500' : 'border-gray-300 focus:border-gray-900'
+                    }`}
                   />
+                  <div className="mt-1.5 ml-1 flex justify-between gap-3 text-xs text-gray-500">
+                    <span>Contá experiencia, horarios, si tenés matrícula y hasta dónde te movés.</span>
+                    <span className="tabular-nums flex-none">{description.trim().length}/600</span>
+                  </div>
                 </div>
               </div>
 
