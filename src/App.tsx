@@ -672,11 +672,11 @@ function HomePage() {
             savedCount={savedCount}
             hidden={(anyModalOpen && !showOnboarding) || assistantOpen || (typing && !showOnboarding)}
             avatarUrl={user?.user_metadata?.avatar_url}
-            onHome={() => { setView('all'); setSelectedCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            onSearch={() => { setView('all'); window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => document.getElementById('buscador')?.focus(), 250); }}
-            onPublish={() => setIsModalOpen(true)}
-            onSaved={() => { setView('saved'); setSelectedCategory('All'); document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-            onAccount={() => setAccountOpen(true)}
+            onHome={() => { setAccountOpen(false); setView('all'); setSelectedCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onSearch={() => { setAccountOpen(false); setView('all'); window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => document.getElementById('buscador')?.focus(), 250); }}
+            onPublish={() => { setAccountOpen(false); setIsModalOpen(true); }}
+            onSaved={() => { setAccountOpen(false); setView('saved'); setSelectedCategory('All'); document.getElementById('resultados')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+            onAccount={() => setAccountOpen((v) => !v)}
           />
           <AccountSheet
             open={accountOpen}
@@ -697,7 +697,8 @@ function HomePage() {
           />
 
           <footer className="border-t border-gray-200 bg-white">
-            <div className="max-w-6xl mx-auto px-4 pt-10 pb-10 grid gap-8 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
+            {/* En el celular el pie completo no se muestra: todo está en "Más" del menú de abajo */}
+            <div className="hidden sm:grid max-w-6xl mx-auto px-4 pt-10 pb-10 gap-8 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)]">
               <div>
                 <p className="text-lg font-extrabold tracking-tight text-gray-900" translate="no">
                   Tucu<span className="text-brand-strong">Oficios</span>
@@ -735,8 +736,14 @@ function HomePage() {
                 </ul>
               </nav>
             </div>
-            <div className="border-t border-gray-100">
-              <p className="max-w-6xl mx-auto px-4 py-4 pb-24 sm:pb-4 text-xs text-gray-500">© {new Date().getFullYear()} TucuOficios. Hecho en Tucumán.</p>
+            <div className="sm:border-t border-gray-100">
+              <p className="max-w-6xl mx-auto px-4 pr-20 sm:pr-4 py-4 pb-24 sm:pb-4 text-xs text-gray-500">
+                © {new Date().getFullYear()} TucuOficios<span className="hidden sm:inline">. Hecho en Tucumán.</span>
+                <span className="sm:hidden">
+                  {' · '}<Link to="/privacidad" className="underline underline-offset-2">Privacidad</Link>
+                  {' · '}<Link to="/terminos" className="underline underline-offset-2">Términos</Link>
+                </span>
+              </p>
             </div>
           </footer>
           <IosInstallHelp open={installAction.iosHelp} onClose={installAction.closeIosHelp} />
