@@ -182,9 +182,12 @@ function HomePage() {
   // Búsqueda (sin importar mayúsculas ni acentos) + zona, antes de filtrar por categoría
   const searchedJobs = useMemo(() => {
     const q = norm(searchQuery.trim());
+    // Rubros que nombra la búsqueda por cómo lo dice la gente ("plomero" → Plomería, "uñas" → Uñas)
+    const rubrosQ = q.length >= 3 ? rubrosEn(searchQuery) : [];
     return tabJobs.filter(job => {
       const rubros = rubrosDe(job).flatMap(r => [r, CATEGORIES_CONFIG.find(c => c.id === r)?.label ?? '']);
-      const matchesSearch = !q || [job.title, job.zone, job.professionalName, job.negocio ?? '', ...rubros, job.description]
+      const matchesSearch = !q || rubrosDe(job).some(r => rubrosQ.includes(r)) ||
+        [job.title, job.zone, job.professionalName, job.negocio ?? '', ...rubros, job.description]
         .some(field => norm(field || '').includes(q));
       const matchesZone = !selectedZone || job.zone === selectedZone || job.zone === 'Todo Tucumán';
       return matchesSearch && matchesZone;
