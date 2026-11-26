@@ -8,6 +8,9 @@ export default defineConfig(({mode}) => {
   return {
     plugins: [react(), tailwindcss()],
     define: {
+      // Se muestran al final del menú "Más": versión y día de la última actualización
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '3.0.0'),
+      __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
     },
     resolve: {
       alias: {
