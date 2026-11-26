@@ -27,6 +27,7 @@ describe('buscador del chat', () => {
     expect(zonaEn('en tafi del valle')).toBe('Tafí del Valle');
     expect(zonaEn('electricista en santa lucia')).toBe('Santa Lucía');
     expect(rubrosEn('busco mates y bombillas')).toContain('Mates y Accesorios');
+    for (const [q, r] of [['plomero', 'Plomería'], ['electricista', 'Electricidad'], ['gasista', 'Gasista Matriculado'], ['albañil', 'Albañilería'], ['mecanico', 'Mecánica']] as const) expect(rubrosEn(q), q).toContain(r);
     expect(rubrosEn('plomero en yerba buena')).not.toContain('Mates y Accesorios');
     expect(rubrosEn('arreglo de termotanque')).not.toContain('Mates y Accesorios');
     expect(zonaEn('algo en el cadillal')).toBe('El Cadillal');
