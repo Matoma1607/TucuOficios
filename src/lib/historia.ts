@@ -5,9 +5,9 @@ import { SITIO } from './alias';
 
 const NAVY = '#1E2A5A';
 const NARANJA = '#FF7A1A';
-const FONDO = '#FAF7F2';
-const GRIS = '#6E7488';
-const LINEA = '#E7E2D9';
+const FONDO = '#ECEBE8'; // gris humo
+const GRIS = '#5A6075';
+const LINEA = '#D3D1CC';
 const FUENTE = '"Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif';
 
 export interface DatosHistoria {
@@ -132,7 +132,7 @@ export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasEleme
   const H = 1920;
   const X = 80;
   const ANCHO = W - 2 * X;
-  const FOTO_H = 1000;
+  const FOTO_H = 960;
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
@@ -153,10 +153,23 @@ export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasEleme
   sombra.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = sombra;
   ctx.fillRect(0, 0, W, 300);
+  // Isotipo (el mismo del favicon: cuadrado naranja con la T) + nombre
+  const L = 64;
+  const ly = 150;
+  ctx.save();
+  ctx.translate(X, ly);
+  ctx.scale(L / 64, L / 64);
+  ctx.fillStyle = '#FC6100';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, 64, 64, 14);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fill(new Path2D('M17 18h30v8H36.5v22h-9V26H17z'));
+  ctx.restore();
   ctx.textAlign = 'left';
   ctx.font = `800 40px ${FUENTE}`;
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillText('TucuOficios', X, 190);
+  ctx.fillText('TucuOficios', X + L + 20, ly + 46);
 
   // Rubros como texto: el principal en naranja, los demás en gris, separados por puntos
   let y = FOTO_H + 110;
@@ -193,25 +206,29 @@ export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasEleme
   y += 70;
   ctx.font = `500 34px ${FUENTE}`;
   ctx.fillStyle = GRIS;
-  renglones(ctx, d.descripcion, ANCHO, 3).forEach((l, i) => ctx.fillText(l, X, y + i * 50));
+  const lineas = d.descripcion.trim() ? renglones(ctx, d.descripcion, ANCHO, 2) : [];
+  lineas.forEach((l, i) => ctx.fillText(l, X, y + i * 50));
 
-  // Zona y estado
-  y = 1620;
+  // Zona (y "Verificado" si corresponde), pegada a la descripción: el espacio libre queda abajo
+  y += (lineas.length ? (lineas.length - 1) * 50 : -50) + 60;
   ctx.fillStyle = LINEA;
-  ctx.fillRect(X, y - 62, ANCHO, 2);
+  ctx.fillRect(X, y, ANCHO, 2);
+  y += 62;
   ctx.fillStyle = GRIS;
-  ctx.fillText(ajustar(ctx, d.zona, 500, 30, 24, ANCHO - 220), X, y);
-  ctx.font = `500 30px ${FUENTE}`;
-  ctx.textAlign = 'right';
-  ctx.fillText(d.verificado ? 'Verificado' : 'Revisado', W - X, y);
+  ctx.fillText(ajustar(ctx, d.zona, 500, 30, 24, ANCHO - (d.verificado ? 220 : 0)), X, y);
+  if (d.verificado) {
+    ctx.font = `500 30px ${FUENTE}`;
+    ctx.textAlign = 'right';
+    ctx.fillText('Verificado', W - X, y);
+  }
 
-  // Dónde encontrarlo; debajo queda libre para el sticker de enlace
-  ctx.textAlign = 'center';
-  ctx.font = `500 28px ${FUENTE}`;
-  ctx.fillText('Encontrame en', W / 2, 1720);
-  ctx.fillStyle = NAVY;
-  ctx.fillText(ajustar(ctx, `${SITIO}/${d.alias}`, 700, 36, 24, ANCHO), W / 2, 1770);
+  // Dónde encontrarlo, por encima de la barra de "Enviar mensaje" de Instagram (últimos ~250 px)
   ctx.textAlign = 'left';
+  ctx.fillStyle = GRIS;
+  ctx.font = `500 28px ${FUENTE}`;
+  ctx.fillText('Encontrame en', X, 1610);
+  ctx.fillStyle = NAVY;
+  ctx.fillText(ajustar(ctx, `${SITIO}/${d.alias}`, 700, 36, 24, ANCHO), X, 1660);
 
   return c;
 }

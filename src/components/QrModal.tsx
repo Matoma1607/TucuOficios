@@ -20,7 +20,7 @@ const TEXTOS = {
   },
   historia: {
     titulo: 'Para tus historias',
-    ayuda: 'Subila a tu estado de WhatsApp o a tus historias de Instagram. En Instagram podés sumarle el sticker de link en el espacio libre de abajo.',
+    ayuda: 'Subila a tu estado de WhatsApp o a tus historias de Instagram. En Instagram podés sumarle el sticker de link sobre la parte de abajo de la foto.',
   },
 };
 
