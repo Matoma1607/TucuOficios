@@ -4,23 +4,23 @@ import { SITIO } from './alias';
 // armada con las fotos y los datos de la publicación.
 
 const NAVY = '#1E2A5A';
-const NAVY_OSC = '#151E44';
 const NARANJA = '#FF7A1A';
-const CLARO = '#C9CFE0';
+const FONDO = '#FAF7F2';
+const GRIS = '#6E7488';
+const LINEA = '#E7E2D9';
 const FUENTE = '"Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif';
 
 export interface DatosHistoria {
   alias: string;
   nombre: string;
   titulo: string;
-  categoria: string;
+  /** Rubros ya con su nombre visible, el principal primero */
+  rubros: string[];
+  descripcion: string;
   zona: string;
   verificado: boolean;
   fotos: string[]; // URLs, la portada primero
-  fondo?: Fondo;
 }
-
-export type Fondo = 'azul' | 'claro' | 'naranja' | 'foto';
 
 function cargar(url: string): Promise<HTMLImageElement | null> {
   return new Promise((ok) => {
@@ -73,47 +73,49 @@ function ajustar(ctx: CanvasRenderingContext2D, texto: string, peso: number, tam
   return s;
 }
 
-/** Tilde de "verificado" dentro de un círculo */
-function insigniaVerificado(ctx: CanvasRenderingContext2D, x: number, y: number) {
-  ctx.font = `700 30px ${FUENTE}`;
-  const txt = 'Verificado';
-  const w = ctx.measureText(txt).width + 100;
+/** Tilde dentro de un círculo naranja */
+function tilde(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   ctx.beginPath();
-  ctx.roundRect(x - w, y, w, 64, 32);
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(x - w + 38, y + 32, 16, 0, Math.PI * 2);
-  ctx.fillStyle = '#1D9BF0';
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = NARANJA;
   ctx.fill();
   ctx.strokeStyle = '#FFFFFF';
-  ctx.lineWidth = 4;
+  ctx.lineWidth = r * 0.26;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
-  ctx.moveTo(x - w + 30, y + 32);
-  ctx.lineTo(x - w + 36, y + 38);
-  ctx.lineTo(x - w + 47, y + 26);
+  ctx.moveTo(x - r * 0.45, y);
+  ctx.lineTo(x - r * 0.1, y + r * 0.35);
+  ctx.lineTo(x + r * 0.5, y - r * 0.35);
   ctx.stroke();
-  ctx.fillStyle = NAVY;
-  ctx.textAlign = 'left';
-  ctx.fillText(txt, x - w + 64, y + 43);
 }
 
-/** Marcador de ubicación simple */
-function pin(ctx: CanvasRenderingContext2D, x: number, y: number, color: string) {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(x, y, 13, Math.PI, 0);
-  ctx.lineTo(x, y + 24);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = NAVY;
-  ctx.beginPath();
-  ctx.arc(x, y, 5, 0, Math.PI * 2);
-  ctx.fill();
+/** Corta el texto en renglones; si sobra, el último termina en "…" */
+function renglones(ctx: CanvasRenderingContext2D, texto: string, ancho: number, max: number): string[] {
+  const palabras = texto.replace(/\s+/g, ' ').trim().split(' ');
+  const out: string[] = [];
+  let actual = '';
+  for (const p of palabras) {
+    const prueba = actual ? `${actual} ${p}` : p;
+    if (ctx.measureText(prueba).width > ancho && actual) {
+      out.push(actual);
+      actual = p;
+    } else actual = prueba;
+  }
+  if (actual) out.push(actual);
+  if (out.length > max) {
+    out.length = max;
+    let ult = out[max - 1];
+    while (ctx.measureText(`${ult}…`).width > ancho && ult.includes(' ')) ult = ult.replace(/\s*\S+$/, '');
+    out[max - 1] = `${ult}…`;
+  }
+  return out;
 }
 
+/**
+ * Imagen para historias: la foto del trabajo de borde a borde arriba y, abajo, los datos en un fondo crema.
+ * Sin botones (en una imagen no se pueden tocar): el espacio de abajo queda libre para el sticker de enlace.
+ */
 export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasElement> {
   try {
     await Promise.all([
@@ -124,129 +126,92 @@ export async function dibujarHistoria(d: DatosHistoria): Promise<HTMLCanvasEleme
   } catch {
     /* sin fuentes: usa la del sistema */
   }
-  const fotos = (await Promise.all(d.fotos.slice(0, 3).map(cargar))).filter((f): f is HTMLImageElement => f !== null);
+  const portada = d.fotos[0] ? await cargar(d.fotos[0]) : null;
 
   const W = 1080;
   const H = 1920;
+  const X = 80;
+  const ANCHO = W - 2 * X;
+  const FOTO_H = 1000;
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const ctx = c.getContext('2d')!;
 
-  const fondo = d.fondo ?? 'foto';
-  const oscuro = fondo === 'azul' || fondo === 'foto';
-  const TXT = oscuro ? '#FFFFFF' : NAVY;
-  const SUB = oscuro ? CLARO : '#4B5368';
-  if (fondo === 'claro') {
-    ctx.fillStyle = '#F4F5F7';
-    ctx.fillRect(0, 0, W, H);
-  } else if (fondo === 'naranja') {
-    ctx.fillStyle = NARANJA;
-    ctx.fillRect(0, 0, W, H);
-  } else if (fondo === 'foto' && fotos[0]) {
-    // La portada de fondo, desenfocada y oscurecida
-    ctx.filter = 'blur(40px)';
-    const f = fotos[0];
-    const esc = Math.max(W / f.width, H / f.height) * 1.15;
-    ctx.drawImage(f, (W - f.width * esc) / 2, (H - f.height * esc) / 2, f.width * esc, f.height * esc);
-    ctx.filter = 'none';
-    ctx.fillStyle = 'rgba(21,30,68,0.72)';
-    ctx.fillRect(0, 0, W, H);
-  } else {
-    // Azul con un brillo naranja suave arriba
+  ctx.fillStyle = FONDO;
+  ctx.fillRect(0, 0, W, H);
+
+  // Foto de borde a borde (si es un flyer muy vertical se ve entera sobre una copia desenfocada)
+  if (portada) fotoCover(ctx, portada, 0, 0, W, FOTO_H, 0);
+  else {
     ctx.fillStyle = NAVY;
-    ctx.fillRect(0, 0, W, H);
-    const brillo = ctx.createRadialGradient(W * 0.85, 80, 0, W * 0.85, 80, 900);
-    brillo.addColorStop(0, 'rgba(255,122,26,0.35)');
-    brillo.addColorStop(1, 'rgba(255,122,26,0)');
-    ctx.fillStyle = brillo;
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, W, FOTO_H);
   }
-
-  // Marca
+  // sombra suave arriba para que el logo se lea sobre cualquier foto
+  const sombra = ctx.createLinearGradient(0, 0, 0, 300);
+  sombra.addColorStop(0, 'rgba(0,0,0,0.35)');
+  sombra.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = sombra;
+  ctx.fillRect(0, 0, W, 300);
   ctx.textAlign = 'left';
-  ctx.font = `800 52px ${FUENTE}`;
-  const wT = ctx.measureText('Tucu').width;
-  ctx.fillStyle = TXT;
-  ctx.fillText('Tucu', 60, 200);
-  ctx.fillStyle = fondo === 'naranja' ? '#FFFFFF' : NARANJA;
-  ctx.fillText('Oficios', 60 + wT, 200);
+  ctx.font = `800 40px ${FUENTE}`;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('TucuOficios', X, 190);
 
-  // Fotos
-  const X = 60;
-  const ANCHO = W - 120;
-  let y = 250; // arriba y abajo dejamos lugar para los controles de las historias
-  const vertical = (f: HTMLImageElement) => f.width / f.height < 0.8;
-  const columnas = fotos.length >= 2 && vertical(fotos[0]);
-  if (columnas) {
-    // Fotos verticales (por ejemplo flyers): la principal alta a la izquierda y las otras en columna
-    const wGrande = 600;
-    const wCol = ANCHO - wGrande - 20;
-    fotoCover(ctx, fotos[0], X, y, wGrande, 960, 36);
-    if (fotos.length >= 3) {
-      fotoCover(ctx, fotos[1], X + wGrande + 20, y, wCol, 470, 28);
-      fotoCover(ctx, fotos[2], X + wGrande + 20, y + 490, wCol, 470, 28);
-    } else {
-      fotoCover(ctx, fotos[1], X + wGrande + 20, y, wCol, 960, 28);
+  // Rubros como texto: el principal en naranja, los demás en gris, separados por puntos
+  let y = FOTO_H + 110;
+  let x = X;
+  d.rubros.slice(0, 4).forEach((r, i) => {
+    if (i) {
+      if (x + 30 > W - X) return;
+      ctx.fillStyle = LINEA;
+      ctx.beginPath();
+      ctx.arc(x + 14, y - 10, 4, 0, Math.PI * 2);
+      ctx.fill();
+      x += 30;
     }
-    y += 960;
-  } else if (fotos.length >= 3) {
-    fotoCover(ctx, fotos[0], X, y, ANCHO, 660, 36);
-    const w2 = (ANCHO - 20) / 2;
-    fotoCover(ctx, fotos[1], X, y + 680, w2, 280, 28);
-    fotoCover(ctx, fotos[2], X + w2 + 20, y + 680, w2, 280, 28);
-    y += 960;
-  } else if (fotos.length === 2) {
-    fotoCover(ctx, fotos[0], X, y, ANCHO, 660, 36);
-    fotoCover(ctx, fotos[1], X, y + 680, ANCHO, 280, 28);
-    y += 960;
-  } else if (fotos.length === 1) {
-    fotoCover(ctx, fotos[0], X, y, ANCHO, 960, 36);
-    y += 960;
-  } else {
-    ctx.beginPath();
-    ctx.roundRect(X, y, ANCHO, 960, 36);
-    ctx.fillStyle = NAVY_OSC;
-    ctx.fill();
-    y += 960;
-  }
-  if (d.verificado) insigniaVerificado(ctx, X + (columnas ? 600 : ANCHO) - 24, 274);
+    ctx.font = `${i ? 500 : 700} 30px ${FUENTE}`;
+    const w = ctx.measureText(r).width;
+    if (x + w > W - X) return;
+    ctx.fillStyle = i ? GRIS : NARANJA;
+    ctx.fillText(r, x, y);
+    x += w + 2;
+  });
 
-  // Datos
-  y += 70;
-  ctx.textAlign = 'left';
-  ctx.font = `700 30px ${FUENTE}`;
-  const cat = d.categoria;
-  const wc = ctx.measureText(cat).width + 48;
-  ctx.beginPath();
-  ctx.roundRect(X, y, wc, 56, 28);
-  ctx.fillStyle = oscuro ? 'rgba(255,122,26,0.18)' : fondo === 'naranja' ? 'rgba(30,42,90,0.12)' : '#FDE7D3';
-  ctx.fill();
-  ctx.fillStyle = oscuro ? '#FFB27A' : fondo === 'naranja' ? NAVY : '#9A3412';
-  ctx.fillText(cat, X + 24, y + 39);
+  // Nombre (+ tilde si está verificado)
+  y += 104;
+  const nombre = ajustar(ctx, d.nombre, 800, 86, 52, ANCHO - (d.verificado ? 70 : 0));
+  const tam = Number(/(\d+)px/.exec(ctx.font)?.[1] ?? 86);
+  ctx.fillStyle = NAVY;
+  ctx.fillText(nombre, X, y);
+  if (d.verificado) tilde(ctx, X + ctx.measureText(nombre).width + 38, y - tam * 0.36, 22);
 
-  y += 130;
-  ctx.fillStyle = TXT;
-  ctx.fillText(ajustar(ctx, d.nombre, 800, 76, 48, ANCHO), X, y);
-  y += 64;
-  ctx.fillStyle = fondo === 'naranja' ? NAVY : SUB;
+  // Título y descripción
+  y += 66;
+  ctx.fillStyle = NAVY;
   ctx.fillText(ajustar(ctx, d.titulo, 500, 40, 30, ANCHO), X, y);
-  y += 62;
-  pin(ctx, X + 13, y - 22, fondo === 'naranja' ? NAVY : NARANJA);
-  ctx.fillStyle = fondo === 'naranja' ? NAVY : SUB;
-  ctx.fillText(ajustar(ctx, d.zona, 500, 36, 28, ANCHO - 50), X + 44, y);
+  y += 70;
+  ctx.font = `500 34px ${FUENTE}`;
+  ctx.fillStyle = GRIS;
+  renglones(ctx, d.descripcion, ANCHO, 3).forEach((l, i) => ctx.fillText(l, X, y + i * 50));
 
-  // Llamado a la acción
-  const by = H - 340;
-  ctx.beginPath();
-  ctx.roundRect(X, by, ANCHO, 170, 40);
-  ctx.fillStyle = fondo === 'naranja' ? NAVY : NARANJA;
-  ctx.fill();
+  // Zona y estado
+  y = 1620;
+  ctx.fillStyle = LINEA;
+  ctx.fillRect(X, y - 62, ANCHO, 2);
+  ctx.fillStyle = GRIS;
+  ctx.fillText(ajustar(ctx, d.zona, 500, 30, 24, ANCHO - 220), X, y);
+  ctx.font = `500 30px ${FUENTE}`;
+  ctx.textAlign = 'right';
+  ctx.fillText(d.verificado ? 'Verificado' : 'Revisado', W - X, y);
+
+  // Dónde encontrarlo; debajo queda libre para el sticker de enlace
   ctx.textAlign = 'center';
-  ctx.fillStyle = fondo === 'naranja' ? '#FFFFFF' : NAVY;
-  ctx.font = `800 42px ${FUENTE}`;
-  ctx.fillText('Pedí presupuesto por WhatsApp', W / 2, by + 72);
-  ctx.fillText(ajustar(ctx, `${SITIO}/${d.alias}`, 600, 36, 26, ANCHO - 80), W / 2, by + 126);
+  ctx.font = `500 28px ${FUENTE}`;
+  ctx.fillText('Encontrame en', W / 2, 1720);
+  ctx.fillStyle = NAVY;
+  ctx.fillText(ajustar(ctx, `${SITIO}/${d.alias}`, 700, 36, 24, ANCHO), W / 2, 1770);
+  ctx.textAlign = 'left';
 
   return c;
 }

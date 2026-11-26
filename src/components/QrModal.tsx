@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Download, Share2, Loader2 } from 'lucide-react';
-import type { Job } from '../types';
+import { CATEGORIES_CONFIG, rubrosDe, type Job } from '../types';
 import { dibujarTarjetaQR, aBlob } from '../lib/qrTarjeta';
 import { dibujarHistoria } from '../lib/historia';
 import { SITIO } from '../lib/alias';
@@ -20,7 +20,7 @@ const TEXTOS = {
   },
   historia: {
     titulo: 'Para tus historias',
-    ayuda: 'Subila a tu estado de WhatsApp o a tus historias de Instagram. En Instagram podés sumarle el sticker de link encima del botón naranja.',
+    ayuda: 'Subila a tu estado de WhatsApp o a tus historias de Instagram. En Instagram podés sumarle el sticker de link en el espacio libre de abajo.',
   },
 };
 
@@ -43,11 +43,16 @@ export default function QrModal({ job, tipo = 'qr', onClose }: Props) {
       verificado: job.verificado,
       fotos: job.photoUrls,
     };
+    const historia = {
+      ...datos,
+      rubros: rubrosDe(job).map((id) => CATEGORIES_CONFIG.find((c) => c.id === id)?.label ?? id),
+      descripcion: job.description,
+    };
     const armar =
       tipo === 'qr'
         ? dibujarTarjetaQR(datos).then(aBlob)
         // Si alguna foto no deja usarse en la imagen, se arma sin fotos antes que fallar
-        : dibujarHistoria(datos).then(aBlob).catch(() => dibujarHistoria({ ...datos, fotos: [] }).then(aBlob));
+        : dibujarHistoria(historia).then(aBlob).catch(() => dibujarHistoria({ ...historia, fotos: [] }).then(aBlob));
     armar
       .then((b) => {
         blob.current = b;
