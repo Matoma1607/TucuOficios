@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Home, Search, Plus, Heart, UserRound } from 'lucide-react';
+import { Home, Search, Plus, Heart, Menu } from 'lucide-react';
 
 // El botón Publicar "late" 3 veces una sola vez por visita, para que se note sin molestar
 function useLatidoPublicar() {
@@ -84,12 +84,14 @@ export default function BottomNav({ active, savedCount, hidden, avatarUrl, onHom
           Guardados
         </button>
         <button type="button" onClick={onAccount} className={item(active === 'account')} aria-current={active === 'account' ? 'page' : undefined}>
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className={`w-[24px] h-[24px] rounded-full ${active === 'account' ? 'ring-2 ring-gray-900' : ''}`} />
-          ) : (
-            <UserRound className="w-[22px] h-[22px]" aria-hidden="true" />
-          )}
-          Cuenta
+          <span className="relative">
+            <Menu className="w-[22px] h-[22px]" strokeWidth={active === 'account' ? 2.4 : 2} aria-hidden="true" />
+            {/* con sesión iniciada, su foto chiquita sobre el ícono */}
+            {avatarUrl && (
+              <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="absolute -bottom-1 -right-2 w-[14px] h-[14px] rounded-full ring-2 ring-white" />
+            )}
+          </span>
+          Más
         </button>
       </div>
     </nav>
