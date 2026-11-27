@@ -102,6 +102,14 @@ export default function TerminosPage() {
             </p>
           </Punto>
 
+          <Punto titulo="8. Contacto">
+            <p>
+              Para consultas, reclamos o pedir que bajemos una publicación, escribinos a{' '}
+              <a href="mailto:contacto@tucuoficios.net.ar" className="underline text-gray-900">contacto@tucuoficios.net.ar</a> o por WhatsApp al{' '}
+              <a href={WA_OFICIAL} target="_blank" rel="noopener noreferrer" className="underline text-gray-900">381 321-7398</a>.
+            </p>
+          </Punto>
+
           <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row gap-6 sm:items-center justify-between">
             <Link to="/" className="inline-flex justify-center items-center px-5 py-3 rounded-xl bg-brand-dark text-white font-semibold hover:opacity-95">
               Volver al inicio
