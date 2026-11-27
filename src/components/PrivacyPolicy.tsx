@@ -131,7 +131,8 @@ export default function PrivacyPolicy() {
             <p>
               Según la Ley 25.326 de Protección de Datos Personales, podés pedir ver, corregir o borrar tus datos. Lo más rápido es editarlos o
               borrarlos vos desde "Mis publicaciones". Para cualquier otro pedido, como borrar tu cuenta, escribinos al{' '}
-              <a href={WA_OFICIAL} target="_blank" rel="noopener noreferrer" className="underline text-gray-900">381 321-7398</a> y lo resolvemos
+              <a href={WA_OFICIAL} target="_blank" rel="noopener noreferrer" className="underline text-gray-900">381 321-7398</a> o a{' '}
+              <a href="mailto:contacto@tucuoficios.net.ar" className="underline text-gray-900">contacto@tucuoficios.net.ar</a> y lo resolvemos
               dentro de los plazos de la ley: 10 días corridos para darte acceso y 5 días hábiles para corregir o borrar.
             </p>
             <p className="text-sm">
